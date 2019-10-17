@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:38:47 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/10/17 16:55:07 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2019/10/17 18:18:52 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ typedef struct		s_sphere
 	t_vec3			*center;
 	float			radius;
 	int				color;
+	float			specular;
 }					t_sphere;
 
 typedef struct		s_mlx
@@ -64,6 +65,9 @@ typedef struct		s_mlx
 	t_vec3			*l_point;
 	t_vec3			*l_normal;
 	t_vec3			*l_vec;
+
+	t_vec3			*s_dir;
+	t_vec3			*s_refl;
 
 	float			t1;
 	float			t2;

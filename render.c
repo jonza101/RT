@@ -6,13 +6,13 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 18:38:56 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/10/17 17:22:46 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2019/10/17 18:17:55 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "rt.h"
 
-float	ft_light_calc(t_mlx *mlx, t_vec3 *point, t_vec3 *normal)
+float	ft_light_calc(t_mlx *mlx, t_vec3 *point, t_vec3 *normal, t_vec3 *spec_view, float specular)
 {
 	float intensity = 0.0f;
 	int i = -1;
@@ -36,9 +36,22 @@ float	ft_light_calc(t_mlx *mlx, t_vec3 *point, t_vec3 *normal)
 				mlx->l_vec->y = mlx->light[i]->vec->y;
 				mlx->l_vec->z = mlx->light[i]->vec->z;
 			}
-			float dot_l = ft_dot_prod(normal, mlx->l_vec);
+
+			float dot_l = ft_dot_prod(normal, mlx->l_vec);		//		DIFFUSION
 			if (dot_l > 0.0f)
 				intensity += ((float)mlx->light[i]->intensity * (float)dot_l / ((float)ft_vec_len(normal) * (float)ft_vec_len(mlx->l_vec)));
+
+			if (specular > 0.0f)								//		SPECULAR
+			{
+				float s_dot = ft_dot_prod(normal, mlx->l_vec);
+				mlx->s_refl->x = 2.0f * normal->x * s_dot - mlx->l_vec->x;
+				mlx->s_refl->y = 2.0f * normal->y * s_dot - mlx->l_vec->y;
+				mlx->s_refl->z = 2.0f * normal->z * s_dot - mlx->l_vec->z;
+
+				float refl_dot_v = ft_dot_prod(mlx->s_refl, spec_view);
+				if (refl_dot_v > 0.0f)
+					intensity += (mlx->light[i]->intensity * powf(refl_dot_v / ((float)ft_vec_len(mlx->s_refl) * (float)(ft_vec_len(spec_view))), specular));
+			}
 		}
 	}
 	return (intensity);
@@ -49,7 +62,6 @@ void	ft_ray_intersect(t_mlx *mlx, t_sphere *sph)
 	mlx->oc->x = mlx->cam->x - sph->center->x;
 	mlx->oc->y = mlx->cam->y - sph->center->y;
 	mlx->oc->z = mlx->cam->z - sph->center->z;
-
 
 	float k1 = ft_dot_prod(mlx->dir, mlx->dir);
 	float k2 = 2.0f * ft_dot_prod(mlx->oc, mlx->dir);
@@ -73,7 +85,7 @@ int		ft_trace_ray(t_mlx *mlx, float min, float max)
 	t_sphere *closest_sph = NULL;
 
 	int i = -1;
-	while (++i < 2)		//		SPHERE COUNT
+	while (++i < 3)		//		SPHERE COUNT
 	{
 		ft_ray_intersect(mlx, mlx->sph[i]);
 		if (mlx->t1 >= min && mlx->t2 <= max && mlx->t1 < closest)
@@ -104,7 +116,11 @@ int		ft_trace_ray(t_mlx *mlx, float min, float max)
 	mlx->l_normal->y = (float)mlx->l_normal->y / (float)len;
 	mlx->l_normal->z = (float)mlx->l_normal->z / (float)len;
 
-	float lum = ft_light_calc(mlx, mlx->l_point, mlx->l_normal);
+	mlx->s_dir->x = -mlx->dir->x;
+	mlx->s_dir->y = -mlx->dir->y;
+	mlx->s_dir->z = -mlx->dir->z;
+
+	float lum = ft_light_calc(mlx, mlx->l_point, mlx->l_normal, mlx->s_dir, closest_sph->specular);
 	if (lum > 1.0f)
 		lum = 1.0f;
 
