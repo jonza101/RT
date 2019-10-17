@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 18:38:56 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/10/17 17:12:40 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2019/10/17 17:22:46 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ float	ft_light_calc(t_mlx *mlx, t_vec3 *point, t_vec3 *normal)
 				mlx->l_vec->y = mlx->light[i]->vec->y - point->y;
 				mlx->l_vec->z = mlx->light[i]->vec->z - point->z;
 			}
-			else
+			else if (mlx->light[i]->type == 2)
 			{
 				mlx->l_vec->x = mlx->light[i]->vec->x;
 				mlx->l_vec->y = mlx->light[i]->vec->y;
