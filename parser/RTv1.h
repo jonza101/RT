@@ -53,4 +53,39 @@ typedef struct		s_mlx
 	t_light			*h_light;
 }					t_mlx;
 
+/*
+ ** tools.c
+ */
+void		error(char *str);
+int			count_words(char **str);
+void		free_splited(char **splited_str);
+int			ft_isspace(char c);
+float		ft_atof(char *str);
+
+/*
+ ** read_object.c
+ */
+
+void		add_lst_object(t_mlx *mlx, t_object *object);
+void		read_c(t_mlx *mlx, int fd, int type);
+void		read_plane(t_mlx *mlx, int fd, int type);
+void		read_sphere(t_mlx *mlx, int fd, int type);
+//void		get_formula(int type, t_object *object);
+
+/*
+ ** get.c
+ */
+
+void		get_color(char *str, int *r, int *g, int *b);
+int 		get_type_o(char *str);
+t_point		*get_point(char *str);
+int 		get_type_l(char *str);
+float		get_float(char *str);
+
+/*
+ ** init.c
+ */
+
+t_mlx		*init_mlx_to_zero();
+
 #endif
