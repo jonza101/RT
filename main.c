@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:42:38 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/10/17 18:10:20 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2019/10/19 18:45:52 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,8 +42,8 @@ void	ft_init(t_mlx *mlx)
 	mlx->oc = (t_vec3*)malloc(sizeof(t_vec3));
 	mlx->dir = (t_vec3*)malloc(sizeof(t_vec3));
 
-	mlx->l_point = (t_vec3*)malloc(sizeof(t_vec3));
-	mlx->l_normal = (t_vec3*)malloc(sizeof(t_vec3));
+	mlx->point = (t_vec3*)malloc(sizeof(t_vec3));
+	mlx->normal = (t_vec3*)malloc(sizeof(t_vec3));
 	mlx->l_vec = (t_vec3*)malloc(sizeof(t_vec3));
 
 	mlx->s_dir = (t_vec3*)malloc(sizeof(t_vec3));
@@ -86,20 +86,20 @@ void	ft_init(t_mlx *mlx)
 	mlx->light[0]->vec = NULL;
 
 	mlx->light[1] = (t_light*)malloc(sizeof(t_light));
-	mlx->light[1]->type = 2;
+	mlx->light[1]->type = 1;
 	mlx->light[1]->intensity = 0.45f;
 	mlx->light[1]->vec = (t_vec3*)malloc(sizeof(t_vec3));
-	mlx->light[1]->vec->x = 4.0f;
-	mlx->light[1]->vec->y = 4.0f;
-	mlx->light[1]->vec->z = 5.0f;
+	mlx->light[1]->vec->x = 0.0f;
+	mlx->light[1]->vec->y = -3.0f;
+	mlx->light[1]->vec->z = 0.0f;
 
 	mlx->light[2] = (t_light*)malloc(sizeof(t_light));
-	mlx->light[2]->type = 1;
-	mlx->light[2]->intensity = 0.55f;
+	mlx->light[2]->type = 2;
+	mlx->light[2]->intensity = 0.6f;
 	mlx->light[2]->vec = (t_vec3*)malloc(sizeof(t_vec3));
 	mlx->light[2]->vec->x = 0.0f;
-	mlx->light[2]->vec->y = -2.0f;
-	mlx->light[2]->vec->z = 1.0f;
+	mlx->light[2]->vec->y = -1.0f;
+	mlx->light[2]->vec->z = 0.0f;
 }
 
 int		main()
