@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:38:47 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/10/19 18:42:42 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2019/10/21 19:03:14 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,9 +66,9 @@ typedef struct		s_mlx
 
 	t_vec3			*point;
 	t_vec3			*normal;
-	t_vec3			*l_vec;
+	t_vec3			*light_dir;
 
-	t_vec3			*s_dir;
+	t_vec3			*neg_dir;
 	t_vec3			*s_refl;
 
 	float			closest;
@@ -87,5 +87,3 @@ float				ft_vec_len(t_vec3 *vec);
 int					ft_color_convert(int color, double lum);
 
 void                ft_render(t_mlx *mlx);
-
-t_sphere			*ft_closest_sph_intersection(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max);

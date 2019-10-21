@@ -6,63 +6,11 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 18:38:56 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/10/19 18:42:25 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2019/10/21 19:06:01 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "rt.h"
-
-float	ft_light_calc(t_mlx *mlx, t_vec3 *point, t_vec3 *normal, t_vec3 *v, float specular)
-{
-	float intensity = 0.0f;
-	float s_max;
-	int i = -1;
-	while (++i < 3)
-	{
-		if (mlx->light[i]->type == 0)
-			intensity += mlx->light[i]->intensity;
-		else
-		{
-			if (mlx->light[i]->type == 1)
-			{
-				mlx->l_vec->x = mlx->light[i]->vec->x - point->x;
-				mlx->l_vec->y = mlx->light[i]->vec->y - point->y;
-				mlx->l_vec->z = mlx->light[i]->vec->z - point->z;
-				s_max = 1.0f;
-			}
-			else if (mlx->light[i]->type == 2)
-			{
-				mlx->l_vec->x = mlx->light[i]->vec->x;
-				mlx->l_vec->y = mlx->light[i]->vec->y;
-				mlx->l_vec->z = mlx->light[i]->vec->z;
-				s_max = INFINITY;
-			}
-			else
-				continue;
-
-			t_sphere *s_sph = ft_closest_sph_intersection(mlx, point, mlx->l_vec, 0.001f, s_max);
-			if (s_sph)
-				continue;
-
-			float n_dot_l = ft_dot_prod(normal, mlx->l_vec);
-			if (n_dot_l > 0.0f)
-				intensity += ((float)mlx->light[i]->intensity * (float)n_dot_l / (float)((float)ft_vec_len(normal) * (float)ft_vec_len(mlx->l_vec)));
-
-			if (specular > 0.0f)
-			{
-				float dot = ft_dot_prod(normal, mlx->l_vec);
-				mlx->s_refl->x = 2.0f * normal->x * dot - mlx->l_vec->x;
-				mlx->s_refl->y = 2.0f * normal->y * dot - mlx->l_vec->y;
-				mlx->s_refl->z = 2.0f * normal->z * dot - mlx->l_vec->z;
-
-				float r_dot_v = ft_dot_prod(mlx->s_refl, v);
-				if (r_dot_v > 0.0f)
-					intensity += (mlx->light[i]->intensity * powf((float)r_dot_v / (float)((float)ft_vec_len(mlx->s_refl) * (float)ft_vec_len(v)), specular));
-			}
-		}
-	}
-	return (intensity);
-}
 
 void	ft_sph_ray_intersect(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, t_sphere *sph)
 {
@@ -128,15 +76,61 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max)
 	mlx->normal->y = (float)mlx->normal->y / (float)normal_len;
 	mlx->normal->z = (float)mlx->normal->z / (float)normal_len;
 
-	mlx->s_dir->x = -dir->x;
-	mlx->s_dir->y = -dir->y;
-	mlx->s_dir->z = -dir->z;
+	mlx->neg_dir->x = -dir->x;
+	mlx->neg_dir->y = -dir->y;
+	mlx->neg_dir->z = -dir->z;
 
-	float lum = ft_light_calc(mlx, mlx->point, mlx->normal, mlx->s_dir, sph->specular);
-	if (lum > 1.0f)
-		lum = 1.0f;
-	int color = ft_color_convert(sph->color, lum);
-	return (ft_color_convert(sph->color, lum));
+	float intensity = 0.0f;
+	float s_max;
+	int i = -1;
+	while (++i < 3)
+	{
+		if (mlx->light[i]->type == 0)
+			intensity += mlx->light[i]->intensity;
+		else
+		{
+			if (mlx->light[i]->type == 1)
+			{
+				mlx->light_dir->x = mlx->light[i]->vec->x - mlx->point->x;
+				mlx->light_dir->y = mlx->light[i]->vec->y - mlx->point->y;
+				mlx->light_dir->z = mlx->light[i]->vec->z - mlx->point->z;
+				s_max = 1.0f;
+			}
+			else if (mlx->light[i]->type == 2)
+			{
+				mlx->light_dir->x = mlx->light[i]->vec->x;
+				mlx->light_dir->y = mlx->light[i]->vec->y;
+				mlx->light_dir->z = mlx->light[i]->vec->z;
+				s_max = INFINITY;
+			}
+			else
+				continue;
+
+			t_sphere *s_sph = ft_closest_sph_intersection(mlx, mlx->point, mlx->light_dir, 0.001f, s_max);
+			if (s_sph)
+				continue;
+
+			float n_dot_l = ft_dot_prod(mlx->normal, mlx->light_dir);
+			if (n_dot_l > 0.0f)
+				intensity += ((float)mlx->light[i]->intensity * (float)n_dot_l / (float)((float)ft_vec_len(mlx->normal) * (float)ft_vec_len(mlx->light_dir)));
+
+			if (sph->specular > 0.0f)
+			{
+				float dot = ft_dot_prod(mlx->normal, mlx->light_dir);
+				mlx->s_refl->x = 2.0f * mlx->normal->x * dot - mlx->light_dir->x;
+				mlx->s_refl->y = 2.0f * mlx->normal->y * dot - mlx->light_dir->y;
+				mlx->s_refl->z = 2.0f * mlx->normal->z * dot - mlx->light_dir->z;
+
+				float r_dot_v = ft_dot_prod(mlx->s_refl, mlx->neg_dir);
+				if (r_dot_v > 0.0f)
+					intensity += (mlx->light[i]->intensity * powf((float)r_dot_v / (float)((float)ft_vec_len(mlx->s_refl) * (float)ft_vec_len(mlx->neg_dir)), sph->specular));
+			}
+		}
+	}
+
+	if (intensity > 1.0f)
+		intensity = 1.0f;
+	return (ft_color_convert(sph->color, intensity));
 }
 
 void	ft_render(t_mlx *mlx)
@@ -148,7 +142,7 @@ void	ft_render(t_mlx *mlx)
         while (++y < H / 2)
         {
 			mlx->dir->x = (float)x / (float)W * (float)AR;
-			mlx->dir->y = (float)y / (float)H;
+			mlx->dir->y = -(float)y / (float)H;
 			mlx->dir->z = 1.0f;
 			int color = ft_trace_ray(mlx, mlx->cam, mlx->dir, 1.0f, INFINITY);
 			int xc = x + W / 2;

@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:42:38 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/10/19 18:45:52 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2019/10/21 18:55:22 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,9 +44,9 @@ void	ft_init(t_mlx *mlx)
 
 	mlx->point = (t_vec3*)malloc(sizeof(t_vec3));
 	mlx->normal = (t_vec3*)malloc(sizeof(t_vec3));
-	mlx->l_vec = (t_vec3*)malloc(sizeof(t_vec3));
+	mlx->light_dir = (t_vec3*)malloc(sizeof(t_vec3));
 
-	mlx->s_dir = (t_vec3*)malloc(sizeof(t_vec3));
+	mlx->neg_dir = (t_vec3*)malloc(sizeof(t_vec3));
 	mlx->s_refl = (t_vec3*)malloc(sizeof(t_vec3));
 
 	mlx->sph = (t_sphere**)malloc(sizeof(t_sphere*) * 3);
@@ -63,7 +63,7 @@ void	ft_init(t_mlx *mlx)
 	mlx->sph[1] = (t_sphere*)malloc(sizeof(t_sphere));
     mlx->sph[1]->center = (t_vec3*)malloc(sizeof(t_vec3));
     mlx->sph[1]->center->x = -1.5f;
-    mlx->sph[1]->center->y = -1.0f;
+    mlx->sph[1]->center->y = 1.0f;
     mlx->sph[1]->center->z = 5.5f;
     mlx->sph[1]->radius = 0.75f;
     mlx->sph[1]->color = 0xFF0000;
@@ -72,7 +72,7 @@ void	ft_init(t_mlx *mlx)
 	mlx->sph[2] = (t_sphere*)malloc(sizeof(t_sphere));
     mlx->sph[2]->center = (t_vec3*)malloc(sizeof(t_vec3));
     mlx->sph[2]->center->x = -1.0f;
-    mlx->sph[2]->center->y = 1.0f;
+    mlx->sph[2]->center->y = -1.0f;
     mlx->sph[2]->center->z = 5.75f;
     mlx->sph[2]->radius = 1.25f;
     mlx->sph[2]->color = 0xFF00FF;
@@ -90,7 +90,7 @@ void	ft_init(t_mlx *mlx)
 	mlx->light[1]->intensity = 0.45f;
 	mlx->light[1]->vec = (t_vec3*)malloc(sizeof(t_vec3));
 	mlx->light[1]->vec->x = 0.0f;
-	mlx->light[1]->vec->y = -3.0f;
+	mlx->light[1]->vec->y = 3.0f;
 	mlx->light[1]->vec->z = 0.0f;
 
 	mlx->light[2] = (t_light*)malloc(sizeof(t_light));
@@ -98,7 +98,7 @@ void	ft_init(t_mlx *mlx)
 	mlx->light[2]->intensity = 0.6f;
 	mlx->light[2]->vec = (t_vec3*)malloc(sizeof(t_vec3));
 	mlx->light[2]->vec->x = 0.0f;
-	mlx->light[2]->vec->y = -1.0f;
+	mlx->light[2]->vec->y = 1.0f;
 	mlx->light[2]->vec->z = 0.0f;
 }
 
