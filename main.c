@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:42:38 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/10/21 18:55:22 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2019/10/23 18:51:15 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,26 @@ int		ft_close(int i)
 int		ft_key_press(int keycode, t_mlx *mlx)
 {
     (keycode == MAC_ESC) ? exit(0) : 1;
+	if (keycode == MAC_A)
+	{
+		mlx->cam->x -= 0.1f;
+		printf("x %f\n", mlx->cam->x);
+	}
+	if (keycode == MAC_D)
+	{
+		mlx->cam->x += 0.1f;
+		printf("x %f\n", mlx->cam->x);
+	}
+	if (keycode == MAC_W)
+	{
+		mlx->cam->z += 0.1f;
+		printf("z %f\n", mlx->cam->z);
+	}
+	if (keycode == MAC_S)
+	{
+		mlx->cam->z -= 0.1f;
+		printf("z %f\n", mlx->cam->z);
+	}
     return (0);
 }
 
@@ -49,36 +69,74 @@ void	ft_init(t_mlx *mlx)
 	mlx->neg_dir = (t_vec3*)malloc(sizeof(t_vec3));
 	mlx->s_refl = (t_vec3*)malloc(sizeof(t_vec3));
 
-	mlx->sph = (t_sphere**)malloc(sizeof(t_sphere*) * 3);
 
-    mlx->sph[0] = (t_sphere*)malloc(sizeof(t_sphere));
-    mlx->sph[0]->center = (t_vec3*)malloc(sizeof(t_vec3));
-    mlx->sph[0]->center->x = 0.0f;
-    mlx->sph[0]->center->y = 0.0f;
-    mlx->sph[0]->center->z = 5.0f;
-    mlx->sph[0]->radius = 0.5f;
-    mlx->sph[0]->color = 0xFFFF00;
-	mlx->sph[0]->specular = 0.0f;
+	mlx->obj = (t_obj**)malloc(sizeof(t_obj*) * 4);
+	mlx->obj_count = 4;
 
-	mlx->sph[1] = (t_sphere*)malloc(sizeof(t_sphere));
-    mlx->sph[1]->center = (t_vec3*)malloc(sizeof(t_vec3));
-    mlx->sph[1]->center->x = -1.5f;
-    mlx->sph[1]->center->y = 1.0f;
-    mlx->sph[1]->center->z = 5.5f;
-    mlx->sph[1]->radius = 0.75f;
-    mlx->sph[1]->color = 0xFF0000;
-	mlx->sph[1]->specular = 250.0f;
+	int i = -1;
+	while (++i < 4)
+	{
+		mlx->obj[i] = (t_obj*)malloc(sizeof(t_obj));
+		mlx->obj[i]->c = (t_vec3*)malloc(sizeof(t_vec3));
+		mlx->obj[i]->normal = NULL;
+		if (i > 2)
+			mlx->obj[i]->normal = (t_vec3*)malloc(sizeof(t_vec3));
+	}
 
-	mlx->sph[2] = (t_sphere*)malloc(sizeof(t_sphere));
-    mlx->sph[2]->center = (t_vec3*)malloc(sizeof(t_vec3));
-    mlx->sph[2]->center->x = -1.0f;
-    mlx->sph[2]->center->y = -1.0f;
-    mlx->sph[2]->center->z = 5.75f;
-    mlx->sph[2]->radius = 1.25f;
-    mlx->sph[2]->color = 0xFF00FF;
-	mlx->sph[2]->specular = 2500.0f;
+	mlx->obj[0]->c->x = 0.0f;
+	mlx->obj[0]->c->y = 0.0f;
+	mlx->obj[0]->c->z = 5.0f;
+	mlx->obj[0]->radius = 0.5f;
+	mlx->obj[0]->color = 0x00CCFF;
+	mlx->obj[0]->specular = 0.0f;
+	mlx->obj[0]->intersect = ft_sph_intersect;
+	mlx->obj[0]->normal_calc = ft_sph_normal_calc;
+
+	mlx->obj[1]->c->x = -1.5f;
+	mlx->obj[1]->c->y = 1.0f;
+	mlx->obj[1]->c->z = 5.5f;
+	mlx->obj[1]->radius = 0.75f;
+	mlx->obj[1]->color = 0x00CC99;
+	mlx->obj[1]->specular = 75.0f;
+	mlx->obj[1]->intersect = ft_sph_intersect;
+	mlx->obj[1]->normal_calc = ft_sph_normal_calc;
+
+	mlx->obj[2]->c->x = -1.0f;
+	mlx->obj[2]->c->y = -1.0f;
+	mlx->obj[2]->c->z = 5.75f;
+	mlx->obj[2]->radius = 1.25f;
+	mlx->obj[2]->color = 0xBD0052;
+	mlx->obj[2]->specular = 1000.0f;
+	mlx->obj[2]->intersect = ft_sph_intersect;
+	mlx->obj[2]->normal_calc = ft_sph_normal_calc;
+
+	mlx->obj[3]->c->x = 0.0f;
+	mlx->obj[3]->c->y = -1.25f;
+	mlx->obj[3]->c->z = 25.0f;
+	mlx->obj[3]->normal->x = 0.0f;
+	mlx->obj[3]->normal->y = 0.0f;
+	mlx->obj[3]->normal->z = -1.0f;
+	mlx->obj[3]->normal = ft_vec_normalize(mlx->obj[3]->normal);
+	mlx->obj[3]->color = 0xFFFFFF;
+	mlx->obj[3]->specular = 0.0f;
+	mlx->obj[3]->intersect = ft_plane_intersect;
+	mlx->obj[3]->normal_calc = ft_plane_normal_calc;
+
+	// mlx->obj[4]->c->x = 1.5f;
+	// mlx->obj[4]->c->y = -1.0f;
+	// mlx->obj[4]->c->z = 7.0f;
+	// mlx->obj[4]->radius = 0.25f;
+	// mlx->obj[4]->normal->x = 1.0f;
+	// mlx->obj[4]->normal->y = 0.0f;
+	// mlx->obj[4]->normal->z = 0.0f;
+	// mlx->obj[4]->color = 0x00FFEA;
+	// mlx->obj[4]->specular = 1500.0f;
+	// mlx->obj[4]->intersect = ft_cone_intersect;
+	// mlx->obj[4]->normal_calc = ft_cone_normal_calc;
+
 
 	mlx->light = (t_light**)malloc(sizeof(t_light*) * 3);
+	mlx->light_count = 3;
 
 	mlx->light[0] = (t_light*)malloc(sizeof(t_light));
 	mlx->light[0]->type = 0;
@@ -94,12 +152,12 @@ void	ft_init(t_mlx *mlx)
 	mlx->light[1]->vec->z = 0.0f;
 
 	mlx->light[2] = (t_light*)malloc(sizeof(t_light));
-	mlx->light[2]->type = 2;
-	mlx->light[2]->intensity = 0.6f;
+	mlx->light[2]->type = 1;
+	mlx->light[2]->intensity = 0.25f;
 	mlx->light[2]->vec = (t_vec3*)malloc(sizeof(t_vec3));
-	mlx->light[2]->vec->x = 0.0f;
-	mlx->light[2]->vec->y = 1.0f;
-	mlx->light[2]->vec->z = 0.0f;
+	mlx->light[2]->vec->x = -3.25f;
+	mlx->light[2]->vec->y = 2.5f;
+	mlx->light[2]->vec->z = 4.4f;
 }
 
 int		main()

@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:38:47 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/10/21 19:03:14 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2019/10/23 18:51:57 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <limits.h>
 
 #include <pthread.h>
 
@@ -41,13 +42,19 @@ typedef	struct		s_light				//		0 - AMBIENT		|	1 - POINT	|	2 - DIRECTIONAL		|
 	t_vec3			*vec;
 }					t_light;
 
-typedef struct		s_sphere
+typedef	struct		s_obj
 {
-	t_vec3			*center;
+	t_vec3			*c;
 	float			radius;
+	float			height;
+	t_vec3			*normal;
+
 	int				color;
 	float			specular;
-}					t_sphere;
+
+	float			(*intersect) (void* mlxx, t_vec3 *origin, t_vec3 *dir, struct s_obj *obj);
+	t_vec3*			(*normal_calc) (t_vec3 *normal, t_vec3 *point, struct s_obj *obj);
+}					t_obj;
 
 typedef struct		s_mlx
 {
@@ -76,14 +83,31 @@ typedef struct		s_mlx
 	float			t1;
 	float			t2;
 
-	t_sphere		**sph;
+	t_obj			**obj;
+	int				obj_count;
 
 	t_light			**light;
+	int				light_count;
 }					t_mlx;
 
 
+float				ft_max(float a, float b);
+
 float				ft_dot_prod(t_vec3 *a, t_vec3 *b);
 float				ft_vec_len(t_vec3 *vec);
+t_vec3				*ft_vec_normalize(t_vec3 *vec);
+t_vec3				*ft_vec_sub(t_vec3 *a, t_vec3 *b);
+t_vec3				*ft_vec_scale(t_vec3 *a, float scale);
 int					ft_color_convert(int color, double lum);
 
 void                ft_render(t_mlx *mlx);
+
+float				ft_sph_intersect(void *mlxx, t_vec3 *origin, t_vec3 *dir, t_obj *obj);
+float				ft_plane_intersect(void *mlxx, t_vec3 *origin, t_vec3 *dir, t_obj *obj);
+float				ft_cone_intersect(void *mlxx, t_vec3 *origin, t_vec3 *dir, t_obj *obj);
+
+t_vec3				*ft_sph_normal_calc(t_vec3 *normal, t_vec3 *point, t_obj *obj);
+t_vec3				*ft_plane_normal_calc(t_vec3 *normal, t_vec3 *point, t_obj *obj);
+
+// float				ft_sph_intersect(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, t_obj *obj);
+// float				ft_plane_intersect(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, t_obj *obj);
