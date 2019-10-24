@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:42:38 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/10/23 18:51:15 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2019/10/24 13:13:07 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,11 +70,11 @@ void	ft_init(t_mlx *mlx)
 	mlx->s_refl = (t_vec3*)malloc(sizeof(t_vec3));
 
 
-	mlx->obj = (t_obj**)malloc(sizeof(t_obj*) * 4);
-	mlx->obj_count = 4;
+	mlx->obj_count = 5;
+	mlx->obj = (t_obj**)malloc(sizeof(t_obj*) * mlx->obj_count);
 
 	int i = -1;
-	while (++i < 4)
+	while (++i < mlx->obj_count)
 	{
 		mlx->obj[i] = (t_obj*)malloc(sizeof(t_obj));
 		mlx->obj[i]->c = (t_vec3*)malloc(sizeof(t_vec3));
@@ -122,21 +122,21 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[3]->intersect = ft_plane_intersect;
 	mlx->obj[3]->normal_calc = ft_plane_normal_calc;
 
-	// mlx->obj[4]->c->x = 1.5f;
-	// mlx->obj[4]->c->y = -1.0f;
-	// mlx->obj[4]->c->z = 7.0f;
-	// mlx->obj[4]->radius = 0.25f;
-	// mlx->obj[4]->normal->x = 1.0f;
-	// mlx->obj[4]->normal->y = 0.0f;
-	// mlx->obj[4]->normal->z = 0.0f;
-	// mlx->obj[4]->color = 0x00FFEA;
-	// mlx->obj[4]->specular = 1500.0f;
-	// mlx->obj[4]->intersect = ft_cone_intersect;
-	// mlx->obj[4]->normal_calc = ft_cone_normal_calc;
+	mlx->obj[4]->c->x = 2.0f;
+	mlx->obj[4]->c->y = 1.0f;
+	mlx->obj[4]->c->z = 5.0f;
+	mlx->obj[4]->radius = 0.25f;
+	mlx->obj[4]->normal->x = 0.0f;
+	mlx->obj[4]->normal->y = 1.0f;
+	mlx->obj[4]->normal->z = 0.0f;
+	mlx->obj[4]->color = 0x8CFF00;
+	mlx->obj[4]->specular = 750.0f;
+	mlx->obj[4]->intersect = ft_cone_intersect;
+	mlx->obj[4]->normal_calc = ft_cone_normal_calc;
 
 
-	mlx->light = (t_light**)malloc(sizeof(t_light*) * 3);
 	mlx->light_count = 3;
+	mlx->light = (t_light**)malloc(sizeof(t_light*) * mlx->light_count);
 
 	mlx->light[0] = (t_light*)malloc(sizeof(t_light));
 	mlx->light[0]->type = 0;
@@ -157,7 +157,7 @@ void	ft_init(t_mlx *mlx)
 	mlx->light[2]->vec = (t_vec3*)malloc(sizeof(t_vec3));
 	mlx->light[2]->vec->x = -3.25f;
 	mlx->light[2]->vec->y = 2.5f;
-	mlx->light[2]->vec->z = 4.4f;
+	mlx->light[2]->vec->z = 4.0f;
 }
 
 int		main()

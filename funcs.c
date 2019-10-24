@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 18:45:21 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/10/23 18:45:38 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2019/10/24 13:10:54 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,22 +38,6 @@ t_vec3		*ft_vec_normalize(t_vec3 *vec)
 	vec->y = (float)vec->y / (float)len;
 	vec->z = (float)vec->z / (float)len;
 	return (vec);
-}
-
-t_vec3		*ft_vec_sub(t_vec3 *a, t_vec3 *b)
-{
-	a->x -= b->x;
-	a->y -= b->y;
-	a->z -= b->z;
-	return (a);
-}
-
-t_vec3		*ft_vec_scale(t_vec3 *a, float scale)
-{
-	a->x *= scale;
-	a->y *= scale;
-	a->z *= scale;
-	return (a);
 }
 
 int			ft_color_convert(int color, double lum)
