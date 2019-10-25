@@ -22,15 +22,25 @@ int		ft_key_press(int keycode, t_mlx *mlx)
 {
     (keycode == MAC_ESC) ? exit(0) : 1;
 	if (keycode == MAC_A)
-	{
-		mlx->cam->x -= 0.1f;
-		printf("x %f\n", mlx->cam->x);
-	}
-	if (keycode == MAC_D)
-	{
-		mlx->cam->x += 0.1f;
-		printf("x %f\n", mlx->cam->x);
-	}
+    {
+        mlx->dx -= 0.1f;
+        printf("x %f\n", mlx->cam->x);
+    }
+    if (keycode == MAC_D)
+    {
+        mlx->dx += 0.1f;
+        printf("x %f\n", mlx->cam->x);
+    }
+    if (keycode == MAC_Q)
+    {
+        mlx->dy -= 0.1f;
+        printf("x %f\n", mlx->cam->x);
+    }
+    if (keycode == MAC_E)
+    {
+        mlx->dy += 0.1f;
+        printf("x %f\n", mlx->cam->x);
+    }
 	if (keycode == MAC_W)
 	{
 		mlx->cam->z += 0.1f;
@@ -58,6 +68,9 @@ void	ft_init(t_mlx *mlx)
     mlx->cam->x = 0.0f;
     mlx->cam->y = 0.0f;
     mlx->cam->z = 0.0f;
+
+    mlx->dx = 0.0f;
+    mlx->dy = 0.0f;
 
 	mlx->oc = (t_vec3*)malloc(sizeof(t_vec3));
 	mlx->dir = (t_vec3*)malloc(sizeof(t_vec3));
@@ -101,7 +114,7 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[1]->specular = 75.0f;
 	mlx->obj[1]->intersect = ft_sph_intersect;
 	mlx->obj[1]->normal_calc = ft_sph_normal_calc;
-    mlx->obj[1]->mirrored = 1;
+    mlx->obj[1]->mirrored = 0.1;
 
 	mlx->obj[2]->c->x = -1.0f;
 	mlx->obj[2]->c->y = -1.0f;
@@ -111,7 +124,7 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[2]->specular = 500.0f;
 	mlx->obj[2]->intersect = ft_sph_intersect;
 	mlx->obj[2]->normal_calc = ft_sph_normal_calc;
-    mlx->obj[2]->mirrored = 0;
+    mlx->obj[2]->mirrored = 0.5;
 
 	mlx->obj[3]->c->x = 0.0f;
 	mlx->obj[3]->c->y = -1.25f;
@@ -150,7 +163,7 @@ void	ft_init(t_mlx *mlx)
     mlx->obj[5]->specular = 750.0f;
     mlx->obj[5]->intersect = ft_cylinder_intersect;
     mlx->obj[5]->normal_calc = ft_cylinder_normal_calc;
-    mlx->obj[5]->mirrored = 0;
+    mlx->obj[5]->mirrored = 0.3;
 /*
     mlx->obj[0]->c->x = 0.0f;
     mlx->obj[0]->c->y = -10.0f;

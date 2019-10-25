@@ -68,6 +68,9 @@ typedef struct		s_mlx
 	int				size_line;
 	int				endian;
 
+	float           dx;
+	float           dy;
+
 	t_vec3			*cam;
 	t_vec3			*dir;
 

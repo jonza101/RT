@@ -139,8 +139,8 @@ void	ft_render(t_mlx *mlx)
         int y = -H / 2 - 1;
         while (++y < H / 2)
         {
-			mlx->dir->x = (float)x / (float)W * (float)AR;
-			mlx->dir->y = -(float)y / (float)H;
+			mlx->dir->x = (float)x / (float)W * (float)AR + mlx->dx;
+			mlx->dir->y = -(float)y / (float)H + mlx->dy;
 			mlx->dir->z = 1.0f;
 			int color = ft_trace_ray(mlx, mlx->cam, mlx->dir, 1.0f, MAXFLOAT, 0);
 			int xc = x + W / 2;
