@@ -54,6 +54,8 @@ typedef	struct		s_obj
 
 	float			(*intersect) (void* mlxx, t_vec3 *origin, t_vec3 *dir, struct s_obj *obj);
 	t_vec3*			(*normal_calc) (t_vec3 *normal, t_vec3 *point, struct s_obj *obj);
+
+	float           mirrored;
 }					t_obj;
 
 typedef struct		s_mlx
@@ -65,6 +67,9 @@ typedef struct		s_mlx
 	int				bpp;
 	int				size_line;
 	int				endian;
+
+	float           dx;
+	float           dy;
 
 	t_vec3			*cam;
 	t_vec3			*dir;
@@ -97,13 +102,16 @@ float				ft_dot_prod(t_vec3 *a, t_vec3 *b);
 float				ft_vec_len(t_vec3 *vec);
 t_vec3				*ft_vec_normalize(t_vec3 *vec);
 int					ft_color_convert(int color, double lum);
+int         ft_sum_color(int c1, int c2, float k1, float k2);
 
 void                ft_render(t_mlx *mlx);
 
 float				ft_sph_intersect(void *mlxx, t_vec3 *origin, t_vec3 *dir, t_obj *obj);
 float				ft_plane_intersect(void *mlxx, t_vec3 *origin, t_vec3 *dir, t_obj *obj);
 float				ft_cone_intersect(void *mlxx, t_vec3 *origin, t_vec3 *dir, t_obj *obj);
+float				ft_cylinder_intersect(void *mlxx, t_vec3 *origin, t_vec3 *dir, t_obj *obj);
 
 t_vec3				*ft_sph_normal_calc(t_vec3 *normal, t_vec3 *point, t_obj *obj);
 t_vec3				*ft_plane_normal_calc(t_vec3 *normal, t_vec3 *point, t_obj *obj);
 t_vec3				*ft_cone_normal_calc(t_vec3 *normal, t_vec3 *point, t_obj *obj);
+t_vec3				*ft_cylinder_normal_calc(t_vec3 *normal, t_vec3 *point, t_obj *obj);

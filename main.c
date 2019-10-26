@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:42:38 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/10/24 13:13:07 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2019/10/26 13:26:05 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,15 +22,25 @@ int		ft_key_press(int keycode, t_mlx *mlx)
 {
     (keycode == MAC_ESC) ? exit(0) : 1;
 	if (keycode == MAC_A)
-	{
-		mlx->cam->x -= 0.1f;
-		printf("x %f\n", mlx->cam->x);
-	}
-	if (keycode == MAC_D)
-	{
-		mlx->cam->x += 0.1f;
-		printf("x %f\n", mlx->cam->x);
-	}
+    {
+        mlx->dx -= 0.1f;
+        printf("x %f\n", mlx->cam->x);
+    }
+    if (keycode == MAC_D)
+    {
+        mlx->dx += 0.1f;
+        printf("x %f\n", mlx->cam->x);
+    }
+    if (keycode == MAC_Q)
+    {
+        mlx->dy -= 0.1f;
+        printf("x %f\n", mlx->cam->x);
+    }
+    if (keycode == MAC_E)
+    {
+        mlx->dy += 0.1f;
+        printf("x %f\n", mlx->cam->x);
+    }
 	if (keycode == MAC_W)
 	{
 		mlx->cam->z += 0.1f;
@@ -59,6 +69,9 @@ void	ft_init(t_mlx *mlx)
     mlx->cam->y = 0.0f;
     mlx->cam->z = 0.0f;
 
+    mlx->dx = 0.0f;
+    mlx->dy = 0.0f;
+
 	mlx->oc = (t_vec3*)malloc(sizeof(t_vec3));
 	mlx->dir = (t_vec3*)malloc(sizeof(t_vec3));
 
@@ -70,7 +83,7 @@ void	ft_init(t_mlx *mlx)
 	mlx->s_refl = (t_vec3*)malloc(sizeof(t_vec3));
 
 
-	mlx->obj_count = 5;
+	mlx->obj_count = 6;
 	mlx->obj = (t_obj**)malloc(sizeof(t_obj*) * mlx->obj_count);
 
 	int i = -1;
@@ -78,9 +91,7 @@ void	ft_init(t_mlx *mlx)
 	{
 		mlx->obj[i] = (t_obj*)malloc(sizeof(t_obj));
 		mlx->obj[i]->c = (t_vec3*)malloc(sizeof(t_vec3));
-		mlx->obj[i]->normal = NULL;
-		if (i > 2)
-			mlx->obj[i]->normal = (t_vec3*)malloc(sizeof(t_vec3));
+		mlx->obj[i]->normal = (t_vec3*)malloc(sizeof(t_vec3));
 	}
 
 	mlx->obj[0]->c->x = 0.0f;
@@ -91,6 +102,7 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[0]->specular = 0.0f;
 	mlx->obj[0]->intersect = ft_sph_intersect;
 	mlx->obj[0]->normal_calc = ft_sph_normal_calc;
+	mlx->obj[0]->mirrored = 0.0f;
 
 	mlx->obj[1]->c->x = -1.5f;
 	mlx->obj[1]->c->y = 1.0f;
@@ -100,15 +112,17 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[1]->specular = 75.0f;
 	mlx->obj[1]->intersect = ft_sph_intersect;
 	mlx->obj[1]->normal_calc = ft_sph_normal_calc;
+    mlx->obj[1]->mirrored = 0.4f;
 
 	mlx->obj[2]->c->x = -1.0f;
 	mlx->obj[2]->c->y = -1.0f;
 	mlx->obj[2]->c->z = 5.75f;
 	mlx->obj[2]->radius = 1.25f;
 	mlx->obj[2]->color = 0xBD0052;
-	mlx->obj[2]->specular = 1000.0f;
+	mlx->obj[2]->specular = 500.0f;
 	mlx->obj[2]->intersect = ft_sph_intersect;
 	mlx->obj[2]->normal_calc = ft_sph_normal_calc;
+    mlx->obj[2]->mirrored = 0.5f;
 
 	mlx->obj[3]->c->x = 0.0f;
 	mlx->obj[3]->c->y = -1.25f;
@@ -116,27 +130,46 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[3]->normal->x = 0.0f;
 	mlx->obj[3]->normal->y = 0.0f;
 	mlx->obj[3]->normal->z = -1.0f;
-	mlx->obj[3]->normal = ft_vec_normalize(mlx->obj[3]->normal);
 	mlx->obj[3]->color = 0xFFFFFF;
 	mlx->obj[3]->specular = 0.0f;
 	mlx->obj[3]->intersect = ft_plane_intersect;
 	mlx->obj[3]->normal_calc = ft_plane_normal_calc;
+    mlx->obj[3]->mirrored = 0.0f;
 
 	mlx->obj[4]->c->x = 2.0f;
-	mlx->obj[4]->c->y = 1.0f;
+	mlx->obj[4]->c->y = 0.0f;
 	mlx->obj[4]->c->z = 5.0f;
 	mlx->obj[4]->radius = 0.25f;
-	mlx->obj[4]->normal->x = 0.0f;
+	mlx->obj[4]->normal->x = 0.1f;
 	mlx->obj[4]->normal->y = 1.0f;
 	mlx->obj[4]->normal->z = 0.0f;
 	mlx->obj[4]->color = 0x8CFF00;
 	mlx->obj[4]->specular = 750.0f;
 	mlx->obj[4]->intersect = ft_cone_intersect;
 	mlx->obj[4]->normal_calc = ft_cone_normal_calc;
+    mlx->obj[4]->mirrored = 0.0f;
 
+    mlx->obj[5]->c->x = -7.0f;
+    mlx->obj[5]->c->y = 0.0f;
+    mlx->obj[5]->c->z = 15.0f;
+    mlx->obj[5]->radius = 0.25f;
+    mlx->obj[5]->normal->x = -0.2f;
+    mlx->obj[5]->normal->y = 1.0f;
+    mlx->obj[5]->normal->z = 0.0f;
+    mlx->obj[5]->color = 0xFF00FF;
+    mlx->obj[5]->specular = 750.0f;
+    mlx->obj[5]->intersect = ft_cylinder_intersect;
+    mlx->obj[5]->normal_calc = ft_cylinder_normal_calc;
+    mlx->obj[5]->mirrored = 0.3;
 
 	mlx->light_count = 3;
 	mlx->light = (t_light**)malloc(sizeof(t_light*) * mlx->light_count);
+	i = -1;
+	while (++i < mlx->light_count)
+	{
+		mlx->light[i] = (t_light*)malloc(sizeof(t_light));
+		mlx->light[i]->vec = (t_vec3*)malloc(sizeof(t_vec3));
+	}
 
 	mlx->light[0] = (t_light*)malloc(sizeof(t_light));
 	mlx->light[0]->type = 0;
