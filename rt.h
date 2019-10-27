@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:38:47 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/10/24 13:11:02 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2019/10/28 01:18:34 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,7 @@ typedef	struct		s_obj
 	float			specular;
 
 	float			(*intersect) (void* mlxx, t_vec3 *origin, t_vec3 *dir, struct s_obj *obj);
-	t_vec3*			(*normal_calc) (t_vec3 *normal, t_vec3 *point, struct s_obj *obj);
+	t_vec3*			(*normal_calc) (t_vec3 *normal, t_vec3 *dir, t_vec3 *point, struct s_obj *obj);
 
 	float           mirrored;
 }					t_obj;
@@ -111,7 +111,7 @@ float				ft_plane_intersect(void *mlxx, t_vec3 *origin, t_vec3 *dir, t_obj *obj)
 float				ft_cone_intersect(void *mlxx, t_vec3 *origin, t_vec3 *dir, t_obj *obj);
 float				ft_cylinder_intersect(void *mlxx, t_vec3 *origin, t_vec3 *dir, t_obj *obj);
 
-t_vec3				*ft_sph_normal_calc(t_vec3 *normal, t_vec3 *point, t_obj *obj);
-t_vec3				*ft_plane_normal_calc(t_vec3 *normal, t_vec3 *point, t_obj *obj);
-t_vec3				*ft_cone_normal_calc(t_vec3 *normal, t_vec3 *point, t_obj *obj);
-t_vec3				*ft_cylinder_normal_calc(t_vec3 *normal, t_vec3 *point, t_obj *obj);
+t_vec3				*ft_sph_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj);
+t_vec3				*ft_plane_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj);
+t_vec3				*ft_cone_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj);
+t_vec3				*ft_cylinder_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj);

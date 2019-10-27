@@ -6,13 +6,13 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/23 17:41:14 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/10/26 13:23:59 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2019/10/28 01:18:55 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "rt.h"
 
-t_vec3		*ft_sph_normal_calc(t_vec3 *normal, t_vec3 *point, t_obj *obj)
+t_vec3		*ft_sph_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj)
 {
 	normal->x = point->x - obj->c->x;
 	normal->y = point->y - obj->c->y;
@@ -21,15 +21,24 @@ t_vec3		*ft_sph_normal_calc(t_vec3 *normal, t_vec3 *point, t_obj *obj)
 	return (normal);
 }
 
-t_vec3		*ft_plane_normal_calc(t_vec3 *normal, t_vec3 *point, t_obj *obj)
+t_vec3		*ft_plane_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj)
 {
-	normal->x = obj->normal->x;
-	normal->y = obj->normal->y;
-	normal->z = obj->normal->z;
+	if (ft_dot_prod(dir, obj->normal) > 0.0f)
+	{
+		normal->x = -obj->normal->x;
+		normal->y = -obj->normal->y;
+		normal->z = -obj->normal->z;
+	}
+	else
+	{
+		normal->x = obj->normal->x;
+		normal->y = obj->normal->y;
+		normal->z = obj->normal->z;
+	}
 	return (normal);
 }
 
-t_vec3		*ft_cone_normal_calc(t_vec3 *normal, t_vec3 *point, t_obj *obj)
+t_vec3		*ft_cone_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj)
 {
     normal->x = point->x - obj->c->x;
     normal->y = point->y - obj->c->y;
@@ -48,7 +57,7 @@ t_vec3		*ft_cone_normal_calc(t_vec3 *normal, t_vec3 *point, t_obj *obj)
     return (normal);
 }
 
-t_vec3		*ft_cylinder_normal_calc(t_vec3 *normal, t_vec3 *point, t_obj *obj)
+t_vec3		*ft_cylinder_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj)
 {
     normal->x = point->x - obj->c->x;
     normal->y = point->y - obj->c->y;

@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:42:38 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/10/26 13:26:05 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2019/10/28 01:19:07 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,33 +20,34 @@ int		ft_close(int i)
 
 int		ft_key_press(int keycode, t_mlx *mlx)
 {
+	printf("%d\n", keycode);
     (keycode == MAC_ESC) ? exit(0) : 1;
-	if (keycode == MAC_A)
+	if (keycode == MAC_A || keycode == 1734)
     {
         mlx->dx -= 0.1f;
         printf("x %f\n", mlx->cam->x);
     }
-    if (keycode == MAC_D)
+    if (keycode == MAC_D || keycode == 1751)
     {
         mlx->dx += 0.1f;
         printf("x %f\n", mlx->cam->x);
     }
-    if (keycode == MAC_Q)
+    if (keycode == MAC_Q || keycode == 1738)
     {
         mlx->dy -= 0.1f;
         printf("x %f\n", mlx->cam->x);
     }
-    if (keycode == MAC_E)
+    if (keycode == MAC_E || keycode == 1749)
     {
         mlx->dy += 0.1f;
         printf("x %f\n", mlx->cam->x);
     }
-	if (keycode == MAC_W)
+	if (keycode == MAC_W || keycode == 1731)
 	{
 		mlx->cam->z += 0.1f;
 		printf("z %f\n", mlx->cam->z);
 	}
-	if (keycode == MAC_S)
+	if (keycode == MAC_S || keycode == 1753)
 	{
 		mlx->cam->z -= 0.1f;
 		printf("z %f\n", mlx->cam->z);
@@ -94,6 +95,31 @@ void	ft_init(t_mlx *mlx)
 		mlx->obj[i]->normal = (t_vec3*)malloc(sizeof(t_vec3));
 	}
 
+	// mlx->obj[0]->c->x = 0.0f;
+	// mlx->obj[0]->c->y = -5.0f;
+	// mlx->obj[0]->c->z = 5.0f;
+	// mlx->obj[0]->normal->x = 0.0f;
+	// mlx->obj[0]->normal->y = 1.0f;
+	// mlx->obj[0]->normal->z = 0.0f;
+	// mlx->obj[0]->color = 0xFFFFFF;
+	// mlx->obj[0]->specular = 0.0f;
+	// mlx->obj[0]->intersect = ft_plane_intersect;
+	// mlx->obj[0]->normal_calc = ft_plane_normal_calc;
+	// mlx->obj[0]->mirrored = 0.0f;
+
+	// mlx->obj[1]->c->x = 0.0f;
+	// mlx->obj[1]->c->y = 5.0f;
+	// mlx->obj[1]->c->z = 10.0f;
+	// mlx->obj[1]->normal->x = 0.0f;
+	// mlx->obj[1]->normal->y = 0.0f;
+	// mlx->obj[1]->normal->z = 1.0f;
+	// mlx->obj[1]->color = 0xFF0000;
+	// mlx->obj[1]->specular = 0.0f;
+	// mlx->obj[1]->intersect = ft_plane_intersect;
+	// mlx->obj[1]->normal_calc = ft_plane_normal_calc;
+	// mlx->obj[1]->mirrored = 0.0f;
+
+
 	mlx->obj[0]->c->x = 0.0f;
 	mlx->obj[0]->c->y = 0.0f;
 	mlx->obj[0]->c->z = 5.0f;
@@ -128,16 +154,16 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[3]->c->y = -1.25f;
 	mlx->obj[3]->c->z = 25.0f;
 	mlx->obj[3]->normal->x = 0.0f;
-	mlx->obj[3]->normal->y = 0.0f;
-	mlx->obj[3]->normal->z = -1.0f;
+	mlx->obj[3]->normal->y = 1.0f;
+	mlx->obj[3]->normal->z = 0.0f;
 	mlx->obj[3]->color = 0xFFFFFF;
 	mlx->obj[3]->specular = 0.0f;
 	mlx->obj[3]->intersect = ft_plane_intersect;
 	mlx->obj[3]->normal_calc = ft_plane_normal_calc;
-    mlx->obj[3]->mirrored = 0.0f;
+    mlx->obj[3]->mirrored = 0.5f;
 
 	mlx->obj[4]->c->x = 2.0f;
-	mlx->obj[4]->c->y = 0.0f;
+	mlx->obj[4]->c->y = 1.0f;
 	mlx->obj[4]->c->z = 5.0f;
 	mlx->obj[4]->radius = 0.25f;
 	mlx->obj[4]->normal->x = 0.1f;
@@ -160,7 +186,7 @@ void	ft_init(t_mlx *mlx)
     mlx->obj[5]->specular = 750.0f;
     mlx->obj[5]->intersect = ft_cylinder_intersect;
     mlx->obj[5]->normal_calc = ft_cylinder_normal_calc;
-    mlx->obj[5]->mirrored = 0.3;
+    mlx->obj[5]->mirrored = 0.3f;
 
 	mlx->light_count = 3;
 	mlx->light = (t_light**)malloc(sizeof(t_light*) * mlx->light_count);

@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/23 16:38:57 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/10/26 13:03:16 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2019/10/28 00:34:02 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ float		ft_plane_intersect(void *mlxx, t_vec3 *origin, t_vec3 *dir, t_obj *obj)
 		mlx->oc->y = obj->c->y - origin->y;
 		mlx->oc->z = obj->c->z - origin->z;
 
-		float t = (float)ft_dot_prod(mlx->oc, obj->normal) / (float)denom;
+		float t = (float)ft_dot_prod(mlx->oc, obj->normal) / (float)(denom);
 		if (t > 0.000001f)
 			return (t);
 	}

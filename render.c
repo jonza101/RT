@@ -6,20 +6,20 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 18:38:56 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/10/26 13:05:23 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2019/10/28 01:16:46 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "rt.h"
-#include <float.h>
+#include <limits.h>
 
 t_obj		*ft_closest_intersection(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max)
 {
-	mlx->closest = FLT_MAX;
+	mlx->closest = max;
 	t_obj *closest_obj = NULL;
 
 	int i = -1;
-	while (++i < mlx->obj_count - 0)
+	while (++i < mlx->obj_count)
 	{
 		float t = mlx->obj[i]->intersect((void*)mlx, origin, dir, mlx->obj[i]);
 		if (t >= min && t < mlx->closest)
@@ -64,7 +64,7 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 	mlx->point->y = origin->y + mlx->closest * dir->y;
 	mlx->point->z = origin->z + mlx->closest * dir->z;
 
-	mlx->normal = obj->normal_calc(mlx->normal, mlx->point, obj);
+	mlx->normal = obj->normal_calc(mlx->normal, dir, mlx->point, obj);
 
 	mlx->neg_dir->x = -dir->x;
 	mlx->neg_dir->y = -dir->y;
@@ -88,15 +88,13 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 				mlx->light_dir->z = mlx->light[i]->vec->z - mlx->point->z;
 				s_max = 1.0f;
 			}
-			// else if (mlx->light[i]->type == 2)
-			// {
-			// 	mlx->light_dir->x = mlx->light[i]->vec->x;
-			// 	mlx->light_dir->y = mlx->light[i]->vec->y;
-			// 	mlx->light_dir->z = mlx->light[i]->vec->z;
-			// 	s_max = MAXFLOAT;
-			// }
 			else
 				continue;
+
+			float dx = mlx->point->x - mlx->light[i]->vec->x;
+			float dy = mlx->point->y - mlx->light[i]->vec->y;
+			float dz = mlx->point->z - mlx->light[i]->vec->z;
+			float light_dist = sqrtf(dx * dx + dy * dy + dz * dz);
 
 			t_obj *s_obj = ft_closest_intersection(mlx, mlx->point, mlx->light_dir, 0.000001f, s_max);
 			if (s_obj)
@@ -127,7 +125,7 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 	if (depth > 1 || obj->mirrored <= 0)
 		return (color);
 	t_vec3 *R = reflect(mlx->neg_dir, mlx->normal);
-	int reflected_color = ft_trace_ray(mlx, mlx->point, R, 0.000001f, FLT_MAX, depth + 1);
+	int reflected_color = ft_trace_ray(mlx, mlx->point, R, 0.000001f, __FLT_MAX__, depth + 1);
 	return (ft_sum_color(color, reflected_color, 1 - obj->mirrored, obj->mirrored));
 }
 
@@ -142,11 +140,10 @@ void	ft_render(t_mlx *mlx)
 			mlx->dir->x = (float)x / (float)W * (float)AR + mlx->dx;
 			mlx->dir->y = -(float)y / (float)H + mlx->dy;
 			mlx->dir->z = 1.0f;
-			int color = ft_trace_ray(mlx, mlx->cam, mlx->dir, 1.0f, FLT_MAX, 0);
+			int color = ft_trace_ray(mlx, mlx->cam, mlx->dir, 1.0f, __FLT_MAX__, 0);
 			int xc = x + W / 2;
 			int yc = y + H / 2;
-			if (xc >= 0 && xc < W && yc >= 0 && yc < H)
-				mlx->data[yc * W + xc] = color;
+			mlx->data[yc * W + xc] = color;
 		}
     }
 }
