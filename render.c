@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 18:38:56 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/10/28 01:16:46 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2019/10/28 01:20:32 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,11 +90,6 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 			}
 			else
 				continue;
-
-			float dx = mlx->point->x - mlx->light[i]->vec->x;
-			float dy = mlx->point->y - mlx->light[i]->vec->y;
-			float dz = mlx->point->z - mlx->light[i]->vec->z;
-			float light_dist = sqrtf(dx * dx + dy * dy + dz * dz);
 
 			t_obj *s_obj = ft_closest_intersection(mlx, mlx->point, mlx->light_dir, 0.000001f, s_max);
 			if (s_obj)
