@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:42:38 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/10/28 01:19:07 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2019/10/28 01:28:31 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,7 +68,7 @@ void	ft_init(t_mlx *mlx)
     mlx->cam = (t_vec3*)malloc(sizeof(t_vec3));
     mlx->cam->x = 0.0f;
     mlx->cam->y = 0.0f;
-    mlx->cam->z = 0.0f;
+    mlx->cam->z = -0.5f;
 
     mlx->dx = 0.0f;
     mlx->dy = 0.0f;
@@ -84,7 +84,7 @@ void	ft_init(t_mlx *mlx)
 	mlx->s_refl = (t_vec3*)malloc(sizeof(t_vec3));
 
 
-	mlx->obj_count = 6;
+	mlx->obj_count = 7;
 	mlx->obj = (t_obj**)malloc(sizeof(t_obj*) * mlx->obj_count);
 
 	int i = -1;
@@ -94,31 +94,6 @@ void	ft_init(t_mlx *mlx)
 		mlx->obj[i]->c = (t_vec3*)malloc(sizeof(t_vec3));
 		mlx->obj[i]->normal = (t_vec3*)malloc(sizeof(t_vec3));
 	}
-
-	// mlx->obj[0]->c->x = 0.0f;
-	// mlx->obj[0]->c->y = -5.0f;
-	// mlx->obj[0]->c->z = 5.0f;
-	// mlx->obj[0]->normal->x = 0.0f;
-	// mlx->obj[0]->normal->y = 1.0f;
-	// mlx->obj[0]->normal->z = 0.0f;
-	// mlx->obj[0]->color = 0xFFFFFF;
-	// mlx->obj[0]->specular = 0.0f;
-	// mlx->obj[0]->intersect = ft_plane_intersect;
-	// mlx->obj[0]->normal_calc = ft_plane_normal_calc;
-	// mlx->obj[0]->mirrored = 0.0f;
-
-	// mlx->obj[1]->c->x = 0.0f;
-	// mlx->obj[1]->c->y = 5.0f;
-	// mlx->obj[1]->c->z = 10.0f;
-	// mlx->obj[1]->normal->x = 0.0f;
-	// mlx->obj[1]->normal->y = 0.0f;
-	// mlx->obj[1]->normal->z = 1.0f;
-	// mlx->obj[1]->color = 0xFF0000;
-	// mlx->obj[1]->specular = 0.0f;
-	// mlx->obj[1]->intersect = ft_plane_intersect;
-	// mlx->obj[1]->normal_calc = ft_plane_normal_calc;
-	// mlx->obj[1]->mirrored = 0.0f;
-
 
 	mlx->obj[0]->c->x = 0.0f;
 	mlx->obj[0]->c->y = 0.0f;
@@ -187,6 +162,18 @@ void	ft_init(t_mlx *mlx)
     mlx->obj[5]->intersect = ft_cylinder_intersect;
     mlx->obj[5]->normal_calc = ft_cylinder_normal_calc;
     mlx->obj[5]->mirrored = 0.3f;
+
+	mlx->obj[6]->c->x = 0.0f;
+	mlx->obj[6]->c->y = 0.0f;
+	mlx->obj[6]->c->z = 25.0f;
+	mlx->obj[6]->normal->x = 0.0f;
+	mlx->obj[6]->normal->y = 0.0f;
+	mlx->obj[6]->normal->z = 1.0f;
+	mlx->obj[6]->color = 0xFFFFFF;
+	mlx->obj[6]->specular = 0.0f;
+	mlx->obj[6]->intersect = ft_plane_intersect;
+	mlx->obj[6]->normal_calc = ft_plane_normal_calc;
+    mlx->obj[6]->mirrored = 0.0f;
 
 	mlx->light_count = 3;
 	mlx->light = (t_light**)malloc(sizeof(t_light*) * mlx->light_count);
