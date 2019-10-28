@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:42:38 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/10/28 01:28:31 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2019/10/29 00:57:00 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,46 +18,11 @@ int		ft_close(int i)
 	exit(0);
 }
 
-int		ft_key_press(int keycode, t_mlx *mlx)
-{
-	printf("%d\n", keycode);
-    (keycode == MAC_ESC) ? exit(0) : 1;
-	if (keycode == MAC_A || keycode == 1734)
-    {
-        mlx->dx -= 0.1f;
-        printf("x %f\n", mlx->cam->x);
-    }
-    if (keycode == MAC_D || keycode == 1751)
-    {
-        mlx->dx += 0.1f;
-        printf("x %f\n", mlx->cam->x);
-    }
-    if (keycode == MAC_Q || keycode == 1738)
-    {
-        mlx->dy -= 0.1f;
-        printf("x %f\n", mlx->cam->x);
-    }
-    if (keycode == MAC_E || keycode == 1749)
-    {
-        mlx->dy += 0.1f;
-        printf("x %f\n", mlx->cam->x);
-    }
-	if (keycode == MAC_W || keycode == 1731)
-	{
-		mlx->cam->z += 0.1f;
-		printf("z %f\n", mlx->cam->z);
-	}
-	if (keycode == MAC_S || keycode == 1753)
-	{
-		mlx->cam->z -= 0.1f;
-		printf("z %f\n", mlx->cam->z);
-	}
-    return (0);
-}
-
 int		ft_gameloop(t_mlx *mlx)
 {
-    ft_render(mlx);
+	ft_move(mlx);
+    // ft_render(mlx);
+	ft_thread(mlx);
 
     mlx_put_image_to_window(mlx->mlx, mlx->win, mlx->img, 0, 0);
     return (0);
@@ -175,6 +140,7 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[6]->normal_calc = ft_plane_normal_calc;
     mlx->obj[6]->mirrored = 0.0f;
 
+
 	mlx->light_count = 3;
 	mlx->light = (t_light**)malloc(sizeof(t_light*) * mlx->light_count);
 	i = -1;
@@ -204,6 +170,16 @@ void	ft_init(t_mlx *mlx)
 	mlx->light[2]->vec->x = -3.25f;
 	mlx->light[2]->vec->y = 2.5f;
 	mlx->light[2]->vec->z = 4.0f;
+
+
+	i = -1;
+	while (++i < 4)
+	{
+		mlx->wsad[i] = 0;
+		mlx->arrow[i] = 0;
+	}
+
+	ft_thread_init(mlx);
 }
 
 int		main()
@@ -220,6 +196,7 @@ int		main()
 
 	mlx_loop_hook(mlx->mlx, ft_gameloop, mlx);
     mlx_hook(mlx->win, 2, 1L << 0, ft_key_press, mlx);
+	mlx_hook(mlx->win, 3, 1L << 1, ft_key_realese, mlx);
     mlx_hook(mlx->win, 17, 0, ft_close, (void *)1);
 	mlx_loop(mlx->mlx);
     return (0);
