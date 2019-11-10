@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   mac_keys.h                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: adoyle <adoyle@student.42.fr>              +#+  +:+       +#+        */
+/*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/25 13:33:20 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/09/13 16:04:08 by adoyle           ###   ########.fr       */
+/*   Updated: 2019/11/06 22:45:18 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,15 +126,5 @@
 #define MAC_NUM_SEVEN 89
 #define MAC_NUM_EIGHTH 91
 #define MAC_NUM_NINE 92
-
-/*
-Mix_channels
-
-15 - shots
-16 - reload
-20 - step
-21 - jump
-17 - swich/door
- */
 
 #endif

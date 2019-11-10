@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 18:38:56 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/10/29 00:57:21 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2019/11/10 19:15:28 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ t_obj		*ft_closest_intersection(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, double 
 	int i = -1;
 	while (++i < mlx->obj_count)
 	{
-		double t = mlx->obj[i]->intersect((void*)mlx, origin, dir, mlx->obj[i]);
+		double t = mlx->obj[i]->intersect(origin, dir, mlx->obj[i]);
 		if (t >= min && t < mlx->closest)
 		{
 			mlx->closest = t;
@@ -42,15 +42,12 @@ t_vec3 *init_t_vec3(double x, double y, double z)
     return (new);
 }
 
-t_vec3 *reflect(t_vec3 *I, t_vec3 *N)
+t_vec3		*reflect(t_vec3 *I, t_vec3 *N, t_vec3 *refl_ray)
 {
-    t_vec3 *new;
-
-    new = (t_vec3 *)malloc(sizeof(t_vec3));
-    new->x = 2.0f * ft_dot_prod(I, N) * N->x - I->x;
-    new->y = 2.0f * ft_dot_prod(I, N) * N->y - I->y;
-    new->z = 2.0f * ft_dot_prod(I, N) * N->z - I->z;
-    return (new);
+    refl_ray->x = 2.0f * ft_dot_prod(I, N) * N->x - I->x;
+    refl_ray->y = 2.0f * ft_dot_prod(I, N) * N->y - I->y;
+    refl_ray->z = 2.0f * ft_dot_prod(I, N) * N->z - I->z;
+    return (refl_ray);
 }
 
 int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, double min, double max, int depth)
@@ -119,31 +116,28 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, double min, double ma
 	int color = ft_color_convert(obj->color, intensity);
 	if (depth > 1 || obj->mirrored <= 0)
 		return (color);
-	t_vec3 *R = reflect(mlx->neg_dir, mlx->normal);
-	int reflected_color = ft_trace_ray(mlx, mlx->point, R, 0.000001f, __FLT_MAX__, depth + 1);
+	mlx->refl_ray = reflect(mlx->neg_dir, mlx->normal, mlx->refl_ray);
+	int reflected_color = ft_trace_ray(mlx, mlx->point, mlx->refl_ray, 0.000001f, __FLT_MAX__, depth + 1);
 	return (ft_sum_color(color, reflected_color, 1 - obj->mirrored, obj->mirrored));
 }
 
 void	ft_render(t_mlx *mlx)
 {
-	int temp = (W / THREAD) * (mlx->thread_i % THREAD);
-	int x = temp - (W / 2) - 1;
-	int w = temp + (W / THREAD) - (W / 2);
-    // int x = -W / 2 - 1;
-	// printf("%d			x %d			w %d\n", mlx->thread_i, x + 1, w);
+    int x = -W / 2 - 1;
+	int w = W / 2;
+	int h = H / 2;
     while (++x < w)
     {
-        int y = -H / 2 - 1;
-        while (++y < H / 2)
+        int y = -h - 1;
+        while (++y < h)
         {
 			mlx->dir->x = (double)x / (double)W * (double)AR + mlx->dx;
 			mlx->dir->y = -(double)y / (double)H + mlx->dy;
 			mlx->dir->z = 1.0f;
 			int color = ft_trace_ray(mlx, mlx->cam, mlx->dir, 1.0f, __FLT_MAX__, 0);
-			int xc = x + W / 2;
-			int yc = y + H / 2;
+			int xc = x + w;
+			int yc = y + h;
 			mlx->data[yc * W + xc] = color;
 		}
     }
-	pthread_exit(0);
 }

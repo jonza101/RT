@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/29 00:55:32 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/10/29 00:55:45 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2019/11/10 19:04:27 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,21 @@ int		ft_key_press(int keycode, t_mlx *mlx)
 		mlx->up_down[0] = 1;
 	if (keycode == MAC_CTRL_L || keycode == 65507)
 		mlx->up_down[1] = 1;
+
+	if (keycode == MAC_G || keycode == 1744)
+	{
+		if (mlx->gpu)
+		{
+			mlx->render_func = ft_render;
+			mlx->render_device = "CPU";
+		}
+		else
+		{
+			mlx->render_func = ft_execute_kernel;
+			mlx->render_device = "GPU";
+		}
+		mlx->gpu = !mlx->gpu;
+	}
 
     return (0);
 }
