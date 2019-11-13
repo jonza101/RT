@@ -12,35 +12,47 @@
 
 #include "rt.h"
 
-double		ft_max(double a, double b)
+float		ft_min(float a, float b)
 {
-	if (a > b)
-		return (a);
-	return (b);
+	if (b < a)
+		return (b);
+	return (a);
 }
 
-double       ft_dot_prod(t_vec3 *a, t_vec3 *b)
+float		ft_max(float a, float b)
 {
-    double dot = a->x * b->x + a->y * b->y + a->z * b->z;
+	if (b > a)
+		return (b);
+	return (a);
+}
+
+float	ft_clamp(float a, float min, float max)
+{
+	return (ft_min(ft_max(a, min), max));
+}
+
+float       ft_dot_prod(t_vec3 *a, t_vec3 *b)
+{
+    float dot = a->x * b->x + a->y * b->y + a->z * b->z;
     return (dot);
 }
 
-double		ft_vec_len(t_vec3 *vec)
+float		ft_vec_len(t_vec3 *vec)
 {
-	double len = sqrtf(vec->x * vec->x + vec->y * vec->y + vec->z * vec->z);
+	float len = sqrtf(vec->x * vec->x + vec->y * vec->y + vec->z * vec->z);
 	return (len);
 }
 
 t_vec3		*ft_vec_normalize(t_vec3 *vec)
 {
-	double len = ft_vec_len(vec);
-	vec->x = (double)vec->x / (double)len;
-	vec->y = (double)vec->y / (double)len;
-	vec->z = (double)vec->z / (double)len;
+	float len = ft_vec_len(vec);
+	vec->x = (float)vec->x / (float)len;
+	vec->y = (float)vec->y / (float)len;
+	vec->z = (float)vec->z / (float)len;
 	return (vec);
 }
 
-int			ft_color_convert(int color, double lum)
+int			ft_color_convert(int color, float lum)
 {
 	int r = ((color >> 16) & 0xFF) * lum;
 	int g = ((color >> 8) & 0xFF) * lum;
@@ -49,7 +61,7 @@ int			ft_color_convert(int color, double lum)
 	return (((r & 0xFF) << 16) + ((g & 0xFF) << 8) + ((b & 0xFF)));
 }
 
-int         ft_sum_color(int c1, int c2, double k1, double k2)
+int         ft_sum_color(int c1, int c2, float k1, float k2)
 {
     int r1 = (c1 >> 16) & 0xFF;
     int g1 = (c1 >> 8) & 0xFF;

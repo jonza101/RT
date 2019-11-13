@@ -13,7 +13,23 @@
 #include "rt.h"
 #include <limits.h>
 
-t_obj		*ft_closest_intersection(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, double min, double max)
+t_obj		*ft_shadow_intersection(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max, t_obj *obj)
+{
+	mlx->closest = max;
+
+	int i = -1;
+	while (++i < mlx->obj_count)
+	{
+		float t = mlx->obj[i]->intersect(origin, dir, mlx->obj[i]);
+		if (t >= min && t < mlx->closest && mlx->obj[i] != obj)
+		{
+			return (mlx->obj[i]);
+		}
+	}
+	return (NULL);
+}
+
+t_obj		*ft_closest_intersection(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max, t_obj *refl_obj)
 {
 	mlx->closest = max;
 	t_obj *closest_obj = NULL;
@@ -21,8 +37,8 @@ t_obj		*ft_closest_intersection(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, double 
 	int i = -1;
 	while (++i < mlx->obj_count)
 	{
-		double t = mlx->obj[i]->intersect(origin, dir, mlx->obj[i]);
-		if (t >= min && t < mlx->closest)
+		float t = mlx->obj[i]->intersect(origin, dir, mlx->obj[i]);
+		if (t >= min && t < mlx->closest && refl_obj != mlx->obj[i])
 		{
 			mlx->closest = t;
 			closest_obj = mlx->obj[i];
@@ -31,7 +47,7 @@ t_obj		*ft_closest_intersection(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, double 
 	return (closest_obj);
 }
 
-t_vec3 *init_t_vec3(double x, double y, double z)
+t_vec3 *init_t_vec3(float x, float y, float z)
 {
     t_vec3 *new;
 
@@ -50,9 +66,9 @@ t_vec3		*reflect(t_vec3 *I, t_vec3 *N, t_vec3 *refl_ray)
     return (refl_ray);
 }
 
-int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, double min, double max, int depth)
+int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max, int depth, t_obj *refl_obj)
 {
-	t_obj *obj = ft_closest_intersection(mlx, origin, dir, min, max);
+	t_obj *obj = ft_closest_intersection(mlx, origin, dir, min, max, refl_obj);
 	if (!obj)
 		return (BACKGROUND_COLOR);
 	// return (obj->color);
@@ -67,8 +83,8 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, double min, double ma
 	mlx->neg_dir->y = -dir->y;
 	mlx->neg_dir->z = -dir->z;
 
-	double intensity = 0.0f;
-	double s_max;
+	float intensity = 0.0f;
+	float s_max;
 	int i = -1;
 	while (++i < mlx->light_count)
 	{
@@ -88,24 +104,24 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, double min, double ma
 			else
 				continue;
 
-			t_obj *s_obj = ft_closest_intersection(mlx, mlx->point, mlx->light_dir, 0.000001f, s_max);
+			t_obj *s_obj = ft_shadow_intersection(mlx, mlx->point, mlx->light_dir, 0.000001f, s_max, obj);
 			if (s_obj)
 				continue;
 
-			double n_dot_l = ft_dot_prod(mlx->normal, mlx->light_dir);
+			float n_dot_l = ft_dot_prod(mlx->normal, mlx->light_dir);
 			if (n_dot_l > 0.0f)
-				intensity += ((double)mlx->light[i]->intensity * (double)n_dot_l / (double)((double)ft_vec_len(mlx->normal) * (double)ft_vec_len(mlx->light_dir)));
+				intensity += ((float)mlx->light[i]->intensity * (float)n_dot_l / (float)((float)ft_vec_len(mlx->normal) * (float)ft_vec_len(mlx->light_dir)));
 
 			if (obj->specular > 0.0f)
 			{
-				double dot = ft_dot_prod(mlx->normal, mlx->light_dir);
+				float dot = ft_dot_prod(mlx->normal, mlx->light_dir);
 				mlx->s_refl->x = 2.0f * mlx->normal->x * dot - mlx->light_dir->x;
 				mlx->s_refl->y = 2.0f * mlx->normal->y * dot - mlx->light_dir->y;
 				mlx->s_refl->z = 2.0f * mlx->normal->z * dot - mlx->light_dir->z;
 
-				double r_dot_v = ft_dot_prod(mlx->s_refl, mlx->neg_dir);
+				float r_dot_v = ft_dot_prod(mlx->s_refl, mlx->neg_dir);
 				if (r_dot_v > 0.0f)
-					intensity += (mlx->light[i]->intensity * powf((double)r_dot_v / (double)((double)ft_vec_len(mlx->s_refl) * (double)ft_vec_len(mlx->neg_dir)), obj->specular));
+					intensity += (mlx->light[i]->intensity * powf((float)r_dot_v / (float)((float)ft_vec_len(mlx->s_refl) * (float)ft_vec_len(mlx->neg_dir)), obj->specular));
 			}
 		}
 	}
@@ -117,7 +133,7 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, double min, double ma
 	if (depth > 1 || obj->mirrored <= 0)
 		return (color);
 	mlx->refl_ray = reflect(mlx->neg_dir, mlx->normal, mlx->refl_ray);
-	int reflected_color = ft_trace_ray(mlx, mlx->point, mlx->refl_ray, 0.000001f, __FLT_MAX__, depth + 1);
+	int reflected_color = ft_trace_ray(mlx, mlx->point, mlx->refl_ray, 0.000001f, __FLT_MAX__, depth + 1, obj);
 	return (ft_sum_color(color, reflected_color, 1 - obj->mirrored, obj->mirrored));
 }
 
@@ -131,10 +147,12 @@ void	ft_render(t_mlx *mlx)
         int y = -h - 1;
         while (++y < h)
         {
-			mlx->dir->x = (double)x / (double)W * (double)AR + mlx->dx;
-			mlx->dir->y = -(double)y / (double)H + mlx->dy;
+			mlx->dir->x = (float)x / (float)W * (float)AR + mlx->dx;
+			mlx->dir->y = -(float)y / (float)H - mlx->dy;
 			mlx->dir->z = 1.0f;
-			int color = ft_trace_ray(mlx, mlx->cam, mlx->dir, 1.0f, __FLT_MAX__, 0);
+			// mlx->dir = ft_vec_rotate(mlx->dir, mlx->dx, mlx->dy);
+
+			int color = ft_trace_ray(mlx, mlx->cam, mlx->dir, 1.0f, __FLT_MAX__, 0, NULL);
 			int xc = x + w;
 			int yc = y + h;
 			mlx->data[yc * W + xc] = color;

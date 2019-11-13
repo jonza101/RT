@@ -24,6 +24,7 @@ int		ft_gameloop(t_mlx *mlx)
 
 	double delta_time =  ((double)(start_time - mlx->last_time) / CLOCKS_PER_SEC);
 	int fps = (double)1.0f / (double)delta_time;
+	char *fps_str = ft_itoa(fps);
 
 	if (fps <= MAX_FPS)
 	{
@@ -34,11 +35,11 @@ int		ft_gameloop(t_mlx *mlx)
 
 		mlx_put_image_to_window(mlx->mlx, mlx->win, mlx->img, 0, 0);
 
-		char *fps_str = ft_itoa(fps);
+		
 		mlx_string_put(mlx->mlx, mlx->win, 10, 20, 0xFFFFFF, fps_str);
 		mlx_string_put(mlx->mlx, mlx->win, 10, 40, 0xFFFFFF, mlx->render_device);
-		free(fps_str);
 	}
+	free(fps_str);
 
     return (0);
 }
@@ -66,7 +67,7 @@ void	ft_init(t_mlx *mlx)
 	mlx->refl_ray = (t_vec3*)malloc(sizeof(t_vec3));
 
 
-	mlx->obj_count = 6;
+	mlx->obj_count = 7;
 	mlx->obj = (t_obj**)malloc(sizeof(t_obj*) * mlx->obj_count);
 
 	int i = -1;
@@ -77,7 +78,7 @@ void	ft_init(t_mlx *mlx)
 		mlx->obj[i]->normal = (t_vec3*)malloc(sizeof(t_vec3));
 		mlx->obj[i]->oc_temp = (t_vec3*)malloc(sizeof(t_vec3));
 	}
-	mlx->obj_count = 6;
+	mlx->obj_count = 7;
 
 	mlx->obj[0]->type = SPHERE;
 	mlx->obj[0]->c->x = 0.0f;
@@ -123,18 +124,18 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[3]->specular = 0.0f;
 	mlx->obj[3]->intersect = ft_plane_intersect;
 	mlx->obj[3]->normal_calc = ft_plane_normal_calc;
-    mlx->obj[3]->mirrored = 0.5f;
+    mlx->obj[3]->mirrored = 0.75f;
 
 	mlx->obj[4]->type = CONE;
-	mlx->obj[4]->c->x = 2.0f;
+	mlx->obj[4]->c->x = 3.5f;
 	mlx->obj[4]->c->y = 1.0f;
-	mlx->obj[4]->c->z = 5.0f;
+	mlx->obj[4]->c->z = 7.5f;
 	mlx->obj[4]->radius = 0.25f;
-	mlx->obj[4]->normal->x = 0.1f;
+	mlx->obj[4]->normal->x = 0.5f;
 	mlx->obj[4]->normal->y = 1.0f;
-	mlx->obj[4]->normal->z = 0.0f;
+	mlx->obj[4]->normal->z = 0.75f;
 	mlx->obj[4]->normal = ft_vec_normalize(mlx->obj[4]->normal);
-	mlx->obj[4]->color = 0x8CFF00;
+	mlx->obj[4]->color = 0x8fff00;
 	mlx->obj[4]->specular = 750.0f;
 	mlx->obj[4]->intersect = ft_cone_intersect;
 	mlx->obj[4]->normal_calc = ft_cone_normal_calc;
@@ -144,7 +145,7 @@ void	ft_init(t_mlx *mlx)
     mlx->obj[5]->c->x = -7.0f;
     mlx->obj[5]->c->y = 0.0f;
     mlx->obj[5]->c->z = 15.0f;
-    mlx->obj[5]->radius = 0.25f;
+    mlx->obj[5]->radius = 0.75f;
     mlx->obj[5]->normal->x = -0.2f;
     mlx->obj[5]->normal->y = 1.0f;
     mlx->obj[5]->normal->z = 0.0f;
@@ -153,10 +154,23 @@ void	ft_init(t_mlx *mlx)
     mlx->obj[5]->specular = 750.0f;
     mlx->obj[5]->intersect = ft_cylinder_intersect;
     mlx->obj[5]->normal_calc = ft_cylinder_normal_calc;
-    mlx->obj[5]->mirrored = 0.3f;
+    mlx->obj[5]->mirrored = 0.25f;
+
+	mlx->obj[6]->type = PLANE;
+	mlx->obj[6]->c->x = 0.0f;
+	mlx->obj[6]->c->y = 0.0f;
+	mlx->obj[6]->c->z = 50.0f;
+	mlx->obj[6]->normal->x = 0.0f;
+	mlx->obj[6]->normal->y = 0.0f;
+	mlx->obj[6]->normal->z = 1.0f;
+	mlx->obj[6]->color = 0x8D41D9;
+	mlx->obj[6]->specular = 0.0f;
+	mlx->obj[6]->intersect = ft_plane_intersect;
+	mlx->obj[6]->normal_calc = ft_plane_normal_calc;
+    mlx->obj[6]->mirrored = 0.0f;
 
 
-	mlx->light_count = 3;
+	mlx->light_count = 5;
 	mlx->light = (t_light**)malloc(sizeof(t_light*) * mlx->light_count);
 	i = -1;
 	while (++i < mlx->light_count)
@@ -186,6 +200,14 @@ void	ft_init(t_mlx *mlx)
 	mlx->light[2]->vec->y = 2.5f;
 	mlx->light[2]->vec->z = 4.0f;
 
+	mlx->light[3] = (t_light*)malloc(sizeof(t_light));
+	mlx->light[3]->type = POINT_L;
+	mlx->light[3]->intensity = 0.85f;
+	mlx->light[3]->vec = (t_vec3*)malloc(sizeof(t_vec3));
+	mlx->light[3]->vec->x = 0.0f;
+	mlx->light[3]->vec->y = 7.5f;
+	mlx->light[3]->vec->z = 10.0f;
+
 
 	i = -1;
 	while (++i < 4)
@@ -193,6 +215,7 @@ void	ft_init(t_mlx *mlx)
 		mlx->wsad[i] = 0;
 		mlx->arrow[i] = 0;
 	}
+	mlx->shift = 0;
 	mlx->last_time = 0.0f;
 	mlx->gpu = 1;
 	mlx->render_func = ft_execute_kernel;

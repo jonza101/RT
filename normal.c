@@ -43,7 +43,7 @@ t_vec3		*ft_cone_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *
     normal->x = point->x - obj->c->x;
     normal->y = point->y - obj->c->y;
     normal->z = point->z - obj->c->z;
-    double side_len = sqrt(ft_dot_prod(normal, normal));
+    float side_len = sqrt(ft_dot_prod(normal, normal));
     side_len /= cos(obj->radius);
     if (ft_dot_prod(normal, obj->normal) < 0)
         side_len = -side_len;
@@ -62,7 +62,7 @@ t_vec3		*ft_cylinder_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_o
     normal->x = point->x - obj->c->x;
     normal->y = point->y - obj->c->y;
     normal->z = point->z - obj->c->z;
-    double dis = ft_dot_prod(normal, obj->normal);
+    float dis = ft_dot_prod(normal, obj->normal);
     normal->x = obj->c->x + obj->normal->x * dis;
     normal->y = obj->c->y + obj->normal->y * dis;
     normal->z = obj->c->z + obj->normal->z * dis;

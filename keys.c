@@ -14,14 +14,17 @@
 
 int		ft_key_realese(int keycode, t_mlx *mlx)
 {
-	if (keycode == MAC_W || keycode == 1731)
+	if (keycode == MAC_W || keycode == 119)
 		mlx->wsad[0] = 0;
-	if (keycode == MAC_S || keycode == 1753)
+	if (keycode == MAC_S || keycode == 115)
 		mlx->wsad[1] = 0;
-	if (keycode == MAC_A || keycode == 1734)
+	if (keycode == MAC_A || keycode == 97)
 		mlx->wsad[2] = 0;
-	if (keycode == MAC_D || keycode == 1751)
+	if (keycode == MAC_D || keycode == 100)
 		mlx->wsad[3] = 0;
+
+	if (keycode == MAC_SHIFT_L || keycode == 65505)
+		mlx->shift = 0;
 
 	if (keycode == MAC_UP || keycode == 65362)
 		mlx->arrow[0] = 0;
@@ -44,14 +47,17 @@ int		ft_key_press(int keycode, t_mlx *mlx)
 {
 	// printf("%d\n", keycode);
     (keycode == MAC_ESC || keycode == 65307) ? exit(0) : 1;
-	if (keycode == MAC_W || keycode == 1731)
+	if (keycode == MAC_W || keycode == 119)
 		mlx->wsad[0] = 1;
-	if (keycode == MAC_S || keycode == 1753)
+	if (keycode == MAC_S || keycode == 115)
 		mlx->wsad[1] = 1;
-	if (keycode == MAC_A || keycode == 1734)
+	if (keycode == MAC_A || keycode == 97)
 		mlx->wsad[2] = 1;
-    if (keycode == MAC_D || keycode == 1751)
+	if (keycode == MAC_D || keycode == 100)
 		mlx->wsad[3] = 1;
+
+	if (keycode == MAC_SHIFT_L || keycode == 65505)
+		mlx->shift = 1;
 
     if (keycode == MAC_UP || keycode == 65362)
 		mlx->arrow[0] = 1;
@@ -67,7 +73,7 @@ int		ft_key_press(int keycode, t_mlx *mlx)
 	if (keycode == MAC_CTRL_L || keycode == 65507)
 		mlx->up_down[1] = 1;
 
-	if (keycode == MAC_G || keycode == 1744)
+	if (keycode == MAC_G || keycode == 103)
 	{
 		if (mlx->gpu)
 		{

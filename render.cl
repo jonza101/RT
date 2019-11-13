@@ -1,6 +1,6 @@
 #define W 1920
 #define H 1080
-#define AR ((double)W / (double)H)
+#define AR ((float)W / (float)H)
 
 #define BACKGROUND_COLOR 0x0
 
@@ -12,73 +12,87 @@
 #define AMBIENT_L 0
 #define POINT_L 1
 
-#define OBJ 0
-#define LIGHT 0
+#define MAX_FLT 3.40282346638528859811704183484516925e+38F
 
-typedef struct		s_vec3
+
+int		ft_trace_ray(float3 origin, float3 dir,
+					__global float3 *obj_pos,
+					__global float3 *obj_normal,
+					__global float *obj_radius, __global int *obj_color, __global float *obj_specular,
+					__global float *obj_mirrored, int obj_count, __global int *obj_type,
+					__global float3 *light_vec,
+					__global int *light_type, __global float *light_intensity, int light_count,
+					float min_dist, float max_dist, int depth, int refl_i);
+
+
+float ft_dot_prod(float3 a, float3 b)
 {
-	double			x;
-	double			y;
-	double			z;
-}                  		 t_vec3;
-
-typedef	struct		s_light				//		0 - AMBIENT		|	1 - POINT	|	2 - DIRECTIONAL		|
-{
-	int					type;
-	double			intensity;
-	t_vec3			vec;
-}						t_light;
-
-typedef	struct		s_obj
-{
-	int					type;
-	t_vec3			c;
-	double			radius;
-	t_vec3			normal;
-
-	int					color;
-	double			specular;
-	double           mirrored;
-}						t_obj;
-
-typedef struct		s_scene
-{
-	t_obj			obj[OBJ];
-	t_light			light[LIGHT];
-}							t_scene;
-
-
-int		ft_trace_ray(double origin_x, double origin_y, double origin_z,
-							double dir_x, double dir_y, double dir_z,
-							__global double *obj_x, __global double *obj_y, __global double *obj_z,
-							__global double *obj_norm_x, __global double *obj_norm_y, __global double *obj_norm_z,
-							__global double *obj_radius, __global int *obj_color, __global double *obj_specular,
-							__global double *obj_mirrored, int obj_count, __global int *obj_type,
-							__global double *light_x, __global double *light_y, __global double *light_z,
-							__global int *light_type, __global double *light_intensity, int light_count,
-							double min_dist, double max_dist, int depth);
-
-
-double ft_dot_prod(double x1, double y1, double z1, double x2, double y2, double z2)
-{
-	return (x1 * x2 + y1 * y2 + z1 * z2);
+	return (a.x * b.x + a.y * b.y + a.z * b.z);
 }
 
-double		ft_vec_len(double x, double y, double z)
+float		ft_vec_len(float3 vec)
 {
-	double len = sqrt(x * x + y * y + z * z);
+	float len = sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
 	return (len);
 }
 
-void		ft_vec_normalize(double *x, double *y, double *z)
+float3		ft_vec_normalize(float3 vec)
 {
-	double len = ft_vec_len(*x, *y, *z);
-	*x = (double)(*x) / (double)len;
-	*y = (double)(*y) / (double)len;
-	*z = (double)(*z) / (double)len;
+	float len = ft_vec_len(vec);
+	vec.x = (float)(vec.x) / (float)len;
+	vec.y = (float)(vec.y) / (float)len;
+	vec.z = (float)(vec.z) / (float)len;
+	return (vec);
 }
 
-int			ft_color_convert(int color, double lum)
+float3	ft_rotate_x(float3 vec, float angle)
+{
+	float cos_ang = cos(angle);
+	float sin_ang = sin(angle);
+	
+	float3 temp = vec;
+
+	vec.x = vec.x;
+	vec.y = (temp.y * cos_ang) - (temp.z * sin_ang);
+	vec.z = (temp.y * sin_ang) + (temp.z * cos_ang);
+	return (vec);
+}
+
+float3	ft_rotate_y(float3 vec, float angle)
+{
+	float cos_ang = cos(angle);
+	float sin_ang = sin(angle);
+	
+	float3 temp = vec;
+
+	vec.x = (temp.x * cos_ang) + (temp.z * sin_ang);
+	vec.y = vec.y;
+	vec.z = (-temp.x * sin_ang) + (temp.z * cos_ang);
+	return (vec);
+}
+
+/*float3	ft_rotate_z(float3 vec, float angle)
+{
+	float cos_ang = cos(angle);
+	float sin_ang = sin(angle);
+	
+	float3 temp = vec;
+
+	vec.x = (temp.x * cos_ang) + (temp.y * sin_ang);
+	vec.y = (temp.x * sin_ang) + (temp.y * cos_ang);
+	vec.z = vec.z;
+	return (vec);
+}*/
+
+float3	ft_vec_rotate(float3 vec, float dx, float dy)
+{
+	vec = ft_rotate_x(vec, dy);
+	vec = ft_rotate_y(vec, dx);
+	vec = ft_vec_normalize(vec);
+	return (vec);
+}
+
+int			ft_color_convert(int color, float lum)
 {
 	int r = ((color >> 16) & 0xFF) * lum;
 	int g = ((color >> 8) & 0xFF) * lum;
@@ -87,7 +101,7 @@ int			ft_color_convert(int color, double lum)
 	return (((r & 0xFF) << 16) + ((g & 0xFF) << 8) + ((b & 0xFF)));
 }
 
-int         ft_sum_color(int c1, int c2, double k1, double k2)
+int         ft_sum_color(int c1, int c2, float k1, float k2)
 {
     int r1 = (c1 >> 16) & 0xFF;
     int g1 = (c1 >> 8) & 0xFF;
@@ -102,118 +116,106 @@ int         ft_sum_color(int c1, int c2, double k1, double k2)
 }
 
 //////////////////////////////////////////////////////////////////////	INTERSECT	//////////////////////////////////////////////////////////////////////////////
-double		ft_sph_intersect(double origin_x, double origin_y, double origin_z,
-										double dir_x, double dir_y, double dir_z,
-										double obj_x, double obj_y, double obj_z,
-										double obj_radius)
+float		ft_sph_intersect(float3 origin, float3 dir, float3 obj_pos, float obj_radius)
 {
-	double oc_x = origin_x - obj_x;
-	double oc_y = origin_y - obj_y;
-	double oc_z = origin_z - obj_z;
+	float3 oc;
+	oc.x = origin.x - obj_pos.x;
+	oc.y = origin.y - obj_pos.y;
+	oc.z = origin.z - obj_pos.z;
 
-	double k1 = ft_dot_prod(dir_x, dir_y, dir_z, dir_x, dir_y, dir_z);
-	double k2 = 2.0f * ft_dot_prod(oc_x, oc_y, oc_z, dir_x, dir_y, dir_z);
-	double k3 = ft_dot_prod(oc_x, oc_y, oc_z, oc_x, oc_y, oc_z) - (obj_radius * obj_radius);
+	float k1 = ft_dot_prod(dir, dir);
+	float k2 = 2.0f * ft_dot_prod(oc, dir);
+	float k3 = ft_dot_prod(oc, oc) - (obj_radius * obj_radius);
 
-	double discr = k2 * k2 - (4.0f * k1 * k3);
+	float discr = k2 * k2 - (4.0f * k1 * k3);
 	if (discr < 0.0f)
 		return (-1.0f);
 	
-	double discr_sqrt = sqrt(discr);
-	double k1_ = 2.0f * k1;
+	float discr_sqrt = sqrt(discr);
+	float k1_ = 2.0f * k1;
 
-	double t1 = (double)(-k2 + discr_sqrt) / (double)k1_;
-	double t2 = (double)(-k2 - discr_sqrt) / (double)k1_;
+	float t1 = (float)(-k2 + discr_sqrt) / (float)k1_;
+	float t2 = (float)(-k2 - discr_sqrt) / (float)k1_;
 	if (t1 < t2)
 		return (t1);
 	return (t2);
 }
 
-double		ft_plane_intersect(double origin_x, double origin_y, double origin_z,
-											double dir_x, double dir_y, double dir_z,
-											double obj_x, double obj_y, double obj_z,
-											double obj_norm_x, double obj_norm_y, double obj_norm_z)
+float		ft_plane_intersect(float3 origin, float3 dir, float3 obj_pos, float3 obj_normal)
 {
-	double denom = ft_dot_prod(obj_norm_x, obj_norm_y, obj_norm_z, dir_x, dir_y, dir_z);
-	double denom_abs = denom;
+	float denom = ft_dot_prod(obj_normal, dir);
+	float denom_abs = denom;
 	if (denom < 0.0f)
 		denom_abs = -denom;
 	if (denom_abs > 0.000001f)
 	{
-		double oc_x = obj_x - origin_x;
-		double oc_y = obj_y - origin_y;
-		double oc_z = obj_z - origin_z;
+		float3 oc;
+		oc.x = obj_pos.x - origin.x;
+		oc.y = obj_pos.y - origin.y;
+		oc.z = obj_pos.z - origin.z;
 
-		double t = (double)ft_dot_prod(oc_x, oc_y, oc_z, obj_norm_x, obj_norm_y, obj_norm_z) / (double)denom;
+		float t = (float)ft_dot_prod(oc, obj_normal) / (float)denom;
 		if (t > 0.000001f)
 			return (t);
 	}
 	return (-1.0f);
 }
 
-double		ft_cone_intersect(double origin_x, double origin_y, double origin_z,
-										double dir_x, double dir_y, double dir_z,
-										double obj_x, double obj_y, double obj_z,
-										double obj_norm_x, double obj_norm_y, double obj_norm_z,
-										double obj_radius)
+float		ft_cone_intersect(float3 origin, float3 dir, float3 obj_pos, float3 obj_normal, float obj_radius)
 {
-	double oc_x = origin_x - obj_x;
-	double oc_y = origin_y - obj_y;
-	double oc_z = origin_z - obj_z;
+	float3 oc;
+	oc.x = origin.x - obj_pos.x;
+	oc.y = origin.y - obj_pos.y;
+	oc.z = origin.z - obj_pos.z;
 
-	ft_vec_normalize(&obj_norm_x, &obj_norm_y, &obj_norm_z);
+	float pow_ = pow(tan(obj_radius), 2);
 
-	double pow_ = pow(tan(obj_radius), 2);
+	float oc_dot_n = ft_dot_prod(oc, obj_normal);
+	float d_dot_n = ft_dot_prod(dir, obj_normal);
 
-	double oc_dot_n = ft_dot_prod(oc_x, oc_y, oc_z, obj_norm_x, obj_norm_y, obj_norm_z);
-	double d_dot_n = ft_dot_prod(dir_x, dir_y, dir_z, obj_norm_x, obj_norm_y, obj_norm_z);
+	float k1 = ft_dot_prod(dir, dir) - (1.0f + pow_) * pow(d_dot_n, 2);
+	float k2 = 2.0f * (ft_dot_prod(dir, oc) - (1.0f + pow_) * d_dot_n * oc_dot_n);
+	float k3 = ft_dot_prod(oc, oc) - (1.0f + pow_) * pow(oc_dot_n, 2);
 
-	double k1 = ft_dot_prod(dir_x, dir_y, dir_z, dir_x, dir_y, dir_z) - (1.0f + pow_) * pow(d_dot_n, 2);
-	double k2 = 2.0f * (ft_dot_prod(dir_x, dir_y, dir_z, oc_x, oc_y, oc_z) - (1.0f + pow_) * d_dot_n * oc_dot_n);
-	double k3 = ft_dot_prod(oc_x, oc_y, oc_z, oc_x, oc_y, oc_z) - (1.0f + pow_) * pow(oc_dot_n, 2);
-
-	double discr = k2 * k2 - 4.0f * k1 * k3;
+	float discr = k2 * k2 - 4.0f * k1 * k3;
 	if (discr < 0.0f)
 		return (-1.0f);
 
-	double discr_sqrt = sqrt(discr);
-	double k1_ = 2.0f * k1;
-	double t1 = (double)(-k2 + discr_sqrt) / (double)k1_;
-	double t2 = (double)(-k2 - discr_sqrt) / (double)k1_;
+	float discr_sqrt = sqrt(discr);
+	float k1_ = 2.0f * k1;
+	float t1 = (float)(-k2 + discr_sqrt) / (float)k1_;
+	float t2 = (float)(-k2 - discr_sqrt) / (float)k1_;
 
 	if (t1 < t2)
 		return (t1);
 	return (t2);
 }
 
-double		ft_cylinder_intersect(double origin_x, double origin_y, double origin_z,
-											double dir_x, double dir_y, double dir_z,
-											double obj_x, double obj_y, double obj_z,
-											double obj_norm_x, double obj_norm_y, double obj_norm_z,
-											double obj_radius)
+float		ft_cylinder_intersect(float3 origin, float3 dir, float3 obj_pos, float3 obj_normal, float obj_radius)
 {
-	double oc_x = origin_x - obj_x;
-	double oc_y = origin_y - obj_y;
-	double oc_z = origin_z - obj_z;
+	float3 oc;
+	oc.x = origin.x - obj_pos.x;
+	oc.y = origin.y - obj_pos.y;
+	oc.z = origin.z - obj_pos.z;
 
-	ft_vec_normalize(&obj_norm_x, &obj_norm_y, &obj_norm_z);
+	//ft_vec_normalize(&obj_normal.x, &obj_normal.y, &obj_normal.z);
 
-	double d_dot_n = ft_dot_prod(dir_x, dir_y, dir_z, obj_norm_x, obj_norm_y, obj_norm_z);
-	double oc_dot_n = ft_dot_prod(oc_x, oc_y, oc_z, obj_norm_x, obj_norm_y, obj_norm_z);
+	float d_dot_n = ft_dot_prod(dir, obj_normal);
+	float oc_dot_n = ft_dot_prod(oc, obj_normal);
 
-	double k1 = ft_dot_prod(dir_x, dir_y, dir_z, dir_x, dir_y, dir_z) - pow(d_dot_n, 2);
-	double k2 = 2.0f * (ft_dot_prod(dir_x, dir_y, dir_z, oc_x, oc_y, oc_z) - (d_dot_n * oc_dot_n));
-	double k3 = ft_dot_prod(oc_x, oc_y, oc_z, oc_x, oc_y, oc_z) - pow(oc_dot_n, 2) - pow(obj_radius, 2);
+	float k1 = ft_dot_prod(dir, dir) - pow(d_dot_n, 2);
+	float k2 = 2.0f * (ft_dot_prod(dir, oc) - (d_dot_n * oc_dot_n));
+	float k3 = ft_dot_prod(oc, oc) - pow(oc_dot_n, 2) - pow(obj_radius, 2);
 
-	double discr = k2 * k2 - 4.0f * k1 * k3;
+	float discr = k2 * k2 - 4.0f * k1 * k3;
 	if (discr < 0.0f)
 		return (-1.0f);
 
-	double discr_sqrt = sqrt(discr);
-	double k1_ = 2.0f * k1;
+	float discr_sqrt = sqrt(discr);
+	float k1_ = 2.0f * k1;
 
-	double t1 = (double)(-k2 + discr_sqrt) / (double)k1_;
-	double t2 = (double)(-k2 - discr_sqrt) / (double)k1_;
+	float t1 = (float)(-k2 + discr_sqrt) / (float)k1_;
+	float t2 = (float)(-k2 - discr_sqrt) / (float)k1_;
 
 	if (t1 < t2)
 		return (t1);
@@ -223,143 +225,129 @@ double		ft_cylinder_intersect(double origin_x, double origin_y, double origin_z,
 
 
 ////////////////////////////////////////////////////////////////////////	NORMAL		///////////////////////////////////////////////////////////////////////////
-void	ft_sph_normal_calc(double dir_x, double dir_y, double dir_z,
-										double point_x, double point_y, double point_z,
-										double obj_x, double obj_y, double obj_z,
-										double *normal_x, double *normal_y, double *normal_z)
+float3		ft_sph_normal_calc(float3 dir_, float3 point, float3 obj_pos, float3 normal)
 {
-	*normal_x = point_x - obj_x;
-	*normal_y = point_y - obj_y;
-	*normal_z = point_z - obj_z;
-	ft_vec_normalize(normal_x, normal_y, normal_z);
+	normal.x = point.x - obj_pos.x;
+	normal.y = point.y - obj_pos.y;
+	normal.z = point.z - obj_pos.z;
+	normal = ft_vec_normalize(normal);
+	return (normal);
 }
 
-void	ft_plane_normal_calc(double dir_x, double dir_y, double dir_z,
-											double obj_norm_x, double obj_norm_y, double obj_norm_z,
-											double *normal_x, double *normal_y, double *normal_z)
+float3		ft_plane_normal_calc(float3 dir, float3 obj_normal, float3 normal)
 {
-	if (ft_dot_prod(dir_x, dir_y, dir_z, obj_norm_x, obj_norm_y, obj_norm_z) > 0.0f)
+	if (ft_dot_prod(dir, obj_normal) > 0.0f)
 	{
-		*normal_x = -obj_norm_x;
-		*normal_y = -obj_norm_y;
-		*normal_z = -obj_norm_z;
+		normal.x = -obj_normal.x;
+		normal.y = -obj_normal.y;
+		normal.z = -obj_normal.z;
 	}
 	else
 	{
-		*normal_x = obj_norm_x;
-		*normal_y = obj_norm_y;
-		*normal_z = obj_norm_z;
+		normal.x = obj_normal.x;
+		normal.y = obj_normal.y;
+		normal.z = obj_normal.z;
 	}
+	return (normal);
 }
 
-void		ft_cone_normal_calc(double dir_x, double dir_y, double dir_z,
-											double point_x, double point_y, double point_z,
-											double obj_x, double obj_y, double obj_z,
-											double obj_norm_x, double obj_norm_y, double obj_norm_z,
-											double obj_radius,
-											double *normal_x, double *normal_y, double *normal_z)
+float3		ft_cone_normal_calc(float3 dir, float3 point, float3 obj_pos, float3 obj_normal, float obj_radius, float3 normal)
 {
-	*normal_x = point_x - obj_x;
-	*normal_y = point_y - obj_y;
-	*normal_z = point_z - obj_z;
+	normal.x = point.x - obj_pos.x;
+	normal.y = point.y - obj_pos.y;
+	normal.z = point.z - obj_pos.z;
 
-	double side_len = (double)sqrt(ft_dot_prod(*normal_x, *normal_y, *normal_z, *normal_x, *normal_y, *normal_z)) / (double)cos(obj_radius);
+	float side_len = (float)sqrt(ft_dot_prod(normal, normal)) / (float)cos(obj_radius);
 
-	if (ft_dot_prod(*normal_x, *normal_y, *normal_z, obj_norm_x, obj_norm_y, obj_norm_z) < 0.0f)
+	if (ft_dot_prod(normal, obj_normal) < 0.0f)
 		side_len = -side_len;
 
-	*normal_x = obj_x + obj_norm_x * side_len;
-	*normal_y = obj_y + obj_norm_y * side_len;
-	*normal_z = obj_z + obj_norm_z * side_len;
+	normal.x = obj_pos.x + obj_normal.x * side_len;
+	normal.y = obj_pos.y + obj_normal.y * side_len;
+	normal.z = obj_pos.z + obj_normal.z * side_len;
 
-	*normal_x = point_x - *normal_x;
-	*normal_y = point_y - *normal_y;
-	*normal_z = point_z - *normal_z;
-	ft_vec_normalize(normal_x, normal_y, normal_z);
+	normal.x = point.x - normal.x;
+	normal.y = point.y - normal.y;
+	normal.z = point.z - normal.z;
+	normal = ft_vec_normalize(normal);
+	return (normal);
 }
 
-void		ft_cylinder_normal_calc(double dir_x, double dir_y, double dir_z,
-												double point_x, double point_y, double point_z,
-												double obj_x, double obj_y, double obj_z,
-												double obj_norm_x, double obj_norm_y, double obj_norm_z,
-												double *normal_x, double *normal_y, double *normal_z)
+float3		ft_cylinder_normal_calc(float3 dir, float3 point, float3 obj_pos, float3 obj_normal, float3 normal)
 {
-	*normal_x = point_x - obj_x;
-	*normal_y = point_y - obj_y;
-	*normal_z = point_z - obj_z;
+	normal.x = point.x - obj_pos.x;
+	normal.y = point.y - obj_pos.y;
+	normal.z = point.z - obj_pos.z;
 
-	double dis = ft_dot_prod(*normal_x, *normal_y, *normal_z, obj_norm_x, obj_norm_y, obj_norm_z);
+	float dis = ft_dot_prod(normal, obj_normal);
 
-	*normal_x = obj_x + obj_norm_x * dis;
-	*normal_y = obj_y + obj_norm_y * dis;
-	*normal_z = obj_z + obj_norm_z * dis;
+	normal.x = obj_pos.x + obj_normal.x * dis;
+	normal.y = obj_pos.y + obj_normal.y * dis;
+	normal.z = obj_pos.z + obj_normal.z * dis;
 
-	*normal_x = point_x - *normal_x;
-	*normal_y = point_y - *normal_y;
-	*normal_z = point_z - *normal_z;
-	ft_vec_normalize(normal_x, normal_y, normal_z);
+	normal.x = point.x - normal.x;
+	normal.y = point.y - normal.y;
+	normal.z = point.z - normal.z;
+	normal = ft_vec_normalize(normal);
+	return (normal);
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int		ft_shadow_intersection(double origin_x, double origin_y, double origin_z,
-											double dir_x, double dir_y, double dir_z,
-											__global double *obj_x, __global double *obj_y, __global double *obj_z,
-											__global double *obj_norm_x, __global double *obj_norm_y, __global double *obj_norm_z,
-											__global double *obj_radius, int obj_count, __global int *obj_type,
-											double min_dist, double max_dist)
+int		ft_shadow_intersection(float3 origin, float3 dir,
+								__global float3 *obj_pos,
+								__global float3 *obj_normal,
+								__global float *obj_radius, int obj_count, __global int *obj_type,
+								float min_dist, float max_dist, int obj_i)
 {
-	int obj_i = -1;
-	double closest = max_dist;
+	float closest = max_dist;
 	int i = -1;
 	while (++i < obj_count)
 	{
-		//double t = ft_sph_intersect(origin_x, origin_y, origin_z, dir_x, dir_y, dir_z, obj_x[i], obj_y[i], obj_z[i], obj_radius[i]);
-		double t;
+		float t;
 
 		if (obj_type[i] == SPHERE)
-			t = ft_sph_intersect(origin_x, origin_y, origin_z, dir_x, dir_y, dir_z, obj_x[i], obj_y[i], obj_z[i], obj_radius[i]);
+			t = ft_sph_intersect(origin, dir, obj_pos[i], obj_radius[i]);
 		else if (obj_type[i] == PLANE)
-			t = ft_plane_intersect(origin_x, origin_y, origin_z, dir_x, dir_y, dir_z, obj_x[i], obj_y[i], obj_z[i], obj_norm_x[i], obj_norm_y[i], obj_norm_z[i]);
+			t = ft_plane_intersect(origin, dir, obj_pos[i], obj_normal[i]);
 		else if (obj_type[i] == CONE)
-			t = ft_cone_intersect(origin_x, origin_y, origin_z, dir_x, dir_y, dir_z, obj_x[i], obj_y[i], obj_z[i], obj_norm_x[i], obj_norm_y[i], obj_norm_z[i], obj_radius[i]);
+			t = ft_cone_intersect(origin, dir, obj_pos[i], obj_normal[i], obj_radius[i]);
 		else if (obj_type[i] == CYLINDER)
-			t = ft_cylinder_intersect(origin_x, origin_y, origin_z, dir_x, dir_y, dir_z, obj_x[i], obj_y[i], obj_z[i], obj_norm_x[i], obj_norm_y[i], obj_norm_z[i], obj_radius[i]);
+			t = ft_cylinder_intersect(origin, dir, obj_pos[i], obj_normal[i], obj_radius[i]);
+		else
+			return (-1);
 
-		if (t >= min_dist && t < closest)
-		{
-			obj_i = i;
-			closest = t;
-			return (obj_i);
-		}
+		if (t >= min_dist && t < closest && obj_i != i)
+			return (i);
 	}
-	return (obj_i);
+	return (-1);
 }
 
-int		ft_closest_intersection(double origin_x, double origin_y, double origin_z,
-											double dir_x, double dir_y, double dir_z,
-											__global double *obj_x, __global double *obj_y, __global double *obj_z,
-											__global double *obj_norm_x, __global double *obj_norm_y, __global double *obj_norm_z,
-											__global double *obj_radius, int obj_count, __global int *obj_type,
-											double min_dist, double max_dist, double *closest)
+int		ft_closest_intersection(float3 origin, float3 dir,
+								__global float3 *obj_pos,
+								__global float3 *obj_normal,
+								__global float *obj_radius, int obj_count, __global int *obj_type,
+								float min_dist, float max_dist, float *closest, int refl_i)
 {
 	int obj_i = -1;
 	*closest = max_dist;
 	int i = -1;
 	while (++i < obj_count)
 	{
-		//double t = ft_sph_intersect(origin_x, origin_y, origin_z, dir_x, dir_y, dir_z, obj_x[i], obj_y[i], obj_z[i], obj_radius[i]);
-		double t;
+		//float t = ft_sph_intersect(origin_x, origin_y, origin_z, dir_x, dir_y, dir_z, obj_x[i], obj_y[i], obj_z[i], obj_radius[i]);
+		float t;
 
 		if (obj_type[i] == SPHERE)
-			t = ft_sph_intersect(origin_x, origin_y, origin_z, dir_x, dir_y, dir_z, obj_x[i], obj_y[i], obj_z[i], obj_radius[i]);
+			t = ft_sph_intersect(origin, dir, obj_pos[i], obj_radius[i]);
 		else if (obj_type[i] == PLANE)
-			t = ft_plane_intersect(origin_x, origin_y, origin_z, dir_x, dir_y, dir_z, obj_x[i], obj_y[i], obj_z[i], obj_norm_x[i], obj_norm_y[i], obj_norm_z[i]);
+			t = ft_plane_intersect(origin, dir, obj_pos[i], obj_normal[i]);
 		else if (obj_type[i] == CONE)
-			t = ft_cone_intersect(origin_x, origin_y, origin_z, dir_x, dir_y, dir_z, obj_x[i], obj_y[i], obj_z[i], obj_norm_x[i], obj_norm_y[i], obj_norm_z[i], obj_radius[i]);
+			t = ft_cone_intersect(origin, dir, obj_pos[i], obj_normal[i], obj_radius[i]);
 		else if (obj_type[i] == CYLINDER)
-			t = ft_cylinder_intersect(origin_x, origin_y, origin_z, dir_x, dir_y, dir_z, obj_x[i], obj_y[i], obj_z[i], obj_norm_x[i], obj_norm_y[i], obj_norm_z[i], obj_radius[i]);
+			t = ft_cylinder_intersect(origin, dir, obj_pos[i], obj_normal[i], obj_radius[i]);
+		else
+			return (-1);
 
-		if (t >= min_dist && t < *closest)
+		if (t >= min_dist && t < *closest && refl_i != i)
 		{
 			obj_i = i;
 			*closest = t;
@@ -368,75 +356,66 @@ int		ft_closest_intersection(double origin_x, double origin_y, double origin_z,
 	return (obj_i);
 }
 
-int		ft_trace_refl_ray(double origin_x, double origin_y, double origin_z,
-								double dir_x, double dir_y, double dir_z,
-								__global double *obj_x, __global double *obj_y, __global double *obj_z,
-								__global double *obj_norm_x, __global double *obj_norm_y, __global double *obj_norm_z,
-								__global double *obj_radius, __global int *obj_color, __global double *obj_specular,
-								__global double *obj_mirrored, int obj_count, __global int *obj_type,
-								__global double *light_x, __global double *light_y, __global double *light_z,
-								__global int *light_type, __global double *light_intensity, int light_count,
-								double min_dist, double max_dist, int depth)
+int		ft_trace_refl_ray(float3 origin, float3 dir,
+							__global float3 *obj_pos,
+							__global float3 *obj_normal,
+							__global float *obj_radius, __global int *obj_color, __global float *obj_specular,
+							__global float *obj_mirrored, int obj_count, __global int *obj_type,
+							__global float3 *light_vec,
+							__global int *light_type, __global float *light_intensity, int light_count,
+							float min_dist, float max_dist, int depth, int refl_i)
 {
-	int color = ft_trace_ray(	origin_x, origin_y, origin_z,
-										dir_x, dir_y, dir_z,
-										obj_x, obj_y, obj_z,
-										obj_norm_x, obj_norm_y, obj_norm_z,
-										obj_radius, obj_color, obj_specular,
-										obj_mirrored, obj_count, obj_type,
-										light_x, light_y, light_z,
-										light_type, light_intensity, light_count,
-										min_dist, max_dist, depth);
+	int color = ft_trace_ray(origin, dir, obj_pos, obj_normal,
+							obj_radius, obj_color, obj_specular,
+							obj_mirrored, obj_count, obj_type,
+							light_vec,
+							light_type, light_intensity, light_count,
+							min_dist, max_dist, depth, refl_i);
 	return (color);
 }
 
-int		ft_trace_ray(double origin_x, double origin_y, double origin_z,
-							double dir_x, double dir_y, double dir_z,
-							__global double *obj_x, __global double *obj_y, __global double *obj_z,
-							__global double *obj_norm_x, __global double *obj_norm_y, __global double *obj_norm_z,
-							__global double *obj_radius, __global int *obj_color, __global double *obj_specular,
-							__global double *obj_mirrored, int obj_count, __global int *obj_type,
-							__global double *light_x, __global double *light_y, __global double *light_z,
-							__global int *light_type, __global double *light_intensity, int light_count,
-							double min_dist, double max_dist, int depth)
+int		ft_trace_ray(float3 origin, float3 dir,
+					__global float3 *obj_pos,
+					__global float3 *obj_normal,
+					__global float *obj_radius, __global int *obj_color, __global float *obj_specular,
+					__global float *obj_mirrored, int obj_count, __global int *obj_type,
+					__global float3 *light_vec,
+					__global int *light_type, __global float *light_intensity, int light_count,
+					float min_dist, float max_dist, int depth, int refl_i)
 {
-	double closest;
-	int obj_i = ft_closest_intersection(origin_x, origin_y, origin_z,
-													dir_x, dir_y, dir_z,
-													obj_x, obj_y, obj_z,
-													obj_norm_x, obj_norm_y, obj_norm_z,
-													obj_radius, obj_count, obj_type,
-													min_dist, max_dist, &closest);
+	float closest;
+	int obj_i = ft_closest_intersection(origin, dir, obj_pos, obj_normal,
+										obj_radius, obj_count, obj_type,
+										min_dist, max_dist, &closest, refl_i);
 	if (obj_i < 0)
 		return (BACKGROUND_COLOR);
 	//return (obj_color[obj_i]);
 
-	double point_x = origin_x + closest * dir_x;
-	double point_y = origin_y + closest * dir_y;
-	double point_z = origin_z + closest * dir_z;
+	float3 point;
+	point.x = origin.x + closest * dir.x;
+	point.y = origin.y + closest * dir.y;
+	point.z = origin.z + closest * dir.z;
 
-	double normal_x;
-	double normal_y;
-	double normal_z;
+	float3 normal;
 
 	if (obj_type[obj_i] == SPHERE)
-		ft_sph_normal_calc(dir_x, dir_y, dir_z, point_x, point_y, point_z, obj_x[obj_i], obj_y[obj_i], obj_z[obj_i], &normal_x, &normal_y, &normal_z);
+		normal = ft_sph_normal_calc(dir, point, obj_pos[obj_i], normal);
 	else if (obj_type[obj_i] == PLANE)
-		ft_plane_normal_calc(dir_x, dir_y, dir_z, obj_norm_x[obj_i], obj_norm_y[obj_i], obj_norm_z[obj_i], &normal_x, &normal_y, &normal_z);
+		normal = ft_plane_normal_calc(dir, obj_normal[obj_i], normal);
 	else if (obj_type[obj_i] == CONE)
-		ft_cone_normal_calc(dir_x, dir_y, dir_z, point_x, point_y, point_z, obj_x[obj_i], obj_y[obj_i], obj_z[obj_i],
-										obj_norm_x[obj_i], obj_norm_y[obj_i], obj_norm_z[obj_i], obj_radius[obj_i],
-										&normal_x, &normal_y, &normal_z);
+		normal = ft_cone_normal_calc(dir, point, obj_pos[obj_i], obj_normal[obj_i], obj_radius[obj_i], normal);
 	else if (obj_type[obj_i] == CYLINDER)
-		ft_cylinder_normal_calc(dir_x, dir_y, dir_z, point_x, point_y, point_z, obj_x[obj_i], obj_y[obj_i], obj_z[obj_i], obj_norm_x[obj_i], obj_norm_y[obj_i], obj_norm_z[obj_i],
-											&normal_x, &normal_y, &normal_z);
+		normal = ft_cylinder_normal_calc(dir, point, obj_pos[obj_i], obj_normal[obj_i], normal);
 
-	double light_dir_x;
-	double light_dir_y;
-	double light_dir_z;
-	double s_max;
+	float3 neg_dir;
+	neg_dir.x = -dir.x;
+	neg_dir.y = -dir.y;
+	neg_dir.z = -dir.z;
 
-	double intensity = 0.0f;
+	float3 light_dir;
+	float s_max;
+
+	float intensity = 0.0f;
 	int i = -1;
 	while (++i < light_count)
 	{
@@ -446,38 +425,36 @@ int		ft_trace_ray(double origin_x, double origin_y, double origin_z,
 		{
 			if (light_type[i] == POINT_L)
 			{
-				light_dir_x = light_x[i] - point_x;
-				light_dir_y = light_y[i] - point_y;
-				light_dir_z = light_z[i] - point_z;
+				light_dir.x = light_vec[i].x - point.x;
+				light_dir.y = light_vec[i].y - point.y;
+				light_dir.z = light_vec[i].z - point.z;
 				s_max = 1.0f;
 			}
 			else
 				continue;
 
-			double s_closest;
-			int s_obj_i = ft_shadow_intersection(point_x, point_y, point_z,
-																light_dir_x, light_dir_y, light_dir_z,
-																obj_x, obj_y, obj_z,
-																obj_norm_x, obj_norm_y, obj_norm_z,
-																obj_radius, obj_count, obj_type,
-																0.000001f, s_max);
+			float s_closest;
+			int s_obj_i = ft_shadow_intersection(point, light_dir, obj_pos, obj_normal,
+												obj_radius, obj_count, obj_type,
+												0.000001f, s_max, obj_i);
 			if (s_obj_i >= 0)
 				continue;
 
-			double n_dot_l = ft_dot_prod(normal_x, normal_y, normal_z, light_dir_x, light_dir_y, light_dir_z);
+			float n_dot_l = ft_dot_prod(normal, light_dir);
 			if (n_dot_l > 0.0f)
-				intensity += (double)(light_intensity[i] * n_dot_l) / (double)(ft_vec_len(normal_x, normal_y, normal_z) * ft_vec_len(light_dir_x, light_dir_y, light_dir_z));
+				intensity += (float)(light_intensity[i] * n_dot_l) / (float)(ft_vec_len(normal) * ft_vec_len(light_dir));
 
 			if (obj_specular[obj_i] > 0.0f)
 			{
-				double dot = ft_dot_prod(normal_x, normal_y, normal_z, light_dir_x, light_dir_y, light_dir_z);
-				double s_refl_x = 2.0f * normal_x * dot - light_dir_x;
-				double s_refl_y = 2.0f * normal_y * dot - light_dir_y;
-				double s_refl_z = 2.0f * normal_z * dot - light_dir_z;
+				float dot = ft_dot_prod(normal, light_dir);
+				float3 s_refl;
+				s_refl.x = 2.0f * normal.x * dot - light_dir.x;
+				s_refl.y = 2.0f * normal.y * dot - light_dir.y;
+				s_refl.z = 2.0f * normal.z * dot - light_dir.z;
 
-				double r_dot_v = ft_dot_prod(s_refl_x, s_refl_y, s_refl_z, -dir_x, -dir_y, -dir_z);
+				float r_dot_v = ft_dot_prod(s_refl, neg_dir);
 				if (r_dot_v > 0.0f)
-					intensity += (light_intensity[i] * pow((double)r_dot_v / (double)(ft_vec_len(s_refl_x, s_refl_y, s_refl_z) * ft_vec_len(-dir_x, -dir_y, -dir_z)), (int)obj_specular[obj_i]));
+					intensity += (light_intensity[i] * pow((float)r_dot_v / (float)(ft_vec_len(s_refl) * ft_vec_len(neg_dir)), (int)obj_specular[obj_i]));
 			}
 		}
 	}
@@ -489,52 +466,55 @@ int		ft_trace_ray(double origin_x, double origin_y, double origin_z,
 	if (depth > 1 || obj_mirrored[obj_i] <= 0)
 		return (color);
 
-	double refl_dot = ft_dot_prod(-dir_x, -dir_y, -dir_z, normal_x, normal_y, normal_z);
-	double refl_x = 2.0f * refl_dot * normal_x - (-dir_x);
-	double refl_y = 2.0f * refl_dot * normal_y - (-dir_y);
-	double refl_z = 2.0f * refl_dot * normal_z - (-dir_z);
+	float refl_dot = ft_dot_prod(neg_dir, normal);
 
-	int refl_color = ft_trace_refl_ray(point_x, point_y, point_z,
-												refl_x, refl_y, refl_z,
-												obj_x, obj_y, obj_z,
-												obj_norm_x, obj_norm_y, obj_norm_z,
-												obj_radius, obj_color, obj_specular,
-												obj_mirrored, obj_count, obj_type,
-												light_x, light_y, light_z,
-												light_type, light_intensity, light_count,
-												0.000001f, 3.40282347e+38F, depth + 1);
+	float3 refl_ray;
+	refl_ray.x = 2.0f * refl_dot * normal.x - neg_dir.x;
+	refl_ray.y = 2.0f * refl_dot * normal.y - neg_dir.y;
+	refl_ray.z = 2.0f * refl_dot * normal.z - neg_dir.z;
+
+	int refl_color = ft_trace_refl_ray(point, refl_ray, obj_pos, obj_normal,
+										obj_radius, obj_color, obj_specular,
+										obj_mirrored, obj_count, obj_type,
+										light_vec,
+										light_type, light_intensity, light_count,
+										0.000001f, MAX_FLT, depth + 1, obj_i);
 
 	return (ft_sum_color(color, refl_color, 1 - obj_mirrored[obj_i], obj_mirrored[obj_i]));
 }
 
 __kernel void render(__global unsigned int *buffer,
-							double origin_x, double origin_y, double origin_z,
-							__global double *obj_x, __global double *obj_y, __global double *obj_z,
-							__global double *obj_norm_x, __global double *obj_norm_y, __global double *obj_norm_z,
-							__global double *obj_radius, __global int *obj_color, __global double *obj_specular,
-							__global double *obj_mirrored, int obj_count, __global int *obj_type,
-							__global double *light_x, __global double *light_y, __global double *light_z,
-							__global double *light_type, __global double *light_intensity, int light_count,
-							double dx, double dy)
+							float origin_x, float origin_y, float origin_z,
+							__global float3 *obj_pos,
+							__global float3 *obj_normal,
+							__global float *obj_radius, __global int *obj_color, __global float *obj_specular,
+							__global float *obj_mirrored, int obj_count, __global int *obj_type,
+							__global float3 *light_vec,
+							__global float *light_type, __global float *light_intensity, int light_count,
+							float dx, float dy)
 {
 	unsigned int pixel = get_global_id(0);
 
 	int y = pixel / W - (H / 2.0f);
 	int x = pixel % W - (W / 2.0f);
 
-	double dir_x = (double)x / (double)W * (double)AR + dx;
-	double dir_y = -(double)y / (double)H + dy;
-	double dir_z = 1.0f;
+	float3 origin;
+	origin.x = origin_x;
+	origin.y = origin_y;
+	origin.z = origin_z;
 
-	int color = ft_trace_ray(origin_x, origin_y, origin_z,
-										dir_x, dir_y, dir_z,
-										obj_x, obj_y, obj_z,
-										obj_norm_x, obj_norm_y, obj_norm_z,
-										obj_radius, obj_color, obj_specular,
-										obj_mirrored, obj_count, obj_type,
-										light_x, light_y, light_z,
-										light_type, light_intensity, light_count,
-										1.0f, 3.40282347e+38F, 0);
+	float3 dir;
+	dir.x = (float)x / (float)W * (float)AR;
+	dir.y = -(float)y / (float)H;
+	dir.z = 1.0f;
+
+	dir = ft_vec_rotate(dir, dx, dy);
+
+	int color = ft_trace_ray(origin, dir, obj_pos, obj_normal,
+							obj_radius, obj_color, obj_specular,
+							obj_mirrored, obj_count, obj_type,
+							light_vec, light_type, light_intensity, light_count,
+							1.0f, MAX_FLT, 0, -1);
 
 	buffer[pixel] = color;
 }
