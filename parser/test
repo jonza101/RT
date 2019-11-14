@@ -1,0 +1,41 @@
+object {
+    type = plane
+    point1 = 0 0 0
+    point2 = 1, 1, 1
+    point3 = 12.5, 43 67.1
+    color = 255 0 255
+}
+light {
+    type = point
+    intensity = 0.6
+    position = 2, 1, 0
+}
+object {
+    type = cylinder
+    point1 = 0, 0, 0
+    point2 = 0, 0, 10
+    кadius = 2
+    color = 255 0 0
+}
+light {
+    type = directional
+    intensity = 0.2
+    direction = 1, 4, 4
+}
+object {
+    type = sphere
+    center = 1, 1, 1
+    radius = 3
+    color = 255 255 255
+}
+light {
+    type = ambient
+    intensity = 0.1
+}
+object {
+    type = cone
+    point1 = 0, 0, 0
+    point2 = 0, 0, 10
+    radius = 2
+    color = 0 0 255
+}

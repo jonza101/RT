@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/11/03 23:36:16 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/11/10 19:18:32 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2019/11/14 14:53:19 by jkimberl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ void	ft_device_info(t_mlx *mlx)
 	printf("d_max_alloc_mem: %f mb\n", (float)d_max_alloc_mem / 1048576);
 	printf("d_local_mem: %u kb\n", (unsigned int)d_local_mem);
 	printf("d_max_group_size: %zu\n", d_max_group_size);
-	printf("d_address_bits: %zu\n", d_address_bits);
+	printf("d_address_bits: %u\n", d_address_bits);
 	printf("\n-----------------------------------------\n\n");
 }
 
@@ -329,7 +329,7 @@ void	ft_execute_kernel(t_mlx *mlx)
 	if (mlx->ret != CL_SUCCESS)
 	{
 		printf("enqueue error %d\n", mlx->ret);
-		printf("global %d				local %d\n", mlx->global_work_size, mlx->local_work_size);
+		printf("global %zu				local %zu\n", mlx->global_work_size, mlx->local_work_size);
 		exit(0);
 	}
 	clFinish(mlx->command_queue);
