@@ -167,30 +167,3 @@ float		ft_triangle_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj)
 		return (-1.0f);
 	return (t);
 }
-
-// bool rayTriangleIntersect( 
-//     const Vec3f &orig, const Vec3f &dir, 
-//     const Vec3f &v0, const Vec3f &v1, const Vec3f &v2, 
-//     float &t) 
-// {
- 
-//     // edge 0
-//     Vec3f edge0 = v1 - v0; 
-//     Vec3f vp0 = P - v0; 
-//     C = edge0.crossProduct(vp0); 
-//     if (N.dotProduct(C) < 0) return false; // P is on the right side 
- 
-//     // edge 1
-//     Vec3f edge1 = v2 - v1; 
-//     Vec3f vp1 = P - v1; 
-//     C = edge1.crossProduct(vp1); 
-//     if (N.dotProduct(C) < 0)  return false; // P is on the right side 
- 
-//     // edge 2
-//     Vec3f edge2 = v0 - v2; 
-//     Vec3f vp2 = P - v2; 
-//     C = edge2.crossProduct(vp2); 
-//     if (N.dotProduct(C) < 0) return false; // P is on the right side; 
- 
-//     return true; // this ray hits the triangle 
-// } 

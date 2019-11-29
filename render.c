@@ -77,15 +77,7 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 	mlx->point->y = origin->y + mlx->closest * dir->y;
 	mlx->point->z = origin->z + mlx->closest * dir->z;
 
-	if (obj->type != TRIANGLE)
-		mlx->normal = obj->normal_calc(mlx->normal, dir, mlx->point, obj);
-	else
-	{
-		mlx->normal->x = obj->normal->x;
-		mlx->normal->y = obj->normal->y;
-		mlx->normal->z = obj->normal->z;
-	}
-	
+	mlx->normal = obj->normal_calc(mlx->normal, dir, mlx->point, obj);
 
 	mlx->neg_dir->x = -dir->x;
 	mlx->neg_dir->y = -dir->y;
