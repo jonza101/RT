@@ -12,49 +12,38 @@
 
 #include "rt.h"
 
-t_vec3	*ft_rotate_x(t_vec3 *vec, float angle)
+void	ft_rotate_x(t_vec3 *vec, float angle, t_vec3 *temp)
 {
 	float cos_ang = cosf(angle);
 	float sin_ang = sinf(angle);
-	
-	t_vec3 *temp = vec;
 
-	vec->x = vec->x;
+	temp->x = vec->x;
+	temp->y = vec->y;
+	temp->z = vec->z;
+
+	vec->x = temp->x;
 	vec->y = (temp->y * cos_ang) - (temp->z * sin_ang);
 	vec->z = (temp->y * sin_ang) + (temp->z * cos_ang);
-	return (vec);
 }
 
-t_vec3	*ft_rotate_y(t_vec3 *vec, float angle)
+void	ft_rotate_y(t_vec3 *vec, float angle, t_vec3 *temp)
 {
 	float cos_ang = cosf(angle);
 	float sin_ang = sinf(angle);
-	
-	t_vec3 *temp = vec;
+
+	temp->x = vec->x;
+	temp->y = vec->y;
+	temp->z = vec->z;
 
 	vec->x = (temp->x * cos_ang) + (temp->z * sin_ang);
-	vec->y = vec->y;
+	vec->y = temp->y;
 	vec->z = (-temp->x * sin_ang) + (temp->z * cos_ang);
-	return (vec);
 }
 
-/*t_vec3	*ft_rotate_z(t_vec3 *vec, float angle)
+t_vec3	*ft_vec_rotate(t_vec3 *vec, float dx, float dy, t_vec3 *temp)
 {
-	float cos_ang = cos(angle);
-	float sin_ang = sin(angle);
-	
-	t_vec3 *temp = vec;
-
-	vec.x = (temp.x * cos_ang) + (temp.y * sin_ang);
-	vec.y = (temp.x * sin_ang) + (temp.y * cos_ang);
-	vec.z = vec.z;
-	return (vec);
-}*/
-
-t_vec3	*ft_vec_rotate(t_vec3 *vec, float dx, float dy)
-{
-	vec = ft_rotate_x(vec, dy);
-	vec = ft_rotate_y(vec, dx);
+	ft_rotate_x(vec, dy, temp);
+	ft_rotate_y(vec, dx, temp);
 	vec = ft_vec_normalize(vec);
 	return (vec);
 }

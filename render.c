@@ -71,13 +71,21 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 	t_obj *obj = ft_closest_intersection(mlx, origin, dir, min, max, refl_obj);
 	if (!obj)
 		return (BACKGROUND_COLOR);
-	// return (obj->color);
+	//return (obj->color);
 
 	mlx->point->x = origin->x + mlx->closest * dir->x;
 	mlx->point->y = origin->y + mlx->closest * dir->y;
 	mlx->point->z = origin->z + mlx->closest * dir->z;
 
-	mlx->normal = obj->normal_calc(mlx->normal, dir, mlx->point, obj);
+	if (obj->type != TRIANGLE)
+		mlx->normal = obj->normal_calc(mlx->normal, dir, mlx->point, obj);
+	else
+	{
+		mlx->normal->x = obj->normal->x;
+		mlx->normal->y = obj->normal->y;
+		mlx->normal->z = obj->normal->z;
+	}
+	
 
 	mlx->neg_dir->x = -dir->x;
 	mlx->neg_dir->y = -dir->y;
@@ -147,10 +155,10 @@ void	ft_render(t_mlx *mlx)
         int y = -h - 1;
         while (++y < h)
         {
-			mlx->dir->x = (float)x / (float)W * (float)AR + mlx->dx;
-			mlx->dir->y = -(float)y / (float)H - mlx->dy;
+			mlx->dir->x = (float)x / (float)W * (float)AR;
+			mlx->dir->y = -(float)y / (float)H;
 			mlx->dir->z = 1.0f;
-			// mlx->dir = ft_vec_rotate(mlx->dir, mlx->dx, mlx->dy);
+			mlx->dir = ft_vec_rotate(mlx->dir, mlx->dx, mlx->dy, mlx->s_refl);
 
 			int color = ft_trace_ray(mlx, mlx->cam, mlx->dir, 1.0f, __FLT_MAX__, 0, NULL);
 			int xc = x + w;

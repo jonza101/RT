@@ -37,6 +37,14 @@ float       ft_dot_prod(t_vec3 *a, t_vec3 *b)
     return (dot);
 }
 
+t_vec3		*ft_cross_prod(t_vec3 *vec, t_vec3 *a, t_vec3 *b)
+{
+	vec->x = a->y * b->z - a->z * b->y;
+	vec->y = a->z * b->x - a->x * b->z;
+	vec->z = a->x * b->y - a->y * b->x;
+	return (vec);
+}
+
 float		ft_vec_len(t_vec3 *vec)
 {
 	float len = sqrtf(vec->x * vec->x + vec->y * vec->y + vec->z * vec->z);

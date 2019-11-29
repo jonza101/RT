@@ -74,9 +74,11 @@ float		ft_cone_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj)
 	float t1 = (float)(-k2 + discr_sqrt) / (float)k1_;
 	float t2 = (float)(-k2 - discr_sqrt) / (float)k1_;
 
-	if (t1 < t2)
+	if ((t1 < t2 && t1 >= 0.0f) || (t1 >= 0.0f && t2 < 0.0))
 		return (t1);
-	return (t2);
+	if ((t2 < t1 && t2 >= 0.0f) || (t2 >= 0.0f && t1 < 0.0f))
+		return (t2);
+	return (-1.0f);
 }
 
 float		ft_cylinder_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj)
@@ -106,3 +108,89 @@ float		ft_cylinder_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj)
         return (t1);
     return (t2);
 }
+
+float		ft_triangle_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj)
+{
+	float area2 = ft_vec_len(obj->normal);
+
+	float n_dot_raydir = ft_dot_prod(obj->normal, dir);
+	if (fabs(n_dot_raydir) < 0.000001f)
+		return (-1.0f);
+
+	float d = ft_dot_prod(obj->normal, obj->p0);
+
+	float t = (float)(ft_dot_prod(obj->normal, origin) + d) / (float)n_dot_raydir;
+	if (t < 0.0f)
+		return (-1.0f);
+
+	obj->t_p->x = origin->x + t * dir->x;
+	obj->t_p->y = origin->y + t * dir->y;
+	obj->t_p->z = origin->z + t * dir->z;
+
+
+	obj->oc_temp->x = obj->p1->x - obj->p0->x;
+	obj->oc_temp->y = obj->p1->y - obj->p0->y;
+	obj->oc_temp->z = obj->p1->z - obj->p0->z;
+
+	obj->vec_temp->x = obj->t_p->x - obj->p0->x;
+	obj->vec_temp->y = obj->t_p->y - obj->p0->y;
+	obj->vec_temp->z = obj->t_p->z - obj->p0->z;
+
+	obj->vec_tmp = ft_cross_prod(obj->vec_tmp, obj->oc_temp, obj->vec_temp);
+	if (ft_dot_prod(obj->normal, obj->vec_tmp) < 0.0f)
+		return (-1.0f);
+
+
+	obj->oc_temp->x = obj->p2->x - obj->p1->x;
+	obj->oc_temp->y = obj->p2->y - obj->p1->y;
+	obj->oc_temp->z = obj->p2->z - obj->p1->z;
+
+	obj->vec_temp->x = obj->t_p->x - obj->p1->x;
+	obj->vec_temp->y = obj->t_p->y - obj->p1->y;
+	obj->vec_temp->z = obj->t_p->z - obj->p1->z;
+
+	obj->vec_tmp = ft_cross_prod(obj->vec_tmp, obj->oc_temp, obj->vec_temp);
+	if (ft_dot_prod(obj->normal, obj->vec_tmp) < 0.0f)
+		return (-1.0f);
+
+
+	obj->oc_temp->x = obj->p0->x - obj->p2->x;
+	obj->oc_temp->y = obj->p0->y - obj->p2->y;
+	obj->oc_temp->z = obj->p0->z - obj->p2->z;
+
+	obj->vec_temp->x = obj->t_p->x - obj->p2->x;
+	obj->vec_temp->y = obj->t_p->y - obj->p2->y;
+	obj->vec_temp->z = obj->t_p->z - obj->p2->z;
+
+	obj->vec_tmp = ft_cross_prod(obj->vec_tmp, obj->oc_temp, obj->vec_temp);
+	if (ft_dot_prod(obj->normal, obj->vec_tmp) < 0.0f)
+		return (-1.0f);
+	return (t);
+}
+
+// bool rayTriangleIntersect( 
+//     const Vec3f &orig, const Vec3f &dir, 
+//     const Vec3f &v0, const Vec3f &v1, const Vec3f &v2, 
+//     float &t) 
+// {
+ 
+//     // edge 0
+//     Vec3f edge0 = v1 - v0; 
+//     Vec3f vp0 = P - v0; 
+//     C = edge0.crossProduct(vp0); 
+//     if (N.dotProduct(C) < 0) return false; // P is on the right side 
+ 
+//     // edge 1
+//     Vec3f edge1 = v2 - v1; 
+//     Vec3f vp1 = P - v1; 
+//     C = edge1.crossProduct(vp1); 
+//     if (N.dotProduct(C) < 0)  return false; // P is on the right side 
+ 
+//     // edge 2
+//     Vec3f edge2 = v0 - v2; 
+//     Vec3f vp2 = P - v2; 
+//     C = edge2.crossProduct(vp2); 
+//     if (N.dotProduct(C) < 0) return false; // P is on the right side; 
+ 
+//     return true; // this ray hits the triangle 
+// } 

@@ -52,6 +52,7 @@
 #define PLANE 1
 #define CONE 2
 #define CYLINDER 3
+#define TRIANGLE 4
 
 #define AMBIENT_L 0
 #define POINT_L 1
@@ -77,6 +78,10 @@ typedef	struct		s_obj
 	float			radius;
 	t_vec3			*normal;
 
+	t_vec3			*p0;
+	t_vec3			*p1;
+	t_vec3			*p2;
+
 	int					color;
 	float			specular;
 	float           mirrored;
@@ -85,13 +90,12 @@ typedef	struct		s_obj
 	t_vec3*			(*normal_calc) (t_vec3 *normal, t_vec3 *dir, t_vec3 *point, struct s_obj *obj);
 
 	t_vec3			*oc_temp;
-}					t_obj;
+	t_vec3			*vec_temp;
+	t_vec3			*vec_tmp;
+	t_vec3			*t_p;
 
-typedef	struct		s_scene
-{
-	t_obj				**obj;
-	t_light				**light;
-}						t_scene;
+	struct	s_obj	*next;
+}					t_obj;
 
 typedef struct		s_mlx
 {
@@ -122,6 +126,7 @@ typedef struct		s_mlx
 
 	float			closest;
 
+	t_obj			*obj_head;
 	t_obj			**obj;
 	int				obj_count;
 
@@ -133,8 +138,8 @@ typedef struct		s_mlx
 	int				up_down[2];
 	int				shift;
 
-	clock_t		last_time;
-	char		*render_device;
+	clock_t			last_time;
+	char			*render_device;
 	void			(*render_func)(struct s_mlx *mlx);
 
 	cl_int				ret;
@@ -184,6 +189,7 @@ typedef struct		s_mlx
 float				ft_clamp(float a, float min, float max);
 
 float				ft_dot_prod(t_vec3 *a, t_vec3 *b);
+t_vec3				*ft_cross_prod(t_vec3 *vec, t_vec3 *a, t_vec3 *b);
 float				ft_vec_len(t_vec3 *vec);
 t_vec3				*ft_vec_normalize(t_vec3 *vec);
 int					ft_color_convert(int color, float lum);
@@ -195,18 +201,20 @@ void				ft_init_gpu(t_mlx *mlx);
 void				ft_load_cl_files(t_mlx *mlx);
 void				ft_execute_kernel(t_mlx *mlx);
 
-t_vec3				*ft_vec_rotate(t_vec3 *vec, float dx, float dy);
+t_vec3				*ft_vec_rotate(t_vec3 *vec, float dx, float dy, t_vec3 *temp);
 void				ft_move(t_mlx *mlx);
 
 float				ft_sph_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj);
 float				ft_plane_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj);
 float				ft_cone_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj);
 float				ft_cylinder_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj);
+float				ft_triangle_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj);
 
 t_vec3				*ft_sph_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj);
 t_vec3				*ft_plane_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj);
 t_vec3				*ft_cone_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj);
 t_vec3				*ft_cylinder_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj);
+t_vec3      		*ft_triangle_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj);
 
-int						ft_key_press(int keycode, t_mlx *mlx);
-int						ft_key_realese(int keycode, t_mlx *mlx);
+int					ft_key_press(int keycode, t_mlx *mlx);
+int					ft_key_realese(int keycode, t_mlx *mlx);

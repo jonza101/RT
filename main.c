@@ -31,6 +31,7 @@ int		ft_gameloop(t_mlx *mlx)
 		mlx->last_time = start_time;
 
 		ft_move(mlx);
+		// ft_render(mlx);
 		mlx->render_func(mlx);
 
 		mlx_put_image_to_window(mlx->mlx, mlx->win, mlx->img, 0, 0);
@@ -67,7 +68,7 @@ void	ft_init(t_mlx *mlx)
 	mlx->refl_ray = (t_vec3*)malloc(sizeof(t_vec3));
 
 
-	mlx->obj_count = 7;
+	mlx->obj_count = 8;
 	mlx->obj = (t_obj**)malloc(sizeof(t_obj*) * mlx->obj_count);
 
 	int i = -1;
@@ -77,6 +78,12 @@ void	ft_init(t_mlx *mlx)
 		mlx->obj[i]->c = (t_vec3*)malloc(sizeof(t_vec3));
 		mlx->obj[i]->normal = (t_vec3*)malloc(sizeof(t_vec3));
 		mlx->obj[i]->oc_temp = (t_vec3*)malloc(sizeof(t_vec3));
+		mlx->obj[i]->p0 = (t_vec3*)malloc(sizeof(t_vec3));
+		mlx->obj[i]->p1 = (t_vec3*)malloc(sizeof(t_vec3));
+		mlx->obj[i]->p2 = (t_vec3*)malloc(sizeof(t_vec3));
+		mlx->obj[i]->vec_temp = (t_vec3*)malloc(sizeof(t_vec3));
+		mlx->obj[i]->vec_tmp = (t_vec3*)malloc(sizeof(t_vec3));
+		mlx->obj[i]->t_p = (t_vec3*)malloc(sizeof(t_vec3));
 	}
 	mlx->obj_count = 7;
 
@@ -139,7 +146,7 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[4]->specular = 750.0f;
 	mlx->obj[4]->intersect = ft_cone_intersect;
 	mlx->obj[4]->normal_calc = ft_cone_normal_calc;
-    mlx->obj[4]->mirrored = 0.0f;
+    mlx->obj[4]->mirrored = 0.1f;
 
 	mlx->obj[5]->type = CYLINDER;
     mlx->obj[5]->c->x = -7.0f;
@@ -154,7 +161,7 @@ void	ft_init(t_mlx *mlx)
     mlx->obj[5]->specular = 750.0f;
     mlx->obj[5]->intersect = ft_cylinder_intersect;
     mlx->obj[5]->normal_calc = ft_cylinder_normal_calc;
-    mlx->obj[5]->mirrored = 0.25f;
+    mlx->obj[5]->mirrored = 0.0f;
 
 	mlx->obj[6]->type = PLANE;
 	mlx->obj[6]->c->x = 0.0f;
@@ -168,6 +175,23 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[6]->intersect = ft_plane_intersect;
 	mlx->obj[6]->normal_calc = ft_plane_normal_calc;
     mlx->obj[6]->mirrored = 0.0f;
+
+	mlx->obj[7]->type = TRIANGLE;
+	mlx->obj[7]->p0->x = -4.0f;
+	mlx->obj[7]->p0->y = 1.0f;
+	mlx->obj[7]->p0->z = 4.0f;
+	mlx->obj[7]->p1->x = -3.0f;
+	mlx->obj[7]->p1->y = 1.75f;
+	mlx->obj[7]->p1->z = 6.0f;
+	mlx->obj[7]->p2->x = -3.5f;
+	mlx->obj[7]->p2->y = 0.0f;
+	mlx->obj[7]->p2->z = 4.5f;
+	mlx->obj[7]->normal = ft_triangle_normal_calc(mlx->obj[7]->normal, mlx->obj[7]->normal, mlx->obj[7]->normal, mlx->obj[7]);
+	mlx->obj[7]->color = 0xA8EEFF;
+	mlx->obj[7]->specular = 0.0f;
+	mlx->obj[7]->intersect = ft_triangle_intersect;
+	mlx->obj[7]->normal_calc = ft_triangle_normal_calc;
+    mlx->obj[7]->mirrored = 0.2f;
 
 
 	mlx->light_count = 5;

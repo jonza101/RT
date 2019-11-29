@@ -186,9 +186,11 @@ float		ft_cone_intersect(float3 origin, float3 dir, float3 obj_pos, float3 obj_n
 	float t1 = (float)(-k2 + discr_sqrt) / (float)k1_;
 	float t2 = (float)(-k2 - discr_sqrt) / (float)k1_;
 
-	if (t1 < t2)
+	if ((t1 < t2 && t1 >= 0.0f) || (t1 >= 0.0f && t2 < 0.0))
 		return (t1);
-	return (t2);
+	if ((t2 < t1 && t2 >= 0.0f) || (t2 >= 0.0f && t1 < 0.0f))
+		return (t2);
+	return (-1.0f);
 }
 
 float		ft_cylinder_intersect(float3 origin, float3 dir, float3 obj_pos, float3 obj_normal, float obj_radius)
