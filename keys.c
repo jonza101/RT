@@ -78,15 +78,27 @@ int		ft_key_press(int keycode, t_mlx *mlx)
 		if (mlx->gpu)
 		{
 			mlx->render_func = ft_render;
-			mlx->render_device = "CPU";
+			mlx->render_device = CPU_STR;
 		}
 		else
 		{
 			mlx->render_func = ft_execute_kernel;
-			mlx->render_device = "GPU";
+			mlx->render_device = GPU_STR;
 		}
 		mlx->gpu = !mlx->gpu;
 	}
+
+	if (keycode == MAC_C || keycode == 99)
+	{
+		mlx->effect_i++;
+		if (mlx->effect_i >= EFFECTS)
+			mlx->effect_i = 0;
+		mlx->curr_effect = mlx->effect_str[mlx->effect_i];
+	}
+	if ((keycode == MAC_PLUS || keycode == 61) && mlx->cel_band < 5)
+		mlx->cel_band++;
+	if ((keycode == MAC_MINUS || keycode == 45) && mlx->cel_band > 1)
+		mlx->cel_band--;
 
     return (0);
 }

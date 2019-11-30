@@ -129,6 +129,24 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 	if (intensity > 1.0f)
 		intensity = 1.0f;
 
+	if (mlx->effect_i == CEL_SHADING)
+	{
+		float cel_dot = ft_dot_prod(dir, mlx->normal);
+		float curr_intensity = 0.0f;
+		int cel_f = 0;
+		int cel_i = -1;
+		while (++cel_i < mlx->cel_band)
+		{
+			if (intensity >= curr_intensity && intensity < (curr_intensity + (1.0f / (float)mlx->cel_band)))
+			{
+				intensity = curr_intensity + (1.0f / (float)mlx->cel_band / 2.0f);
+				cel_f = 1;
+				break;
+			}
+			curr_intensity += (1.0f / (float)mlx->cel_band);
+		}
+	}
+
 	int color = ft_color_convert(obj->color, intensity);
 	if (depth > 1 || obj->mirrored <= 0)
 		return (color);

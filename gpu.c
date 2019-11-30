@@ -318,12 +318,15 @@ void	ft_execute_kernel(t_mlx *mlx)
 	mlx->ret |= clSetKernelArg(mlx->kernel, 3, sizeof(cl_float), &mlx->cam->z);
 	mlx->ret |= clSetKernelArg(mlx->kernel, 16, sizeof(cl_float), &mlx->dx);
 	mlx->ret |= clSetKernelArg(mlx->kernel, 17, sizeof(cl_float), &mlx->dy);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 18, sizeof(cl_int), &mlx->effect_i);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 19, sizeof(cl_int), &mlx->cel_band);
 	if (mlx->ret != CL_SUCCESS)
 	{
 		printf("kernel_arg error %d\n", mlx->ret);
 		exit(0);
 	}
 
+	mlx->local_work_size = 864;		// SHOULD TO FIX IT
 	mlx->global_work_size = W * H;
 	mlx->ret = clEnqueueNDRangeKernel(mlx->command_queue, mlx->kernel, 1, NULL, &mlx->global_work_size, &mlx->local_work_size, 0, NULL, NULL);
 	if (mlx->ret != CL_SUCCESS)

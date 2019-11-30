@@ -57,6 +57,16 @@
 #define AMBIENT_L 0
 #define POINT_L 1
 
+#define EFFECTS 2
+#define NONE 0
+#define CEL_SHADING 1
+
+#define GPU_STR "GPU (G)"
+#define CPU_STR "CPU (G)"
+
+#define EFFECT_NONE_STR "Effect: None (C)"
+#define EFFECT_CEL_SHADING "Effect: Cel Shading (C)"
+
 typedef struct		s_vec3
 {
 	float			x;
@@ -142,6 +152,12 @@ typedef struct		s_mlx
 	char			*render_device;
 	void			(*render_func)(struct s_mlx *mlx);
 
+	int				cel_band;
+
+	char			*effect_str[EFFECTS];
+	char			*curr_effect;
+	char			effect_i;
+
 	cl_int				ret;
 	cl_platform_id		platform_id;
 	cl_uint				ret_num_platforms;
@@ -168,7 +184,7 @@ typedef struct		s_mlx
 	int					*light_type;
 	float				*light_intensity;
 
-	int						gpu;
+	int					gpu;
 
 	cl_mem				gpu_obj_pos;
 	cl_mem				gpu_obj_normal;
@@ -183,7 +199,7 @@ typedef struct		s_mlx
 	cl_mem				gpu_light_intensity;
 
 	cl_mem				gpu_scene;
-}					t_mlx;
+}						t_mlx;
 
 
 float				ft_clamp(float a, float min, float max);

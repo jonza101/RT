@@ -12,8 +12,17 @@
 #define AMBIENT_L 0
 #define POINT_L 1
 
+#define NONE 0
+#define CEL_SHADING 1
+
 #define MAX_FLT 3.40282346638528859811704183484516925e+38F
 
+
+typedef struct		s_effect
+{
+	int				effect_type;
+	int				cel_band;
+}                  	t_effect;
 
 int		ft_trace_ray(float3 origin, float3 dir,
 					__global float3 *obj_pos,
@@ -22,7 +31,7 @@ int		ft_trace_ray(float3 origin, float3 dir,
 					__global float *obj_mirrored, int obj_count, __global int *obj_type,
 					__global float3 *light_vec,
 					__global int *light_type, __global float *light_intensity, int light_count,
-					float min_dist, float max_dist, int depth, int refl_i);
+					float min_dist, float max_dist, int depth, int refl_i, t_effect effect);
 
 
 float ft_dot_prod(float3 a, float3 b)
@@ -365,14 +374,14 @@ int		ft_trace_refl_ray(float3 origin, float3 dir,
 							__global float *obj_mirrored, int obj_count, __global int *obj_type,
 							__global float3 *light_vec,
 							__global int *light_type, __global float *light_intensity, int light_count,
-							float min_dist, float max_dist, int depth, int refl_i)
+							float min_dist, float max_dist, int depth, int refl_i, t_effect effect)
 {
 	int color = ft_trace_ray(origin, dir, obj_pos, obj_normal,
 							obj_radius, obj_color, obj_specular,
 							obj_mirrored, obj_count, obj_type,
 							light_vec,
 							light_type, light_intensity, light_count,
-							min_dist, max_dist, depth, refl_i);
+							min_dist, max_dist, depth, refl_i, effect);
 	return (color);
 }
 
@@ -383,7 +392,7 @@ int		ft_trace_ray(float3 origin, float3 dir,
 					__global float *obj_mirrored, int obj_count, __global int *obj_type,
 					__global float3 *light_vec,
 					__global int *light_type, __global float *light_intensity, int light_count,
-					float min_dist, float max_dist, int depth, int refl_i)
+					float min_dist, float max_dist, int depth, int refl_i, t_effect effect)
 {
 	float closest;
 	int obj_i = ft_closest_intersection(origin, dir, obj_pos, obj_normal,
@@ -464,6 +473,25 @@ int		ft_trace_ray(float3 origin, float3 dir,
 	if (intensity > 1.0f)
 		intensity = 1.0f;
 
+	if (effect.effect_type == CEL_SHADING)
+	{
+		float cel_dot = ft_dot_prod(dir, normal);
+		float cel_acc = 1.0f / (float)effect.cel_band;
+		float curr_intensity = 0.0f;
+		int cel_f = 0;
+		int cel_i = -1;
+		while (++cel_i < effect.cel_band)
+		{
+			if (intensity >= curr_intensity && intensity < (curr_intensity + cel_acc))
+			{
+				intensity = curr_intensity + ((float)cel_acc / 2.0f);
+				cel_f = 1;
+				break;
+			}
+			curr_intensity += cel_acc;
+		}
+	}
+
 	int color = ft_color_convert(obj_color[obj_i], intensity);
 	if (depth > 1 || obj_mirrored[obj_i] <= 0)
 		return (color);
@@ -480,7 +508,7 @@ int		ft_trace_ray(float3 origin, float3 dir,
 										obj_mirrored, obj_count, obj_type,
 										light_vec,
 										light_type, light_intensity, light_count,
-										0.000001f, MAX_FLT, depth + 1, obj_i);
+										0.000001f, MAX_FLT, depth + 1, obj_i, effect);
 
 	return (ft_sum_color(color, refl_color, 1 - obj_mirrored[obj_i], obj_mirrored[obj_i]));
 }
@@ -493,7 +521,7 @@ __kernel void render(__global unsigned int *buffer,
 							__global float *obj_mirrored, int obj_count, __global int *obj_type,
 							__global float3 *light_vec,
 							__global float *light_type, __global float *light_intensity, int light_count,
-							float dx, float dy)
+							float dx, float dy, int effect_type, int cel_band)
 {
 	unsigned int pixel = get_global_id(0);
 
@@ -512,11 +540,15 @@ __kernel void render(__global unsigned int *buffer,
 
 	dir = ft_vec_rotate(dir, dx, dy);
 
+	t_effect effect;
+	effect.effect_type = effect_type;
+	effect.cel_band = cel_band;
+
 	int color = ft_trace_ray(origin, dir, obj_pos, obj_normal,
 							obj_radius, obj_color, obj_specular,
 							obj_mirrored, obj_count, obj_type,
 							light_vec, light_type, light_intensity, light_count,
-							1.0f, MAX_FLT, 0, -1);
+							1.0f, MAX_FLT, 0, -1, effect);
 
 	buffer[pixel] = color;
 }

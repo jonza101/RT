@@ -39,6 +39,7 @@ int		ft_gameloop(t_mlx *mlx)
 		
 		mlx_string_put(mlx->mlx, mlx->win, 10, 20, 0xFFFFFF, fps_str);
 		mlx_string_put(mlx->mlx, mlx->win, 10, 40, 0xFFFFFF, mlx->render_device);
+		mlx_string_put(mlx->mlx, mlx->win, 10, 60, 0xFFFFFF, mlx->curr_effect);
 	}
 	free(fps_str);
 
@@ -243,10 +244,17 @@ void	ft_init(t_mlx *mlx)
 	mlx->last_time = 0.0f;
 	mlx->gpu = 1;
 	mlx->render_func = ft_execute_kernel;
-	mlx->render_device = "GPU";
+	mlx->render_device = GPU_STR;
 
 	ft_init_gpu(mlx);
 	ft_load_cl_files(mlx);
+
+	mlx->cel_band = 1;
+
+	mlx->effect_str[0] = EFFECT_NONE_STR;
+	mlx->effect_str[1] = EFFECT_CEL_SHADING;
+	mlx->curr_effect = mlx->effect_str[0];
+	mlx->effect_i = 0;
 }
 
 int		main()
