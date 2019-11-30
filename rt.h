@@ -57,15 +57,19 @@
 #define AMBIENT_L 0
 #define POINT_L 1
 
-#define EFFECTS 2
+#define EFFECTS 4
 #define NONE 0
 #define CEL_SHADING 1
+#define SEPIA 2
+#define GRAYSCALE 3
 
 #define GPU_STR "GPU (G)"
 #define CPU_STR "CPU (G)"
 
 #define EFFECT_NONE_STR "Effect: None (C)"
-#define EFFECT_CEL_SHADING "Effect: Cel Shading (C)"
+#define EFFECT_CEL_SHADING_STR "Effect: Cel Shading (C)"
+#define EFFECT_SEPIA_STR "Effect: Sepia (C)"
+#define EFFECT_GRAYSCALE_STR "Effect: Grayscale (C)"
 
 typedef struct		s_vec3
 {
@@ -209,7 +213,9 @@ t_vec3				*ft_cross_prod(t_vec3 *vec, t_vec3 *a, t_vec3 *b);
 float				ft_vec_len(t_vec3 *vec);
 t_vec3				*ft_vec_normalize(t_vec3 *vec);
 int					ft_color_convert(int color, float lum);
-int        			 ft_sum_color(int c1, int c2, float k1, float k2);
+int					ft_sum_color(int c1, int c2, float k1, float k2);
+int					ft_to_sepia(int color);
+int					ft_to_grayscale(int color);
 
 void                ft_render(t_mlx *mlx);
 

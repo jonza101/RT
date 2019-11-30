@@ -252,7 +252,9 @@ void	ft_init(t_mlx *mlx)
 	mlx->cel_band = 1;
 
 	mlx->effect_str[0] = EFFECT_NONE_STR;
-	mlx->effect_str[1] = EFFECT_CEL_SHADING;
+	mlx->effect_str[1] = EFFECT_CEL_SHADING_STR;
+	mlx->effect_str[2] = EFFECT_SEPIA_STR;
+	mlx->effect_str[3] = EFFECT_GRAYSCALE_STR;
 	mlx->curr_effect = mlx->effect_str[0];
 	mlx->effect_i = 0;
 }

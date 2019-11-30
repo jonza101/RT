@@ -82,3 +82,37 @@ int         ft_sum_color(int c1, int c2, float k1, float k2)
     int b = b1 * k1 + b2 * k2;
     return (((r & 0xFF) << 16) + ((g & 0xFF) << 8) + ((b & 0xFF)));
 }
+
+int			ft_to_sepia(int color)
+{
+	int r = (color >> 16) & 0xFF;
+	int g = (color >> 8) & 0xFF;
+	int b = color & 0xFF;
+
+	int rr = (r * 0.393f) + (g * 0.769f) + (b * 0.189f);
+	int gg = (r * 0.349f) + (g * 0.686f) + (b * 0.168f);
+	int bb = (r * 0.272f) + (g * 0.534f) + (b * 0.131f);
+
+	rr = (rr > 255) ? 255 : rr;
+	gg = (gg > 255) ? 255 : gg;
+	bb = (bb > 255) ? 255 : bb;
+
+	return (((rr & 0xFF) << 16) + ((gg & 0xFF) << 8) + ((bb & 0xFF)));
+}
+
+int			ft_to_grayscale(int color)
+{
+	int r = (color >> 16) & 0xFF;
+	int g = (color >> 8) & 0xFF;
+	int b = color & 0xFF;
+
+	int rr = (r * 0.299f) + (g * 0.587f) + (b * 0.114f);
+	int gg = (r * 0.299f) + (g * 0.587f) + (b * 0.114f);
+	int bb = (r * 0.299f) + (g * 0.587f) + (b * 0.114f);
+
+	rr = (rr > 255) ? 255 : rr;
+	gg = (gg > 255) ? 255 : gg;
+	bb = (bb > 255) ? 255 : bb;
+
+	return (((rr & 0xFF) << 16) + ((gg & 0xFF) << 8) + ((bb & 0xFF)));
+}		

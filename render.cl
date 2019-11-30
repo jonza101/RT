@@ -14,6 +14,8 @@
 
 #define NONE 0
 #define CEL_SHADING 1
+#define SEPIA 2
+#define GRAYSCALE 3
 
 #define MAX_FLT 3.40282346638528859811704183484516925e+38F
 
@@ -123,6 +125,40 @@ int         ft_sum_color(int c1, int c2, float k1, float k2)
     int b = b1 * k1 + b2 * k2;
     return (((r & 0xFF) << 16) + ((g & 0xFF) << 8) + ((b & 0xFF)));
 }
+
+int			ft_to_sepia(int color)
+{
+	int r = (color >> 16) & 0xFF;
+	int g = (color >> 8) & 0xFF;
+	int b = color & 0xFF;
+
+	int rr = (r * 0.393f) + (g * 0.769f) + (b * 0.189f);
+	int gg = (r * 0.349f) + (g * 0.686f) + (b * 0.168f);
+	int bb = (r * 0.272f) + (g * 0.534f) + (b * 0.131f);
+
+	rr = (rr > 255) ? 255 : rr;
+	gg = (gg > 255) ? 255 : gg;
+	bb = (bb > 255) ? 255 : bb;
+
+	return (((rr & 0xFF) << 16) + ((gg & 0xFF) << 8) + ((bb & 0xFF)));
+}
+
+int			ft_to_grayscale(int color)
+{
+	int r = (color >> 16) & 0xFF;
+	int g = (color >> 8) & 0xFF;
+	int b = color & 0xFF;
+
+	int rr = (r * 0.299f) + (g * 0.587f) + (b * 0.114f);
+	int gg = (r * 0.299f) + (g * 0.587f) + (b * 0.114f);
+	int bb = (r * 0.299f) + (g * 0.587f) + (b * 0.114f);
+
+	rr = (rr > 255) ? 255 : rr;
+	gg = (gg > 255) ? 255 : gg;
+	bb = (bb > 255) ? 255 : bb;
+
+	return (((rr & 0xFF) << 16) + ((gg & 0xFF) << 8) + ((bb & 0xFF)));
+}	
 
 //////////////////////////////////////////////////////////////////////	INTERSECT	//////////////////////////////////////////////////////////////////////////////
 float		ft_sph_intersect(float3 origin, float3 dir, float3 obj_pos, float obj_radius)
@@ -494,7 +530,13 @@ int		ft_trace_ray(float3 origin, float3 dir,
 
 	int color = ft_color_convert(obj_color[obj_i], intensity);
 	if (depth > 1 || obj_mirrored[obj_i] <= 0)
+	{
+		if (effect.effect_type == SEPIA)
+			color = ft_to_sepia(color);
+		else if (effect.effect_type == GRAYSCALE)
+			color = ft_to_grayscale(color);
 		return (color);
+	}
 
 	float refl_dot = ft_dot_prod(neg_dir, normal);
 
@@ -510,7 +552,12 @@ int		ft_trace_ray(float3 origin, float3 dir,
 										light_type, light_intensity, light_count,
 										0.000001f, MAX_FLT, depth + 1, obj_i, effect);
 
-	return (ft_sum_color(color, refl_color, 1 - obj_mirrored[obj_i], obj_mirrored[obj_i]));
+	color = ft_sum_color(color, refl_color, 1 - obj_mirrored[obj_i], obj_mirrored[obj_i]);
+	if (effect.effect_type == SEPIA)
+		color = ft_to_sepia(color);
+	else if (effect.effect_type == GRAYSCALE)
+		color = ft_to_grayscale(color);
+	return (color);
 }
 
 __kernel void render(__global unsigned int *buffer,

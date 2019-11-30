@@ -149,10 +149,22 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 
 	int color = ft_color_convert(obj->color, intensity);
 	if (depth > 1 || obj->mirrored <= 0)
+	{
+		if (mlx->effect_i == SEPIA)
+			color = ft_to_sepia(color);
+		else if (mlx->effect_i == GRAYSCALE)
+			color = ft_to_grayscale(color);
 		return (color);
+	}
 	mlx->refl_ray = reflect(mlx->neg_dir, mlx->normal, mlx->refl_ray);
 	int reflected_color = ft_trace_ray(mlx, mlx->point, mlx->refl_ray, 0.000001f, __FLT_MAX__, depth + 1, obj);
-	return (ft_sum_color(color, reflected_color, 1 - obj->mirrored, obj->mirrored));
+	color = ft_sum_color(color, reflected_color, 1 - obj->mirrored, obj->mirrored);
+
+	if (mlx->effect_i == SEPIA)
+		color = ft_to_sepia(color);
+	else if (mlx->effect_i == GRAYSCALE)
+		color = ft_to_grayscale(color);
+	return (color);
 }
 
 void	ft_render(t_mlx *mlx)
