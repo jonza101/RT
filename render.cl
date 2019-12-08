@@ -1,8 +1,10 @@
-#define W 1920
-#define H 1080
+#define W 1600
+#define H 900
 #define AR ((float)W / (float)H)
 
 #define BACKGROUND_COLOR 0x0
+
+#define MAX_DEPTH 1
 
 #define SPHERE 0
 #define PLANE 1
@@ -30,11 +32,31 @@ int		ft_trace_ray(float3 origin, float3 dir,
 					__global float3 *obj_pos,
 					__global float3 *obj_normal,
 					__global float *obj_radius, __global int *obj_color, __global float *obj_specular,
-					__global float *obj_mirrored, int obj_count, __global int *obj_type,
+					__global float *obj_mirrored, __global float *obj_transparency, __global float *obj_refractive_index,
+					int obj_count, __global int *obj_type,
 					__global float3 *light_vec,
 					__global int *light_type, __global float *light_intensity, int light_count,
 					float min_dist, float max_dist, int depth, int refl_i, t_effect effect);
 
+
+float		ft_min(float a, float b)
+{
+	if (b < a)
+		return (b);
+	return (a);
+}
+
+float		ft_max(float a, float b)
+{
+	if (b > a)
+		return (b);
+	return (a);
+}
+
+float	ft_clamp(float a, float min, float max)
+{
+	return (ft_min(ft_max(a, min), max));
+}
 
 float ft_dot_prod(float3 a, float3 b)
 {
@@ -120,9 +142,15 @@ int         ft_sum_color(int c1, int c2, float k1, float k2)
     int r2 = (c2 >> 16) & 0xFF;
     int g2 = (c2 >> 8) & 0xFF;
     int b2 = c2 & 0xFF;
+
     int r = r1 * k1 + r2 * k2;
     int g = g1 * k1 + g2 * k2;
     int b = b1 * k1 + b2 * k2;
+
+	r = (r > 255) ? 255 : r;
+	g = (g > 255) ? 255 : g;
+	b = (b > 255) ? 255 : b;
+
     return (((r & 0xFF) << 16) + ((g & 0xFF) << 8) + ((b & 0xFF)));
 }
 
@@ -403,18 +431,42 @@ int		ft_closest_intersection(float3 origin, float3 dir,
 	return (obj_i);
 }
 
-int		ft_trace_refl_ray(float3 origin, float3 dir,
+float3	ft_refract(float3 dir, float3 normal, float refractive_index, float3 refr_ray)
+{
+	float n = refractive_index;
+	float cosi = -(ft_dot_prod(normal, dir));
+
+	if (cosi < 0.0f)
+		cosi = -cosi;
+	else
+	{
+		n = 1.0f / (float)n;
+		normal = -normal;
+	}
+	float sint2 = n * n * (1.0f - cosi * cosi);
+	float cost = sqrt(1.0f - sint2);
+
+	refr_ray.x = n * dir.x + (n * cosi - cost) * normal.x;
+	refr_ray.y = n * dir.y + (n * cosi - cost) * normal.y;
+	refr_ray.z = n * dir.z + (n * cosi - cost) * normal.z;
+
+	return (refr_ray);
+}
+
+int		ft_trace_ray_rec(float3 origin, float3 dir,
 							__global float3 *obj_pos,
 							__global float3 *obj_normal,
 							__global float *obj_radius, __global int *obj_color, __global float *obj_specular,
-							__global float *obj_mirrored, int obj_count, __global int *obj_type,
+							__global float *obj_mirrored, __global float *obj_transparency, __global float *obj_refractive_index,
+							int obj_count, __global int *obj_type,
 							__global float3 *light_vec,
 							__global int *light_type, __global float *light_intensity, int light_count,
 							float min_dist, float max_dist, int depth, int refl_i, t_effect effect)
 {
 	int color = ft_trace_ray(origin, dir, obj_pos, obj_normal,
 							obj_radius, obj_color, obj_specular,
-							obj_mirrored, obj_count, obj_type,
+							obj_mirrored, obj_transparency, obj_refractive_index,
+							obj_count, obj_type,
 							light_vec,
 							light_type, light_intensity, light_count,
 							min_dist, max_dist, depth, refl_i, effect);
@@ -425,7 +477,8 @@ int		ft_trace_ray(float3 origin, float3 dir,
 					__global float3 *obj_pos,
 					__global float3 *obj_normal,
 					__global float *obj_radius, __global int *obj_color, __global float *obj_specular,
-					__global float *obj_mirrored, int obj_count, __global int *obj_type,
+					__global float *obj_mirrored, __global float *obj_transparency, __global float *obj_refractive_index,
+					int obj_count, __global int *obj_type,
 					__global float3 *light_vec,
 					__global int *light_type, __global float *light_intensity, int light_count,
 					float min_dist, float max_dist, int depth, int refl_i, t_effect effect)
@@ -529,7 +582,7 @@ int		ft_trace_ray(float3 origin, float3 dir,
 	}
 
 	int color = ft_color_convert(obj_color[obj_i], intensity);
-	if (depth > 1 || obj_mirrored[obj_i] <= 0)
+	if (depth > MAX_DEPTH)
 	{
 		if (effect.effect_type == SEPIA)
 			color = ft_to_sepia(color);
@@ -538,21 +591,40 @@ int		ft_trace_ray(float3 origin, float3 dir,
 		return (color);
 	}
 
-	float refl_dot = ft_dot_prod(neg_dir, normal);
+	if (obj_mirrored[obj_i] > 0.0f)
+	{
+		float refl_dot = ft_dot_prod(neg_dir, normal);
 
-	float3 refl_ray;
-	refl_ray.x = 2.0f * refl_dot * normal.x - neg_dir.x;
-	refl_ray.y = 2.0f * refl_dot * normal.y - neg_dir.y;
-	refl_ray.z = 2.0f * refl_dot * normal.z - neg_dir.z;
+		float3 refl_ray;
+		refl_ray.x = 2.0f * refl_dot * normal.x - neg_dir.x;
+		refl_ray.y = 2.0f * refl_dot * normal.y - neg_dir.y;
+		refl_ray.z = 2.0f * refl_dot * normal.z - neg_dir.z;
 
-	int refl_color = ft_trace_refl_ray(point, refl_ray, obj_pos, obj_normal,
-										obj_radius, obj_color, obj_specular,
-										obj_mirrored, obj_count, obj_type,
-										light_vec,
-										light_type, light_intensity, light_count,
-										0.000001f, MAX_FLT, depth + 1, obj_i, effect);
+		int refl_color = ft_trace_ray_rec(point, refl_ray, obj_pos, obj_normal,
+											obj_radius, obj_color, obj_specular,
+											obj_mirrored, obj_transparency, obj_refractive_index,
+											obj_count, obj_type,
+											light_vec,
+											light_type, light_intensity, light_count,
+											0.000001f, MAX_FLT, depth + 1, obj_i, effect);
 
-	color = ft_sum_color(color, refl_color, 1 - obj_mirrored[obj_i], obj_mirrored[obj_i]);
+		color = ft_sum_color(color, refl_color, 1.0f - obj_mirrored[obj_i], obj_mirrored[obj_i]);
+	}
+
+	if (obj_transparency[obj_i] > 0.0f)
+	{
+		float3 refr_ray = ft_refract(dir, normal, obj_refractive_index[obj_i], refr_ray);
+
+		int trans_color = ft_trace_ray_rec(point, refr_ray, obj_pos, obj_normal,
+											obj_radius, obj_color, obj_specular,
+											obj_mirrored, obj_transparency, obj_refractive_index,
+											obj_count, obj_type,
+											light_vec,
+											light_type, light_intensity, light_count,
+											0.000001f, MAX_FLT, depth + 1, obj_i, effect);
+		color = ft_sum_color(color, trans_color, 1.0f - obj_transparency[obj_i], obj_transparency[obj_i]);
+	}
+
 	if (effect.effect_type == SEPIA)
 		color = ft_to_sepia(color);
 	else if (effect.effect_type == GRAYSCALE)
@@ -565,7 +637,8 @@ __kernel void render(__global unsigned int *buffer,
 							__global float3 *obj_pos,
 							__global float3 *obj_normal,
 							__global float *obj_radius, __global int *obj_color, __global float *obj_specular,
-							__global float *obj_mirrored, int obj_count, __global int *obj_type,
+							__global float *obj_mirrored, __global float *obj_transparency, __global float *obj_refractive_index,
+							int obj_count, __global int *obj_type,
 							__global float3 *light_vec,
 							__global float *light_type, __global float *light_intensity, int light_count,
 							float dx, float dy, int effect_type, int cel_band)
@@ -593,7 +666,8 @@ __kernel void render(__global unsigned int *buffer,
 
 	int color = ft_trace_ray(origin, dir, obj_pos, obj_normal,
 							obj_radius, obj_color, obj_specular,
-							obj_mirrored, obj_count, obj_type,
+							obj_mirrored, obj_transparency, obj_refractive_index,
+							obj_count, obj_type,
 							light_vec, light_type, light_intensity, light_count,
 							1.0f, MAX_FLT, 0, -1, effect);
 

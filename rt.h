@@ -28,16 +28,15 @@
 #include <CL/cl.h>
 #endif
 
-#define W 1920
-#define H 1080
+#define W 1600
+#define H 900
 #define AR ((float)W / (float)H)
 
 #define MAX_FPS 30
 
-#define CL_OBJ_STR 14
-#define CL_LIGHT_STR 15
-
 #define BACKGROUND_COLOR 0x0
+
+#define MAX_DEPTH 1
 
 #define CAM_SPEED 0.5f
 #define CAM_ACC_SPEED 1.75f
@@ -82,6 +81,7 @@ typedef	struct		s_light				//		0 - AMBIENT		|	1 - POINT	|	2 - DIRECTIONAL		|
 {
 	int				type;
 	float			intensity;
+
 	t_vec3			*vec;
 }					t_light;
 
@@ -96,9 +96,11 @@ typedef	struct		s_obj
 	t_vec3			*p1;
 	t_vec3			*p2;
 
-	int					color;
+	int				color;
 	float			specular;
 	float           mirrored;
+	float			transparency;
+	float			refractive_index;
 
 	float			(*intersect) (t_vec3 *origin, t_vec3 *dir, struct s_obj *obj);
 	t_vec3*			(*normal_calc) (t_vec3 *normal, t_vec3 *dir, t_vec3 *point, struct s_obj *obj);
@@ -137,6 +139,8 @@ typedef struct		s_mlx
 	t_vec3			*s_refl;
 
 	t_vec3			*refl_ray;
+
+	t_vec3			*refr_ray;
 
 	float			closest;
 
@@ -182,6 +186,8 @@ typedef struct		s_mlx
 	int					*obj_color;
 	float				*obj_specular;
 	float				*obj_mirrored;
+	float				*obj_transparency;
+	float				*obj_refractive_index;
 	int					*obj_type;
 
 	cl_float3			*light_vec;
@@ -196,6 +202,8 @@ typedef struct		s_mlx
 	cl_mem				gpu_obj_color;
 	cl_mem				gpu_obj_specular;
 	cl_mem				gpu_obj_mirrored;
+	cl_mem				gpu_obj_transparency;
+	cl_mem				gpu_obj_refractive_index;
 	cl_mem				gpu_obj_type;
 
 	cl_mem				gpu_light_vec;
@@ -206,13 +214,15 @@ typedef struct		s_mlx
 }						t_mlx;
 
 
+float				ft_min(float a, float b);
+float				ft_max(float a, float b);
 float				ft_clamp(float a, float min, float max);
 
 float				ft_dot_prod(t_vec3 *a, t_vec3 *b);
 t_vec3				*ft_cross_prod(t_vec3 *vec, t_vec3 *a, t_vec3 *b);
 float				ft_vec_len(t_vec3 *vec);
 t_vec3				*ft_vec_normalize(t_vec3 *vec);
-int					ft_color_convert(int color, float lum);
+int					ft_color_lum(int color, float lum);
 int					ft_sum_color(int c1, int c2, float k1, float k2);
 int					ft_to_sepia(int color);
 int					ft_to_grayscale(int color);

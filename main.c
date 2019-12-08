@@ -68,6 +68,8 @@ void	ft_init(t_mlx *mlx)
 
 	mlx->refl_ray = (t_vec3*)malloc(sizeof(t_vec3));
 
+	mlx->refr_ray = (t_vec3*)malloc(sizeof(t_vec3));
+
 
 	mlx->obj_count = 8;
 	mlx->obj = (t_obj**)malloc(sizeof(t_obj*) * mlx->obj_count);
@@ -85,19 +87,27 @@ void	ft_init(t_mlx *mlx)
 		mlx->obj[i]->vec_temp = (t_vec3*)malloc(sizeof(t_vec3));
 		mlx->obj[i]->vec_tmp = (t_vec3*)malloc(sizeof(t_vec3));
 		mlx->obj[i]->t_p = (t_vec3*)malloc(sizeof(t_vec3));
+
+		mlx->obj[i]->color = 0x0;
+		mlx->obj[i]->radius = 0.0f;
+		mlx->obj[i]->specular = 0.0f;
+		mlx->obj[i]->mirrored = 0.0f;
+		mlx->obj[i]->transparency = 0.0f;
+		mlx->obj[i]->refractive_index = 1.0f;
 	}
 	mlx->obj_count = 7;
 
+
 	mlx->obj[0]->type = SPHERE;
-	mlx->obj[0]->c->x = 0.0f;
-	mlx->obj[0]->c->y = 0.0f;
+	mlx->obj[0]->c->x = 0.15f;
+	mlx->obj[0]->c->y = 0.15f;
 	mlx->obj[0]->c->z = 5.0f;
 	mlx->obj[0]->radius = 0.5f;
-	mlx->obj[0]->color = 0x00CCFF;
-	mlx->obj[0]->specular = 0.0f;
+	mlx->obj[0]->color = 0x008cff;
+	mlx->obj[0]->transparency = 0.9f;
+	mlx->obj[0]->refractive_index = 1.33f;
 	mlx->obj[0]->intersect = ft_sph_intersect;
 	mlx->obj[0]->normal_calc = ft_sph_normal_calc;
-	mlx->obj[0]->mirrored = 0.0f;
 
 	mlx->obj[1]->type = SPHERE;
 	mlx->obj[1]->c->x = -1.5f;
@@ -106,9 +116,9 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[1]->radius = 0.75f;
 	mlx->obj[1]->color = 0x00CC99;
 	mlx->obj[1]->specular = 75.0f;
+	mlx->obj[1]->mirrored = 0.4f;
 	mlx->obj[1]->intersect = ft_sph_intersect;
 	mlx->obj[1]->normal_calc = ft_sph_normal_calc;
-    mlx->obj[1]->mirrored = 0.4f;
 
 	mlx->obj[2]->type = SPHERE;
 	mlx->obj[2]->c->x = -1.0f;
@@ -117,9 +127,9 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[2]->radius = 1.25f;
 	mlx->obj[2]->color = 0xBD0052;
 	mlx->obj[2]->specular = 500.0f;
+	mlx->obj[2]->mirrored = 0.5f;
 	mlx->obj[2]->intersect = ft_sph_intersect;
 	mlx->obj[2]->normal_calc = ft_sph_normal_calc;
-    mlx->obj[2]->mirrored = 0.5f;
 
 	mlx->obj[3]->type = PLANE;
 	mlx->obj[3]->c->x = 0.0f;
@@ -130,9 +140,9 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[3]->normal->z = 0.0f;
 	mlx->obj[3]->color = 0xFFFFFF;
 	mlx->obj[3]->specular = 0.0f;
+	mlx->obj[3]->mirrored = 0.75f;
 	mlx->obj[3]->intersect = ft_plane_intersect;
 	mlx->obj[3]->normal_calc = ft_plane_normal_calc;
-    mlx->obj[3]->mirrored = 0.75f;
 
 	mlx->obj[4]->type = CONE;
 	mlx->obj[4]->c->x = 3.5f;
@@ -143,11 +153,11 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[4]->normal->y = 1.0f;
 	mlx->obj[4]->normal->z = 0.75f;
 	mlx->obj[4]->normal = ft_vec_normalize(mlx->obj[4]->normal);
-	mlx->obj[4]->color = 0x8fff00;
+	mlx->obj[4]->color = 0xbde300;
 	mlx->obj[4]->specular = 750.0f;
+	mlx->obj[4]->mirrored = 0.1f;
 	mlx->obj[4]->intersect = ft_cone_intersect;
 	mlx->obj[4]->normal_calc = ft_cone_normal_calc;
-    mlx->obj[4]->mirrored = 0.1f;
 
 	mlx->obj[5]->type = CYLINDER;
     mlx->obj[5]->c->x = -7.0f;
@@ -158,11 +168,10 @@ void	ft_init(t_mlx *mlx)
     mlx->obj[5]->normal->y = 1.0f;
     mlx->obj[5]->normal->z = 0.0f;
 	mlx->obj[5]->normal = ft_vec_normalize(mlx->obj[5]->normal);
-    mlx->obj[5]->color = 0xFF00FF;
+    mlx->obj[5]->color = 0xE85127;
     mlx->obj[5]->specular = 750.0f;
     mlx->obj[5]->intersect = ft_cylinder_intersect;
     mlx->obj[5]->normal_calc = ft_cylinder_normal_calc;
-    mlx->obj[5]->mirrored = 0.0f;
 
 	mlx->obj[6]->type = PLANE;
 	mlx->obj[6]->c->x = 0.0f;
@@ -172,10 +181,8 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[6]->normal->y = 0.0f;
 	mlx->obj[6]->normal->z = 1.0f;
 	mlx->obj[6]->color = 0x8D41D9;
-	mlx->obj[6]->specular = 0.0f;
 	mlx->obj[6]->intersect = ft_plane_intersect;
 	mlx->obj[6]->normal_calc = ft_plane_normal_calc;
-    mlx->obj[6]->mirrored = 0.0f;
 
 	mlx->obj[7]->type = TRIANGLE;
 	mlx->obj[7]->p0->x = -4.0f;
@@ -189,10 +196,9 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[7]->p2->z = 4.5f;
 	mlx->obj[7]->normal = ft_triangle_normal_calc(mlx->obj[7]->normal, mlx->obj[7]->normal, mlx->obj[7]->normal, mlx->obj[7]);
 	mlx->obj[7]->color = 0xA8EEFF;
-	mlx->obj[7]->specular = 0.0f;
+	mlx->obj[7]->mirrored = 0.2f;
 	mlx->obj[7]->intersect = ft_triangle_intersect;
 	mlx->obj[7]->normal_calc = ft_triangle_normal_calc;
-    mlx->obj[7]->mirrored = 0.2f;
 
 
 	mlx->light_count = 5;

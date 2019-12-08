@@ -78,6 +78,8 @@ void	ft_init_gpu_obj(t_mlx *mlx)
 	mlx->obj_color = (int*)malloc(sizeof(int) * mlx->obj_count);
 	mlx->obj_specular = (float*)malloc(sizeof(float) * mlx->obj_count);
 	mlx->obj_mirrored = (float*)malloc(sizeof(float) * mlx->obj_count);
+	mlx->obj_transparency = (float*)malloc(sizeof(float) * mlx->obj_count);
+	mlx->obj_refractive_index = (float*)malloc(sizeof(float) * mlx->obj_count);
 	mlx->obj_type = (int*)malloc(sizeof(int) * mlx->obj_count);
 
 	int i = -1;
@@ -93,6 +95,8 @@ void	ft_init_gpu_obj(t_mlx *mlx)
 		mlx->obj_color[i] = mlx->obj[i]->color;
 		mlx->obj_specular[i] = mlx->obj[i]->specular;
 		mlx->obj_mirrored[i] = mlx->obj[i]->mirrored;
+		mlx->obj_transparency[i] = mlx->obj[i]->transparency;
+		mlx->obj_refractive_index[i] = mlx->obj[i]->refractive_index;
 		mlx->obj_type[i] = mlx->obj[i]->type;
 	}
 	ft_init_gpu_light(mlx);
@@ -159,6 +163,18 @@ void	ft_obj_buffer(t_mlx *mlx)
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
 	}
+	mlx->gpu_obj_transparency = clCreateBuffer(mlx->contex, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * (mlx->obj_count), mlx->obj_transparency, &mlx->ret);
+	if (!mlx->gpu_obj_transparency || mlx->ret != CL_SUCCESS)
+	{
+		printf("buffer_create error %d\n", mlx->ret);
+		exit(0);
+	}
+	mlx->gpu_obj_refractive_index = clCreateBuffer(mlx->contex, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * (mlx->obj_count), mlx->obj_refractive_index, &mlx->ret);
+	if (!mlx->gpu_obj_refractive_index || mlx->ret != CL_SUCCESS)
+	{
+		printf("buffer_create error %d\n", mlx->ret);
+		exit(0);
+	}
 	mlx->gpu_obj_type = clCreateBuffer(mlx->contex, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(cl_int) * (mlx->obj_count), mlx->obj_type, &mlx->ret);
 	if (!mlx->gpu_obj_type || mlx->ret != CL_SUCCESS)
 	{
@@ -213,8 +229,10 @@ void	ft_obj_args(t_mlx *mlx)
 	mlx->ret |= clSetKernelArg(mlx->kernel, 7, sizeof(cl_mem), &mlx->gpu_obj_color);
 	mlx->ret |= clSetKernelArg(mlx->kernel, 8, sizeof(cl_mem), &mlx->gpu_obj_specular);
 	mlx->ret |= clSetKernelArg(mlx->kernel, 9, sizeof(cl_mem), &mlx->gpu_obj_mirrored);
-	mlx->ret |= clSetKernelArg(mlx->kernel, 10, sizeof(cl_int), &mlx->obj_count);
-	mlx->ret |= clSetKernelArg(mlx->kernel, 11, sizeof(cl_mem), &mlx->gpu_obj_type);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 10, sizeof(cl_mem), &mlx->gpu_obj_transparency);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 11, sizeof(cl_mem), &mlx->gpu_obj_refractive_index);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 12, sizeof(cl_int), &mlx->obj_count);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 13, sizeof(cl_mem), &mlx->gpu_obj_type);
 	if (mlx->ret != CL_SUCCESS)
 	{
 		printf("kernel_arg error8 %d\n", mlx->ret);
@@ -224,10 +242,10 @@ void	ft_obj_args(t_mlx *mlx)
 
 void	ft_light_args(t_mlx *mlx)
 {
-	mlx->ret = clSetKernelArg(mlx->kernel, 12, sizeof(cl_mem), &mlx->gpu_light_vec);
-	mlx->ret |= clSetKernelArg(mlx->kernel, 13, sizeof(cl_mem), &mlx->gpu_light_type);
-	mlx->ret |= clSetKernelArg(mlx->kernel, 14, sizeof(cl_mem), &mlx->gpu_light_intensity);
-	mlx->ret |= clSetKernelArg(mlx->kernel, 15, sizeof(cl_int), &mlx->light_count);
+	mlx->ret = clSetKernelArg(mlx->kernel, 14, sizeof(cl_mem), &mlx->gpu_light_vec);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 15, sizeof(cl_mem), &mlx->gpu_light_type);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 16, sizeof(cl_mem), &mlx->gpu_light_intensity);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 17, sizeof(cl_int), &mlx->light_count);
 	if (mlx->ret != CL_SUCCESS)
 	{
 		printf("kernel_arg error12 %d\n", mlx->ret);
@@ -301,11 +319,17 @@ void	ft_load_cl_files(t_mlx *mlx)
 
 	ft_create_buffer(mlx);
 
+	mlx->global_work_size = W * H;
 	mlx->ret = clGetKernelWorkGroupInfo(mlx->kernel, mlx->device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(mlx->local_work_size), &mlx->local_work_size, NULL);
 	if (mlx->ret != CL_SUCCESS)
 	{
 		printf("kernel_work_group error %d\n", mlx->ret);
 		exit(0);
+	}
+	if (mlx->global_work_size % mlx->local_work_size)
+	{
+		while (mlx->global_work_size % mlx->local_work_size)
+			mlx->local_work_size--;
 	}
 
 	ft_set_kernel_args(mlx);
@@ -316,18 +340,17 @@ void	ft_execute_kernel(t_mlx *mlx)
 	mlx->ret = clSetKernelArg(mlx->kernel, 1, sizeof(cl_float), &mlx->cam->x);
 	mlx->ret |= clSetKernelArg(mlx->kernel, 2, sizeof(cl_float), &mlx->cam->y);
 	mlx->ret |= clSetKernelArg(mlx->kernel, 3, sizeof(cl_float), &mlx->cam->z);
-	mlx->ret |= clSetKernelArg(mlx->kernel, 16, sizeof(cl_float), &mlx->dx);
-	mlx->ret |= clSetKernelArg(mlx->kernel, 17, sizeof(cl_float), &mlx->dy);
-	mlx->ret |= clSetKernelArg(mlx->kernel, 18, sizeof(cl_int), &mlx->effect_i);
-	mlx->ret |= clSetKernelArg(mlx->kernel, 19, sizeof(cl_int), &mlx->cel_band);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 18, sizeof(cl_float), &mlx->dx);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 19, sizeof(cl_float), &mlx->dy);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 20, sizeof(cl_int), &mlx->effect_i);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 21, sizeof(cl_int), &mlx->cel_band);
 	if (mlx->ret != CL_SUCCESS)
 	{
 		printf("kernel_arg error %d\n", mlx->ret);
 		exit(0);
 	}
 
-	mlx->local_work_size = 864;		// SHOULD TO FIX IT
-	mlx->global_work_size = W * H;
+	// mlx->local_work_size = 800;//864;		// SHOULD TO FIX IT
 	mlx->ret = clEnqueueNDRangeKernel(mlx->command_queue, mlx->kernel, 1, NULL, &mlx->global_work_size, &mlx->local_work_size, 0, NULL, NULL);
 	if (mlx->ret != CL_SUCCESS)
 	{
