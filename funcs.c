@@ -121,4 +121,4 @@ int			ft_to_grayscale(int color)
 	bb = (bb > 255) ? 255 : bb;
 
 	return (((rr & 0xFF) << 16) + ((gg & 0xFF) << 8) + ((bb & 0xFF)));
-}		
+}

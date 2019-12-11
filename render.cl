@@ -433,7 +433,41 @@ int		ft_closest_intersection(float3 origin, float3 dir,
 
 float3	ft_refract(float3 dir, float3 normal, float refractive_index, float3 refr_ray)
 {
-	float n = refractive_index;
+	float cosi = ft_clamp(-1.0f, 1.0f, ft_dot_prod(dir, normal));
+	float etai = 1.0f;
+	float etat = refractive_index;
+
+	float3 n = normal;
+	if (cosi < 0.0f)
+		cosi = -cosi;
+	else
+	{
+		float temp = etai;
+		etai = etat;
+		etat = temp;
+
+		n.x = -normal.x;
+		n.y = -normal.y;
+		n.z = -normal.z;
+	}
+
+	float eta = (float)etai / (float)etat;
+	float k = 1.0f - eta * eta * (1.0f - cosi * cosi);
+	if (k < 0.0f)
+	{
+		refr_ray.x	=  0.0f;
+		refr_ray.y	=  0.0f;
+		refr_ray.z	=  0.0f;
+	}
+	else
+	{
+		refr_ray.x = eta * dir.x + (eta * cosi - sqrt(k)) * n.x;
+		refr_ray.y = eta * dir.y + (eta * cosi - sqrt(k)) * n.y;
+		refr_ray.z = eta * dir.z + (eta * cosi - sqrt(k)) * n.z;
+	}
+
+
+	/*float n = refractive_index;
 	float cosi = -(ft_dot_prod(normal, dir));
 
 	if (cosi < 0.0f)
@@ -448,7 +482,7 @@ float3	ft_refract(float3 dir, float3 normal, float refractive_index, float3 refr
 
 	refr_ray.x = n * dir.x + (n * cosi - cost) * normal.x;
 	refr_ray.y = n * dir.y + (n * cosi - cost) * normal.y;
-	refr_ray.z = n * dir.z + (n * cosi - cost) * normal.z;
+	refr_ray.z = n * dir.z + (n * cosi - cost) * normal.z;*/
 
 	return (refr_ray);
 }
@@ -582,16 +616,8 @@ int		ft_trace_ray(float3 origin, float3 dir,
 	}
 
 	int color = ft_color_convert(obj_color[obj_i], intensity);
-	if (depth > MAX_DEPTH)
-	{
-		if (effect.effect_type == SEPIA)
-			color = ft_to_sepia(color);
-		else if (effect.effect_type == GRAYSCALE)
-			color = ft_to_grayscale(color);
-		return (color);
-	}
 
-	if (obj_mirrored[obj_i] > 0.0f)
+	if (obj_mirrored[obj_i] > 0.0f  && depth <= MAX_DEPTH)
 	{
 		float refl_dot = ft_dot_prod(neg_dir, normal);
 
@@ -611,7 +637,7 @@ int		ft_trace_ray(float3 origin, float3 dir,
 		color = ft_sum_color(color, refl_color, 1.0f - obj_mirrored[obj_i], obj_mirrored[obj_i]);
 	}
 
-	if (obj_transparency[obj_i] > 0.0f)
+	if (obj_transparency[obj_i] > 0.0f && depth <= MAX_DEPTH)
 	{
 		float3 refr_ray = ft_refract(dir, normal, obj_refractive_index[obj_i], refr_ray);
 

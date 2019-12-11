@@ -75,19 +75,20 @@ typedef struct		s_vec3
 	float			x;
 	float			y;
 	float			z;
-}                  		 t_vec3;
+}                  	t_vec3;
 
 typedef	struct		s_light				//		0 - AMBIENT		|	1 - POINT	|	2 - DIRECTIONAL		|
 {
 	int				type;
 	float			intensity;
+	int				color;
 
 	t_vec3			*vec;
 }					t_light;
 
 typedef	struct		s_obj
 {
-	int					type;
+	int				type;
 	t_vec3			*c;
 	float			radius;
 	t_vec3			*normal;
@@ -165,6 +166,8 @@ typedef struct		s_mlx
 	char			*effect_str[EFFECTS];
 	char			*curr_effect;
 	char			effect_i;
+
+	int				colored_light;
 
 	cl_int				ret;
 	cl_platform_id		platform_id;

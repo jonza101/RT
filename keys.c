@@ -100,5 +100,8 @@ int		ft_key_press(int keycode, t_mlx *mlx)
 	if ((keycode == MAC_MINUS || keycode == 45) && mlx->cel_band > 1)
 		mlx->cel_band--;
 
+	if (keycode == MAC_X || keycode == 120)
+		mlx->colored_light = !mlx->colored_light;
+
     return (0);
 }

@@ -331,6 +331,7 @@ void	ft_load_cl_files(t_mlx *mlx)
 		while (mlx->global_work_size % mlx->local_work_size)
 			mlx->local_work_size--;
 	}
+	printf("local_size %d\n", mlx->local_work_size);
 
 	ft_set_kernel_args(mlx);
 }

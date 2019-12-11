@@ -22,9 +22,7 @@ t_obj	*ft_shadow_intersection(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min
 	{
 		float t = mlx->obj[i]->intersect(origin, dir, mlx->obj[i]);
 		if (t >= min && t < mlx->closest && mlx->obj[i] != obj)
-		{
 			return (mlx->obj[i]);
-		}
 	}
 	return (NULL);
 }
@@ -57,25 +55,59 @@ t_vec3	*ft_reflect(t_vec3 *origin, t_vec3 *normal, t_vec3 *refl_ray)
 
 t_vec3	*ft_refract(t_vec3 *dir, t_vec3 *normal, float refractive_index, t_vec3 *refr_ray)
 {
-	float n = refractive_index;
-	float cosi = -(ft_dot_prod(normal, dir));
-	t_vec3 *norm = normal;
+	float cosi = ft_clamp(-1.0f, 1.0f, ft_dot_prod(dir, normal));
+	float etai = 1.0f;
+	float etat = refractive_index;
 
+	t_vec3 *n = normal;
 	if (cosi < 0.0f)
 		cosi = -cosi;
 	else
 	{
-		n = 1.0f / (float)n;
-		norm->x = -normal->x;
-		norm->y = -normal->y;
-		norm->z = -normal->z;
-	}
-	float sint2 = n * n * (1.0f - cosi * cosi);
-	float cost = sqrt(1.0f - sint2);
+		float temp = etai;
+		etai = etat;
+		etat = temp;
 
-	refr_ray->x = n * dir->x + (n * cosi - cost) * norm->x;
-	refr_ray->y = n * dir->y + (n * cosi - cost) * norm->y;
-	refr_ray->z = n * dir->z + (n * cosi - cost) * norm->z;
+		n->x = -normal->x;
+		n->y = -normal->y;
+		n->z = -normal->z;
+	}
+
+	float eta = (float)etai / (float)etat;
+	float k = 1.0f - eta * eta * (1.0f - cosi * cosi);
+	if (k < 0.0f)
+	{
+		refr_ray->x	=  0.0f;
+		refr_ray->y	=  0.0f;
+		refr_ray->z	=  0.0f;
+	}
+	else
+	{
+		refr_ray->x = eta * dir->x + (eta * cosi - sqrtf(k)) * n->x;
+		refr_ray->y = eta * dir->y + (eta * cosi - sqrtf(k)) * n->y;
+		refr_ray->z = eta * dir->z + (eta * cosi - sqrtf(k)) * n->z;
+	}
+	
+
+	// float n = refractive_index;
+	// float cosi = -(ft_dot_prod(normal, dir));
+	// t_vec3 *norm = normal;
+
+	// if (cosi < 0.0f)
+	// 	cosi = -cosi;
+	// else
+	// {
+	// 	n = 1.0f / (float)n;
+	// 	norm->x = -normal->x;
+	// 	norm->y = -normal->y;
+	// 	norm->z = -normal->z;
+	// }
+	// float sint2 = n * n * (1.0f - cosi * cosi);
+	// float cost = sqrt(1.0f - sint2);
+
+	// refr_ray->x = n * dir->x + (n * cosi - cost) * norm->x;
+	// refr_ray->y = n * dir->y + (n * cosi - cost) * norm->y;
+	// refr_ray->z = n * dir->z + (n * cosi - cost) * norm->z;
 
 	return (refr_ray);
 }
@@ -97,6 +129,7 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 	mlx->neg_dir->y = -dir->y;
 	mlx->neg_dir->z = -dir->z;
 
+	int l_color = BACKGROUND_COLOR;
 	float intensity = 0.0f;
 	float s_max;
 	int i = -1;
@@ -124,7 +157,11 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 
 			float n_dot_l = ft_dot_prod(mlx->normal, mlx->light_dir);
 			if (n_dot_l > 0.0f)
-				intensity += ((float)mlx->light[i]->intensity * (float)n_dot_l / (float)((float)ft_vec_len(mlx->normal) * (float)ft_vec_len(mlx->light_dir)));
+			{
+				float intens = ((float)mlx->light[i]->intensity * (float)n_dot_l / (float)((float)ft_vec_len(mlx->normal) * (float)ft_vec_len(mlx->light_dir)));
+				intensity += intens;
+				l_color = ft_sum_color(l_color, mlx->light[i]->color, 1.0f, intens);
+			}
 
 			if (obj->specular > 0.0f)
 			{
@@ -135,7 +172,11 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 
 				float r_dot_v = ft_dot_prod(mlx->s_refl, mlx->neg_dir);
 				if (r_dot_v > 0.0f)
-					intensity += (mlx->light[i]->intensity * powf((float)r_dot_v / (float)((float)ft_vec_len(mlx->s_refl) * (float)ft_vec_len(mlx->neg_dir)), obj->specular));
+				{
+					float intens = (mlx->light[i]->intensity * powf((float)r_dot_v / (float)((float)ft_vec_len(mlx->s_refl) * (float)ft_vec_len(mlx->neg_dir)), obj->specular));
+					intensity += intens;
+					l_color = ft_sum_color(l_color, mlx->light[i]->color, 1.0f, intens);
+				}
 			}
 		}
 	}
@@ -162,22 +203,15 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 	}
 
 	int color = ft_color_lum(obj->color, intensity);
-	if (depth > MAX_DEPTH)
-	{
-		if (mlx->effect_i == SEPIA)
-			color = ft_to_sepia(color);
-		else if (mlx->effect_i == GRAYSCALE)
-			color = ft_to_grayscale(color);
-		return (color);
-	}
-	if (obj->mirrored > 0.0f)
+
+	if (obj->mirrored > 0.0f && depth <= MAX_DEPTH)
 	{
 		mlx->refl_ray = ft_reflect(mlx->neg_dir, mlx->normal, mlx->refl_ray);
 		int reflected_color = ft_trace_ray(mlx, mlx->point, mlx->refl_ray, 0.000001f, __FLT_MAX__, depth + 1, obj);
 		color = ft_sum_color(color, reflected_color, 1 - obj->mirrored, obj->mirrored);
 	}
 
-	if (obj->transparency > 0.0f)
+	if (obj->transparency > 0.0f && depth <= MAX_DEPTH)
 	{
 		mlx->refr_ray = ft_refract(dir, mlx->normal, obj->refractive_index, mlx->refr_ray);
 
@@ -185,6 +219,8 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 		color = ft_sum_color(color, trans_color, 1 - obj->transparency, obj->transparency);
 	}
 
+	if (mlx->colored_light)
+		color = ft_mix_colors(color, l_color);
 	if (mlx->effect_i == SEPIA)
 		color = ft_to_sepia(color);
 	else if (mlx->effect_i == GRAYSCALE)

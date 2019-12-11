@@ -97,6 +97,30 @@ void	ft_init(t_mlx *mlx)
 	}
 	mlx->obj_count = 7;
 
+	// mlx->obj[0]->type = PLANE;
+	// mlx->obj[0]->c->x = 0.0f;
+	// mlx->obj[0]->c->y = -1.25f;
+	// mlx->obj[0]->c->z = 25.0f;
+	// mlx->obj[0]->normal->x = 0.0f;
+	// mlx->obj[0]->normal->y = 1.0f;
+	// mlx->obj[0]->normal->z = 0.0f;
+	// mlx->obj[0]->color = 0xFFFFFF;
+	// mlx->obj[0]->intersect = ft_plane_intersect;
+	// mlx->obj[0]->normal_calc = ft_plane_normal_calc;
+
+	// mlx->obj[1]->type = CONE;
+	// mlx->obj[1]->c->x = 0.0f;
+	// mlx->obj[1]->c->y = 0.0f;
+	// mlx->obj[1]->c->z = 5.0f;
+	// mlx->obj[1]->radius = 0.15f;
+	// mlx->obj[1]->normal->x = 0.0f;
+	// mlx->obj[1]->normal->y = 1.0f;
+	// mlx->obj[1]->normal->z = 0.0f;
+	// mlx->obj[1]->normal = ft_vec_normalize(mlx->obj[1]->normal);
+	// mlx->obj[1]->color = 0xBDE300;
+	// mlx->obj[1]->intersect = ft_cone_intersect;
+	// mlx->obj[1]->normal_calc = ft_cone_normal_calc;
+
 
 	mlx->obj[0]->type = SPHERE;
 	mlx->obj[0]->c->x = 0.15f;
@@ -104,8 +128,8 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[0]->c->z = 5.0f;
 	mlx->obj[0]->radius = 0.5f;
 	mlx->obj[0]->color = 0x008cff;
-	mlx->obj[0]->transparency = 0.9f;
-	mlx->obj[0]->refractive_index = 1.33f;
+	mlx->obj[0]->transparency = 1.0f;
+	mlx->obj[0]->refractive_index = 1.1f;
 	mlx->obj[0]->intersect = ft_sph_intersect;
 	mlx->obj[0]->normal_calc = ft_sph_normal_calc;
 
@@ -139,7 +163,6 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[3]->normal->y = 1.0f;
 	mlx->obj[3]->normal->z = 0.0f;
 	mlx->obj[3]->color = 0xFFFFFF;
-	mlx->obj[3]->specular = 0.0f;
 	mlx->obj[3]->mirrored = 0.75f;
 	mlx->obj[3]->intersect = ft_plane_intersect;
 	mlx->obj[3]->normal_calc = ft_plane_normal_calc;
@@ -153,7 +176,7 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[4]->normal->y = 1.0f;
 	mlx->obj[4]->normal->z = 0.75f;
 	mlx->obj[4]->normal = ft_vec_normalize(mlx->obj[4]->normal);
-	mlx->obj[4]->color = 0xbde300;
+	mlx->obj[4]->color = 0xBDE300;
 	mlx->obj[4]->specular = 750.0f;
 	mlx->obj[4]->mirrored = 0.1f;
 	mlx->obj[4]->intersect = ft_cone_intersect;
@@ -209,32 +232,58 @@ void	ft_init(t_mlx *mlx)
 		mlx->light[i] = (t_light*)malloc(sizeof(t_light));
 		mlx->light[i]->vec = (t_vec3*)malloc(sizeof(t_vec3));
 	}
+	mlx->light_count = 4;
 
-	mlx->light[0] = (t_light*)malloc(sizeof(t_light));
+	// mlx->light[0]->type = POINT_L;
+	// mlx->light[0]->vec->x = -2.0f;
+	// mlx->light[0]->vec->y = 0.5f;
+	// mlx->light[0]->vec->z = 7.0f;
+	// mlx->light[0]->intensity = 0.75f;
+	// mlx->light[0]->color = 0xFF0000;
+
+	// mlx->light[1]->type = POINT_L;
+	// mlx->light[1]->vec->x = 2.0f;
+	// mlx->light[1]->vec->y = 0.5f;
+	// mlx->light[1]->vec->z = 7.0f;
+	// mlx->light[1]->intensity = 0.75f;
+	// mlx->light[1]->color = 0x00FF00;
+
+	// mlx->light[2]->type = POINT_L;
+	// mlx->light[2]->vec->x = -2.0f;
+	// mlx->light[2]->vec->y = 0.5f;
+	// mlx->light[2]->vec->z = 3.0f;
+	// mlx->light[2]->intensity = 0.75f;
+	// mlx->light[2]->color = 0x0000FF;
+
+	// mlx->light[3]->type = POINT_L;
+	// mlx->light[3]->vec->x = 2.0f;
+	// mlx->light[3]->vec->y = 0.5f;
+	// mlx->light[3]->vec->z = 3.0f;
+	// mlx->light[3]->intensity = 0.75f;
+	// mlx->light[3]->color = 0xFFFFF;
+
+
 	mlx->light[0]->type = AMBIENT_L;
 	mlx->light[0]->intensity = 0.0f;
 	mlx->light[0]->vec = NULL;
 
-	mlx->light[1] = (t_light*)malloc(sizeof(t_light));
 	mlx->light[1]->type = POINT_L;
 	mlx->light[1]->intensity = 0.45f;
-	mlx->light[1]->vec = (t_vec3*)malloc(sizeof(t_vec3));
+	mlx->light[1]->color = 0xFF0000;
 	mlx->light[1]->vec->x = 0.0f;
 	mlx->light[1]->vec->y = 3.0f;
 	mlx->light[1]->vec->z = 0.0f;
 
-	mlx->light[2] = (t_light*)malloc(sizeof(t_light));
 	mlx->light[2]->type = POINT_L;
 	mlx->light[2]->intensity = 0.25f;
-	mlx->light[2]->vec = (t_vec3*)malloc(sizeof(t_vec3));
+	mlx->light[2]->color = 0xFFFFF;
 	mlx->light[2]->vec->x = -3.25f;
 	mlx->light[2]->vec->y = 2.5f;
 	mlx->light[2]->vec->z = 4.0f;
 
-	mlx->light[3] = (t_light*)malloc(sizeof(t_light));
 	mlx->light[3]->type = POINT_L;
 	mlx->light[3]->intensity = 0.85f;
-	mlx->light[3]->vec = (t_vec3*)malloc(sizeof(t_vec3));
+	mlx->light[3]->color = 0x0000FF;
 	mlx->light[3]->vec->x = 0.0f;
 	mlx->light[3]->vec->y = 7.5f;
 	mlx->light[3]->vec->z = 10.0f;
@@ -263,6 +312,8 @@ void	ft_init(t_mlx *mlx)
 	mlx->effect_str[3] = EFFECT_GRAYSCALE_STR;
 	mlx->curr_effect = mlx->effect_str[0];
 	mlx->effect_i = 0;
+
+	mlx->colored_light = 0;
 }
 
 int		main()
