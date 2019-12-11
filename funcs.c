@@ -89,6 +89,26 @@ int         ft_sum_color(int c1, int c2, float k1, float k2)
     return (((r & 0xFF) << 16) + ((g & 0xFF) << 8) + ((b & 0xFF)));
 }
 
+int			ft_mix_colors(int c1, int c2)
+{
+	int r1 = (c1 >> 16) & 0xFF;
+    int g1 = (c1 >> 8) & 0xFF;
+    int b1 = c1 & 0xFF;
+    int r2 = (c2 >> 16) & 0xFF;
+    int g2 = (c2 >> 8) & 0xFF;
+    int b2 = c2 & 0xFF;
+
+	int r = 255 - sqrtf(((255 - r1) * (255 - r1) + (255 - r2) * (255 - r2)) * 0.5f);
+	int g = 255 - sqrtf(((255 - g1) * (255 - g1) + (255 - g2) * (255 - g2)) * 0.5f);
+	int b = 255 - sqrtf(((255 - b1) * (255 - b1) + (255 - b2) * (255 - b2)) * 0.5f);
+
+	r = (r > 255) ? 255 : r;
+	g = (g > 255) ? 255 : g;
+	b = (b > 255) ? 255 : b;
+
+    return (((r & 0xFF) << 16) + ((g & 0xFF) << 8) + ((b & 0xFF)));
+}
+
 int			ft_to_sepia(int color)
 {
 	int r = (color >> 16) & 0xFF;

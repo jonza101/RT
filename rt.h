@@ -227,6 +227,7 @@ float				ft_vec_len(t_vec3 *vec);
 t_vec3				*ft_vec_normalize(t_vec3 *vec);
 int					ft_color_lum(int color, float lum);
 int					ft_sum_color(int c1, int c2, float k1, float k2);
+int					ft_mix_colors(int c1, int c2);
 int					ft_to_sepia(int color);
 int					ft_to_grayscale(int color);
 
