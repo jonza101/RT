@@ -22,7 +22,9 @@ t_obj	*ft_shadow_intersection(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min
 	{
 		float t = mlx->obj[i]->intersect(origin, dir, mlx->obj[i]);
 		if (t >= min && t < mlx->closest && mlx->obj[i] != obj)
+		{
 			return (mlx->obj[i]);
+		}
 	}
 	return (NULL);
 }
@@ -137,7 +139,7 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 	{
 		if (mlx->light[i]->intensity <= 0.0f)
 			continue;
-		if (mlx->light[i]->type == 0)
+		if (mlx->light[i]->type == AMBIENT_L)
 			intensity += mlx->light[i]->intensity;
 		else
 		{
@@ -146,19 +148,120 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 				mlx->light_dir->x = mlx->light[i]->vec->x - mlx->point->x;
 				mlx->light_dir->y = mlx->light[i]->vec->y - mlx->point->y;
 				mlx->light_dir->z = mlx->light[i]->vec->z - mlx->point->z;
+				// mlx->light_dir = ft_vec_normalize(mlx->light_dir);
+
 				s_max = 1.0f;
 			}
 			else
 				continue;
 
-			t_obj *s_obj = ft_shadow_intersection(mlx, mlx->point, mlx->light_dir, 0.000001f, s_max, obj);
-			if (s_obj)
-				continue;
+
+			float s_i = 0.0f;
+			if (!mlx->soft_shadows)
+			{
+				t_obj *s_obj = ft_shadow_intersection(mlx, mlx->point, mlx->light_dir, 0.000001f, s_max, obj);
+				if (s_obj)
+					continue;
+			}
+			else
+			{
+				float x1 = mlx->point->x;
+				float y1 = mlx->point->z;
+				float x2 = mlx->light[i]->vec->x;
+				float y2 = mlx->light[i]->vec->z;
+				float len = sqrtf((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+
+				float xxx = (float)(mlx->light[i]->radius * (y1 - y2)) / (float)len;
+				float yyy = (float)(mlx->light[i]->radius * (x2 - x1)) / (float)len;
+
+				t_vec2 vec[4];
+				vec[0].x = x2 + xxx;
+				vec[0].y = y2 + yyy;
+				vec[1].x = x2 - xxx;
+				vec[1].y = y2 + yyy;
+				vec[2].x = x2 + xxx;
+				vec[2].y = y2 - yyy;
+				vec[3].x = x2 - xxx;
+				vec[3].y = y2 - yyy;
+
+				int idx = 0;
+				float min = __FLT_MAX__;
+				int f = -1;
+				while (++f < 4)
+				{
+					float dx = vec[f].x - x2;
+					float dy = vec[f].y - y2;
+					float dist = sqrtf(dx * dx + dy * dy);
+					if (dist < min)
+					{
+						min = dist;
+						idx = f;
+					}
+				}
+
+				t_vec3 l_vec = {vec[idx].x, mlx->light[i]->vec->y + mlx->light[i]->radius, vec[idx].y}; //	r
+				t_vec3 diff = {mlx->light[i]->vec->x - l_vec.x, l_vec.y, mlx->light[i]->vec->z - l_vec.z};
+				t_vec3 r_vec = {mlx->light[i]->vec->x + diff.x, l_vec.y, mlx->light[i]->vec->z + diff.z};
+
+				int cell = 16;
+				t_vec3 v_cell[cell];
+				float step = (float)(2.0f * mlx->light[i]->radius) / (float)cell;
+
+				t_vec2 temp = {r_vec.x - l_vec.x, r_vec.z - l_vec.z};
+				float temp_len = sqrtf(temp.x * temp.x + temp.y * temp.y);
+				t_vec2 u = {(float)temp.x / (float)temp_len, (float)temp.y / (float)temp_len};
+
+				int c = -1;
+				while (++c < cell)
+				{
+					v_cell[c].x = l_vec.x + (step * c) * u.x;
+					v_cell[c].y = l_vec.y;
+					v_cell[c].z = l_vec.z + (step * c) * u.y;
+				}
+
+				// printf("px %f	pz %f\n", mlx->point->x, mlx->point->z);
+				// printf("lx %f	lz %f\n", mlx->light[i]->vec->x, mlx->light[i]->vec->z)
+				// printf("dist %f\n", min);
+				// printf("lvx %f	lvz %f\n", l_vec.x, l_vec.z);
+				// printf("rvx %f	rvz %f\n\n", r_vec.x, r_vec.z);
+
+				int sh = 0;
+
+				int xx = -1;
+				while (++xx < cell)
+				{
+					int yy = -1;
+					while (++yy < cell)
+					{
+						float rnd = ((float)rand() / (float)RAND_MAX);
+
+						float cell_x = v_cell[xx].x + rnd;
+						float cell_y = v_cell[xx].y - (yy * step) + rnd;
+						float cell_z = v_cell[xx].z + rnd;
+
+						float dx = mlx->point->x - cell_x;
+						float dy = mlx->point->y - cell_y;
+						float dz = mlx->point->z - cell_z;
+						float dist = sqrtf(dx * dx + dy * dy + dz * dz);
+
+						mlx->s_dir->x = (float)(cell_x - mlx->point->x) / (float)dist;
+						mlx->s_dir->y = (float)(cell_y - mlx->point->y) / (float)dist;
+						mlx->s_dir->z = (float)(cell_z - mlx->point->z) / (float)dist;
+
+						t_obj *s_o = ft_shadow_intersection(mlx, mlx->point, mlx->s_dir, 0.000001f, dist, obj);
+						if (s_o)
+							sh++;
+					}
+				}
+				s_i = (float)sh / (float)(cell * cell);
+			}
+
 
 			float n_dot_l = ft_dot_prod(mlx->normal, mlx->light_dir);
 			if (n_dot_l > 0.0f)
 			{
-				float intens = ((float)mlx->light[i]->intensity * (float)n_dot_l / (float)((float)ft_vec_len(mlx->normal) * (float)ft_vec_len(mlx->light_dir)));
+				float intens = ((float)(mlx->light[i]->intensity) * (float)n_dot_l / (float)((float)ft_vec_len(mlx->normal) * (float)ft_vec_len(mlx->light_dir)));
+				intens = intens * (1.0f - s_i);
 				intensity += intens;
 				l_color = ft_sum_color(l_color, mlx->light[i]->color, 1.0f, intens);
 			}
@@ -220,14 +323,15 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 	}
 
 	if (mlx->colored_light)
-		color = ft_mix_colors(color, l_color);
+		color = ft_sum_color(color, l_color, 1.0 - intensity, intensity);
 	if (mlx->effect_i == SEPIA)
 		color = ft_to_sepia(color);
 	else if (mlx->effect_i == GRAYSCALE)
 		color = ft_to_grayscale(color);
+	if (mlx->negative)
+		color = ft_to_negative(color);
 	return (color);
 }
-
 
 void	ft_render(t_mlx *mlx)
 {

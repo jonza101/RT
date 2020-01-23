@@ -70,6 +70,21 @@
 #define EFFECT_SEPIA_STR "Effect: Sepia (C)"
 #define EFFECT_GRAYSCALE_STR "Effect: Grayscale (C)"
 
+#define NEGATIVE_OFF_STR "Negative: Off (V)"
+#define NEGATIVE_ON_STR "Negative: On (V)"
+
+#define SOFT_SHADOWS_OFF_STR "Soft Shadows: Off (Z)"
+#define SOFT_SHADOWS_ON_STR "Soft Shadows: On (Z)"
+
+#define COLORED_LIGHT_OFF_STR "Colored Light (Unstable): Off (X)"
+#define COLORED_LIGHT_ON_STR "Colored Light (Unstable): On (X)"
+
+typedef	struct		s_vec2
+{
+	float			x;
+	float			y;
+}					t_vec2;
+
 typedef struct		s_vec3
 {
 	float			x;
@@ -82,6 +97,7 @@ typedef	struct		s_light				//		0 - AMBIENT		|	1 - POINT	|	2 - DIRECTIONAL		|
 	int				type;
 	float			intensity;
 	int				color;
+	float			radius;
 
 	t_vec3			*vec;
 }					t_light;
@@ -140,8 +156,9 @@ typedef struct		s_mlx
 	t_vec3			*s_refl;
 
 	t_vec3			*refl_ray;
-
 	t_vec3			*refr_ray;
+
+	t_vec3			*s_dir;
 
 	float			closest;
 
@@ -168,6 +185,13 @@ typedef struct		s_mlx
 	char			effect_i;
 
 	int				colored_light;
+	char			*colored_light_str[2];
+
+	int				soft_shadows;
+	char			*soft_sh_str[2];
+
+	int 			negative;
+	char			*negative_str[2];
 
 	cl_int				ret;
 	cl_platform_id		platform_id;
@@ -230,6 +254,7 @@ int					ft_sum_color(int c1, int c2, float k1, float k2);
 int					ft_mix_colors(int c1, int c2);
 int					ft_to_sepia(int color);
 int					ft_to_grayscale(int color);
+int					ft_to_negative(int color);
 
 void                ft_render(t_mlx *mlx);
 

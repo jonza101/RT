@@ -26,6 +26,7 @@ typedef struct		s_effect
 {
 	int				effect_type;
 	int				cel_band;
+	int				negative;
 }                  	t_effect;
 
 int		ft_trace_ray(float3 origin, float3 dir,
@@ -187,6 +188,15 @@ int			ft_to_grayscale(int color)
 
 	return (((rr & 0xFF) << 16) + ((gg & 0xFF) << 8) + ((bb & 0xFF)));
 }	
+
+int			ft_to_negative(int color)
+{
+	int r = 255 - (color >> 16) & 0xFF;
+	int g = 255 - (color >> 8) & 0xFF;
+	int b = 255 - color & 0xFF;
+
+	return (((r & 0xFF) << 16) + ((g & 0xFF) << 8) + ((b & 0xFF)));
+}
 
 //////////////////////////////////////////////////////////////////////	INTERSECT	//////////////////////////////////////////////////////////////////////////////
 float		ft_sph_intersect(float3 origin, float3 dir, float3 obj_pos, float obj_radius)
@@ -607,7 +617,7 @@ int		ft_trace_ray(float3 origin, float3 dir,
 		{
 			if (intensity >= curr_intensity && intensity < (curr_intensity + cel_acc))
 			{
-				intensity = curr_intensity + ((float)cel_acc / 2.0f);
+				intensity = curr_intensity + ((float)cel_acc * 0.5f);
 				cel_f = 1;
 				break;
 			}
@@ -655,6 +665,8 @@ int		ft_trace_ray(float3 origin, float3 dir,
 		color = ft_to_sepia(color);
 	else if (effect.effect_type == GRAYSCALE)
 		color = ft_to_grayscale(color);
+	if (effect.negative)
+		color = ft_to_negative(color);
 	return (color);
 }
 
@@ -667,12 +679,12 @@ __kernel void render(__global unsigned int *buffer,
 							int obj_count, __global int *obj_type,
 							__global float3 *light_vec,
 							__global float *light_type, __global float *light_intensity, int light_count,
-							float dx, float dy, int effect_type, int cel_band)
+							float dx, float dy, int effect_type, int cel_band, int negative)
 {
 	unsigned int pixel = get_global_id(0);
 
-	int y = pixel / W - (H / 2.0f);
-	int x = pixel % W - (W / 2.0f);
+	int y = pixel / W - (H * 0.5f);
+	int x = pixel % W - (W * 0.5f);
 
 	float3 origin;
 	origin.x = origin_x;
@@ -689,6 +701,7 @@ __kernel void render(__global unsigned int *buffer,
 	t_effect effect;
 	effect.effect_type = effect_type;
 	effect.cel_band = cel_band;
+	effect.negative = negative;
 
 	int color = ft_trace_ray(origin, dir, obj_pos, obj_normal,
 							obj_radius, obj_color, obj_specular,

@@ -40,6 +40,9 @@ int		ft_gameloop(t_mlx *mlx)
 		mlx_string_put(mlx->mlx, mlx->win, 10, 20, 0xFFFFFF, fps_str);
 		mlx_string_put(mlx->mlx, mlx->win, 10, 40, 0xFFFFFF, mlx->render_device);
 		mlx_string_put(mlx->mlx, mlx->win, 10, 60, 0xFFFFFF, mlx->curr_effect);
+		mlx_string_put(mlx->mlx, mlx->win, 10, 80, 0xFFFFFF, mlx->negative_str[mlx->negative]);
+		mlx_string_put(mlx->mlx, mlx->win, 10, 100, 0xFFFFFF, mlx->soft_sh_str[mlx->soft_shadows]);
+		mlx_string_put(mlx->mlx, mlx->win, 10, 120, 0xFFFFFF, mlx->colored_light_str[mlx->colored_light]);
 	}
 	free(fps_str);
 
@@ -67,8 +70,9 @@ void	ft_init(t_mlx *mlx)
 	mlx->s_refl = (t_vec3*)malloc(sizeof(t_vec3));
 
 	mlx->refl_ray = (t_vec3*)malloc(sizeof(t_vec3));
-
 	mlx->refr_ray = (t_vec3*)malloc(sizeof(t_vec3));
+
+	mlx->s_dir = (t_vec3*)malloc(sizeof(t_vec3));
 
 
 	mlx->obj_count = 8;
@@ -95,18 +99,40 @@ void	ft_init(t_mlx *mlx)
 		mlx->obj[i]->transparency = 0.0f;
 		mlx->obj[i]->refractive_index = 1.0f;
 	}
-	mlx->obj_count = 7;
+	mlx->obj_count = 3;
 
-	// mlx->obj[0]->type = PLANE;
-	// mlx->obj[0]->c->x = 0.0f;
-	// mlx->obj[0]->c->y = -1.25f;
-	// mlx->obj[0]->c->z = 25.0f;
-	// mlx->obj[0]->normal->x = 0.0f;
-	// mlx->obj[0]->normal->y = 1.0f;
-	// mlx->obj[0]->normal->z = 0.0f;
-	// mlx->obj[0]->color = 0xFFFFFF;
-	// mlx->obj[0]->intersect = ft_plane_intersect;
-	// mlx->obj[0]->normal_calc = ft_plane_normal_calc;
+	mlx->obj[0]->type = PLANE;
+	mlx->obj[0]->c->x = 0.0f;
+	mlx->obj[0]->c->y = -1.5f;
+	mlx->obj[0]->c->z = 25.0f;
+	mlx->obj[0]->normal->x = 0.0f;
+	mlx->obj[0]->normal->y = 1.0f;
+	mlx->obj[0]->normal->z = 0.0f;
+	mlx->obj[0]->color = 0xFFFFFF;
+	mlx->obj[0]->intersect = ft_plane_intersect;
+	mlx->obj[0]->normal_calc = ft_plane_normal_calc;
+
+	mlx->obj[1]->type = SPHERE;
+	mlx->obj[1]->c->x = 0.0f;
+	mlx->obj[1]->c->y = -0.75f;
+	mlx->obj[1]->c->z = 5.0f;
+	mlx->obj[1]->radius = 0.75f;
+	mlx->obj[1]->color = 0xBDE300;
+	mlx->obj[1]->intersect = ft_sph_intersect;
+	mlx->obj[1]->normal_calc = ft_sph_normal_calc;
+
+	mlx->obj[2]->type = CYLINDER;
+	mlx->obj[2]->c->x = -2.0f;
+	mlx->obj[2]->c->y = 0.0f;
+	mlx->obj[2]->c->z = 9.0f;
+	mlx->obj[2]->radius = 0.45f;
+	mlx->obj[2]->normal->x = 0.15f;
+	mlx->obj[2]->normal->y = 1.0f;
+	mlx->obj[2]->normal->z = 0.2f;
+	mlx->obj[2]->normal = ft_vec_normalize(mlx->obj[2]->normal);
+	mlx->obj[2]->color = 0xBDE300;
+	mlx->obj[2]->intersect = ft_cylinder_intersect;
+	mlx->obj[2]->normal_calc = ft_cylinder_normal_calc;
 
 	// mlx->obj[1]->type = CONE;
 	// mlx->obj[1]->c->x = 0.0f;
@@ -122,106 +148,106 @@ void	ft_init(t_mlx *mlx)
 	// mlx->obj[1]->normal_calc = ft_cone_normal_calc;
 
 
-	mlx->obj[0]->type = SPHERE;
-	mlx->obj[0]->c->x = 0.15f;
-	mlx->obj[0]->c->y = 0.15f;
-	mlx->obj[0]->c->z = 5.0f;
-	mlx->obj[0]->radius = 0.5f;
-	mlx->obj[0]->color = 0x008cff;
-	mlx->obj[0]->transparency = 1.0f;
-	mlx->obj[0]->refractive_index = 1.1f;
-	mlx->obj[0]->intersect = ft_sph_intersect;
-	mlx->obj[0]->normal_calc = ft_sph_normal_calc;
+	// mlx->obj[0]->type = SPHERE;
+	// mlx->obj[0]->c->x = 0.15f;
+	// mlx->obj[0]->c->y = 0.15f;
+	// mlx->obj[0]->c->z = 5.0f;
+	// mlx->obj[0]->radius = 0.5f;
+	// mlx->obj[0]->color = 0x008cff;
+	// mlx->obj[0]->transparency = 1.0f;
+	// mlx->obj[0]->refractive_index = 1.1f;
+	// mlx->obj[0]->intersect = ft_sph_intersect;
+	// mlx->obj[0]->normal_calc = ft_sph_normal_calc;
 
-	mlx->obj[1]->type = SPHERE;
-	mlx->obj[1]->c->x = -1.5f;
-	mlx->obj[1]->c->y = 1.0f;
-	mlx->obj[1]->c->z = 5.5f;
-	mlx->obj[1]->radius = 0.75f;
-	mlx->obj[1]->color = 0x00CC99;
-	mlx->obj[1]->specular = 75.0f;
-	mlx->obj[1]->mirrored = 0.4f;
-	mlx->obj[1]->intersect = ft_sph_intersect;
-	mlx->obj[1]->normal_calc = ft_sph_normal_calc;
+	// mlx->obj[1]->type = SPHERE;
+	// mlx->obj[1]->c->x = -1.5f;
+	// mlx->obj[1]->c->y = 1.0f;
+	// mlx->obj[1]->c->z = 5.5f;
+	// mlx->obj[1]->radius = 0.75f;
+	// mlx->obj[1]->color = 0x00CC99;
+	// mlx->obj[1]->specular = 75.0f;
+	// mlx->obj[1]->mirrored = 0.4f;
+	// mlx->obj[1]->intersect = ft_sph_intersect;
+	// mlx->obj[1]->normal_calc = ft_sph_normal_calc;
 
-	mlx->obj[2]->type = SPHERE;
-	mlx->obj[2]->c->x = -1.0f;
-	mlx->obj[2]->c->y = -1.0f;
-	mlx->obj[2]->c->z = 5.75f;
-	mlx->obj[2]->radius = 1.25f;
-	mlx->obj[2]->color = 0xBD0052;
-	mlx->obj[2]->specular = 500.0f;
-	mlx->obj[2]->mirrored = 0.5f;
-	mlx->obj[2]->intersect = ft_sph_intersect;
-	mlx->obj[2]->normal_calc = ft_sph_normal_calc;
+	// mlx->obj[2]->type = SPHERE;
+	// mlx->obj[2]->c->x = -1.0f;
+	// mlx->obj[2]->c->y = -1.0f;
+	// mlx->obj[2]->c->z = 5.75f;
+	// mlx->obj[2]->radius = 1.25f;
+	// mlx->obj[2]->color = 0xBD0052;
+	// mlx->obj[2]->specular = 500.0f;
+	// mlx->obj[2]->mirrored = 0.5f;
+	// mlx->obj[2]->intersect = ft_sph_intersect;
+	// mlx->obj[2]->normal_calc = ft_sph_normal_calc;
 
-	mlx->obj[3]->type = PLANE;
-	mlx->obj[3]->c->x = 0.0f;
-	mlx->obj[3]->c->y = -1.25f;
-	mlx->obj[3]->c->z = 25.0f;
-	mlx->obj[3]->normal->x = 0.0f;
-	mlx->obj[3]->normal->y = 1.0f;
-	mlx->obj[3]->normal->z = 0.0f;
-	mlx->obj[3]->color = 0xFFFFFF;
-	mlx->obj[3]->mirrored = 0.75f;
-	mlx->obj[3]->intersect = ft_plane_intersect;
-	mlx->obj[3]->normal_calc = ft_plane_normal_calc;
+	// mlx->obj[3]->type = PLANE;
+	// mlx->obj[3]->c->x = 0.0f;
+	// mlx->obj[3]->c->y = -1.25f;
+	// mlx->obj[3]->c->z = 25.0f;
+	// mlx->obj[3]->normal->x = 0.0f;
+	// mlx->obj[3]->normal->y = 1.0f;
+	// mlx->obj[3]->normal->z = 0.0f;
+	// mlx->obj[3]->color = 0xFFFFFF;
+	// mlx->obj[3]->mirrored = 0.75f;
+	// mlx->obj[3]->intersect = ft_plane_intersect;
+	// mlx->obj[3]->normal_calc = ft_plane_normal_calc;
 
-	mlx->obj[4]->type = CONE;
-	mlx->obj[4]->c->x = 3.5f;
-	mlx->obj[4]->c->y = 1.0f;
-	mlx->obj[4]->c->z = 7.5f;
-	mlx->obj[4]->radius = 0.25f;
-	mlx->obj[4]->normal->x = 0.5f;
-	mlx->obj[4]->normal->y = 1.0f;
-	mlx->obj[4]->normal->z = 0.75f;
-	mlx->obj[4]->normal = ft_vec_normalize(mlx->obj[4]->normal);
-	mlx->obj[4]->color = 0xBDE300;
-	mlx->obj[4]->specular = 750.0f;
-	mlx->obj[4]->mirrored = 0.1f;
-	mlx->obj[4]->intersect = ft_cone_intersect;
-	mlx->obj[4]->normal_calc = ft_cone_normal_calc;
+	// mlx->obj[4]->type = CONE;
+	// mlx->obj[4]->c->x = 3.5f;
+	// mlx->obj[4]->c->y = 1.0f;
+	// mlx->obj[4]->c->z = 7.5f;
+	// mlx->obj[4]->radius = 0.25f;
+	// mlx->obj[4]->normal->x = 0.5f;
+	// mlx->obj[4]->normal->y = 1.0f;
+	// mlx->obj[4]->normal->z = 0.75f;
+	// mlx->obj[4]->normal = ft_vec_normalize(mlx->obj[4]->normal);
+	// mlx->obj[4]->color = 0xBDE300;
+	// mlx->obj[4]->specular = 750.0f;
+	// mlx->obj[4]->mirrored = 0.1f;
+	// mlx->obj[4]->intersect = ft_cone_intersect;
+	// mlx->obj[4]->normal_calc = ft_cone_normal_calc;
 
-	mlx->obj[5]->type = CYLINDER;
-    mlx->obj[5]->c->x = -7.0f;
-    mlx->obj[5]->c->y = 0.0f;
-    mlx->obj[5]->c->z = 15.0f;
-    mlx->obj[5]->radius = 0.75f;
-    mlx->obj[5]->normal->x = -0.2f;
-    mlx->obj[5]->normal->y = 1.0f;
-    mlx->obj[5]->normal->z = 0.0f;
-	mlx->obj[5]->normal = ft_vec_normalize(mlx->obj[5]->normal);
-    mlx->obj[5]->color = 0xE85127;
-    mlx->obj[5]->specular = 750.0f;
-    mlx->obj[5]->intersect = ft_cylinder_intersect;
-    mlx->obj[5]->normal_calc = ft_cylinder_normal_calc;
+	// mlx->obj[5]->type = CYLINDER;
+    // mlx->obj[5]->c->x = -7.0f;
+    // mlx->obj[5]->c->y = 0.0f;
+    // mlx->obj[5]->c->z = 15.0f;
+    // mlx->obj[5]->radius = 0.75f;
+    // mlx->obj[5]->normal->x = -0.2f;
+    // mlx->obj[5]->normal->y = 1.0f;
+    // mlx->obj[5]->normal->z = 0.0f;
+	// mlx->obj[5]->normal = ft_vec_normalize(mlx->obj[5]->normal);
+    // mlx->obj[5]->color = 0xE85127;
+    // mlx->obj[5]->specular = 750.0f;
+    // mlx->obj[5]->intersect = ft_cylinder_intersect;
+    // mlx->obj[5]->normal_calc = ft_cylinder_normal_calc;
 
-	mlx->obj[6]->type = PLANE;
-	mlx->obj[6]->c->x = 0.0f;
-	mlx->obj[6]->c->y = 0.0f;
-	mlx->obj[6]->c->z = 50.0f;
-	mlx->obj[6]->normal->x = 0.0f;
-	mlx->obj[6]->normal->y = 0.0f;
-	mlx->obj[6]->normal->z = 1.0f;
-	mlx->obj[6]->color = 0x8D41D9;
-	mlx->obj[6]->intersect = ft_plane_intersect;
-	mlx->obj[6]->normal_calc = ft_plane_normal_calc;
+	// mlx->obj[6]->type = PLANE;
+	// mlx->obj[6]->c->x = 0.0f;
+	// mlx->obj[6]->c->y = 0.0f;
+	// mlx->obj[6]->c->z = 50.0f;
+	// mlx->obj[6]->normal->x = 0.0f;
+	// mlx->obj[6]->normal->y = 0.0f;
+	// mlx->obj[6]->normal->z = 1.0f;
+	// mlx->obj[6]->color = 0x8D41D9;
+	// mlx->obj[6]->intersect = ft_plane_intersect;
+	// mlx->obj[6]->normal_calc = ft_plane_normal_calc;
 
-	mlx->obj[7]->type = TRIANGLE;
-	mlx->obj[7]->p0->x = -4.0f;
-	mlx->obj[7]->p0->y = 1.0f;
-	mlx->obj[7]->p0->z = 4.0f;
-	mlx->obj[7]->p1->x = -3.0f;
-	mlx->obj[7]->p1->y = 1.75f;
-	mlx->obj[7]->p1->z = 6.0f;
-	mlx->obj[7]->p2->x = -3.5f;
-	mlx->obj[7]->p2->y = 0.0f;
-	mlx->obj[7]->p2->z = 4.5f;
-	mlx->obj[7]->normal = ft_triangle_normal_calc(mlx->obj[7]->normal, mlx->obj[7]->normal, mlx->obj[7]->normal, mlx->obj[7]);
-	mlx->obj[7]->color = 0xA8EEFF;
-	mlx->obj[7]->mirrored = 0.2f;
-	mlx->obj[7]->intersect = ft_triangle_intersect;
-	mlx->obj[7]->normal_calc = ft_triangle_normal_calc;
+	// mlx->obj[7]->type = TRIANGLE;
+	// mlx->obj[7]->p0->x = -4.0f;
+	// mlx->obj[7]->p0->y = 1.0f;
+	// mlx->obj[7]->p0->z = 4.0f;
+	// mlx->obj[7]->p1->x = -3.0f;
+	// mlx->obj[7]->p1->y = 1.75f;
+	// mlx->obj[7]->p1->z = 6.0f;
+	// mlx->obj[7]->p2->x = -3.5f;
+	// mlx->obj[7]->p2->y = 0.0f;
+	// mlx->obj[7]->p2->z = 4.5f;
+	// mlx->obj[7]->normal = ft_triangle_normal_calc(mlx->obj[7]->normal, mlx->obj[7]->normal, mlx->obj[7]->normal, mlx->obj[7]);
+	// mlx->obj[7]->color = 0xA8EEFF;
+	// mlx->obj[7]->mirrored = 0.2f;
+	// mlx->obj[7]->intersect = ft_triangle_intersect;
+	// mlx->obj[7]->normal_calc = ft_triangle_normal_calc;
 
 
 	mlx->light_count = 5;
@@ -232,21 +258,23 @@ void	ft_init(t_mlx *mlx)
 		mlx->light[i] = (t_light*)malloc(sizeof(t_light));
 		mlx->light[i]->vec = (t_vec3*)malloc(sizeof(t_vec3));
 	}
-	mlx->light_count = 4;
+	mlx->light_count = 1;
 
-	// mlx->light[0]->type = POINT_L;
-	// mlx->light[0]->vec->x = -2.0f;
-	// mlx->light[0]->vec->y = 0.5f;
-	// mlx->light[0]->vec->z = 7.0f;
-	// mlx->light[0]->intensity = 0.75f;
-	// mlx->light[0]->color = 0xFF0000;
+	mlx->light[0]->type = POINT_L;
+	mlx->light[0]->vec->x = 0.0f;//-2.0f;
+	mlx->light[0]->vec->y = 0.5f;
+	mlx->light[0]->vec->z = 7.0f;
+	mlx->light[0]->intensity = 0.75f;
+	mlx->light[0]->color = 0xFF0000;
+	mlx->light[0]->radius = 1.0f;
 
-	// mlx->light[1]->type = POINT_L;
-	// mlx->light[1]->vec->x = 2.0f;
-	// mlx->light[1]->vec->y = 0.5f;
-	// mlx->light[1]->vec->z = 7.0f;
-	// mlx->light[1]->intensity = 0.75f;
-	// mlx->light[1]->color = 0x00FF00;
+	mlx->light[1]->type = POINT_L;
+	mlx->light[1]->vec->x = 2.0f;
+	mlx->light[1]->vec->y = 0.5f;
+	mlx->light[1]->vec->z = 7.0f;
+	mlx->light[1]->intensity = 0.75f;
+	mlx->light[1]->color = 0x00FF00;
+	mlx->light[1]->radius = 1.0f;
 
 	// mlx->light[2]->type = POINT_L;
 	// mlx->light[2]->vec->x = -2.0f;
@@ -263,30 +291,26 @@ void	ft_init(t_mlx *mlx)
 	// mlx->light[3]->color = 0xFFFFF;
 
 
-	mlx->light[0]->type = AMBIENT_L;
-	mlx->light[0]->intensity = 0.0f;
-	mlx->light[0]->vec = NULL;
+	// mlx->light[0]->type = POINT_L;
+	// mlx->light[0]->intensity = 0.45f;
+	// mlx->light[0]->color = 0xFF0000;
+	// mlx->light[0]->vec->x = 0.0f;
+	// mlx->light[0]->vec->y = 3.0f;
+	// mlx->light[0]->vec->z = 0.0f;
 
-	mlx->light[1]->type = POINT_L;
-	mlx->light[1]->intensity = 0.45f;
-	mlx->light[1]->color = 0xFF0000;
-	mlx->light[1]->vec->x = 0.0f;
-	mlx->light[1]->vec->y = 3.0f;
-	mlx->light[1]->vec->z = 0.0f;
+	// mlx->light[1]->type = POINT_L;
+	// mlx->light[1]->intensity = 0.25f;
+	// mlx->light[1]->color = 0xFFFFF;
+	// mlx->light[1]->vec->x = -3.25f;
+	// mlx->light[1]->vec->y = 2.5f;
+	// mlx->light[1]->vec->z = 4.0f;
 
-	mlx->light[2]->type = POINT_L;
-	mlx->light[2]->intensity = 0.25f;
-	mlx->light[2]->color = 0xFFFFF;
-	mlx->light[2]->vec->x = -3.25f;
-	mlx->light[2]->vec->y = 2.5f;
-	mlx->light[2]->vec->z = 4.0f;
-
-	mlx->light[3]->type = POINT_L;
-	mlx->light[3]->intensity = 0.85f;
-	mlx->light[3]->color = 0x0000FF;
-	mlx->light[3]->vec->x = 0.0f;
-	mlx->light[3]->vec->y = 7.5f;
-	mlx->light[3]->vec->z = 10.0f;
+	// mlx->light[2]->type = POINT_L;
+	// mlx->light[2]->intensity = 0.85f;
+	// mlx->light[2]->color = 0x0000FF;
+	// mlx->light[2]->vec->x = 0.0f;
+	// mlx->light[2]->vec->y = 7.5f;
+	// mlx->light[2]->vec->z = 10.0f;
 
 
 	i = -1;
@@ -313,7 +337,19 @@ void	ft_init(t_mlx *mlx)
 	mlx->curr_effect = mlx->effect_str[0];
 	mlx->effect_i = 0;
 
+	mlx->negative = 0;
+	mlx->negative_str[0] = NEGATIVE_OFF_STR;
+	mlx->negative_str[1] = NEGATIVE_ON_STR;
+
 	mlx->colored_light = 0;
+	mlx->colored_light_str[0] = COLORED_LIGHT_OFF_STR;
+	mlx->colored_light_str[1] = COLORED_LIGHT_ON_STR;
+
+	mlx->soft_shadows = 0;
+	mlx->soft_sh_str[0] = SOFT_SHADOWS_OFF_STR;
+	mlx->soft_sh_str[1] = SOFT_SHADOWS_ON_STR;
+
+	srand(0);
 }
 
 int		main()

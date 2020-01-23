@@ -103,5 +103,11 @@ int		ft_key_press(int keycode, t_mlx *mlx)
 	if (keycode == MAC_X || keycode == 120)
 		mlx->colored_light = !mlx->colored_light;
 
+	if (keycode == MAC_V || keycode == 118)
+		mlx->negative = !mlx->negative;
+	
+	if (keycode == MAC_Z || keycode == 122)
+		mlx->soft_shadows = !mlx->soft_shadows;
+
     return (0);
 }

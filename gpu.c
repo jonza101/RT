@@ -345,6 +345,7 @@ void	ft_execute_kernel(t_mlx *mlx)
 	mlx->ret |= clSetKernelArg(mlx->kernel, 19, sizeof(cl_float), &mlx->dy);
 	mlx->ret |= clSetKernelArg(mlx->kernel, 20, sizeof(cl_int), &mlx->effect_i);
 	mlx->ret |= clSetKernelArg(mlx->kernel, 21, sizeof(cl_int), &mlx->cel_band);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 22, sizeof(cl_int), &mlx->negative);
 	if (mlx->ret != CL_SUCCESS)
 	{
 		printf("kernel_arg error %d\n", mlx->ret);
