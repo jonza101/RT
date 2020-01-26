@@ -1,6 +1,7 @@
 #define W 1600
 #define H 900
 #define AR ((float)W / (float)H)
+#define WH (W * H)
 
 #define BACKGROUND_COLOR 0x0
 
@@ -18,6 +19,7 @@
 #define CEL_SHADING 1
 #define SEPIA 2
 #define GRAYSCALE 3
+#define BLACK_WHITE 4
 
 #define MAX_FLT 3.40282346638528859811704183484516925e+38F
 
@@ -27,6 +29,9 @@ typedef struct		s_effect
 	int				effect_type;
 	int				cel_band;
 	int				negative;
+	int 			soft_shadows;
+	int				ss_cell;
+	int				bw_factor;
 }                  	t_effect;
 
 int		ft_trace_ray(float3 origin, float3 dir,
@@ -37,8 +42,15 @@ int		ft_trace_ray(float3 origin, float3 dir,
 					int obj_count, __global int *obj_type,
 					__global float3 *light_vec,
 					__global int *light_type, __global float *light_intensity, int light_count,
-					float min_dist, float max_dist, int depth, int refl_i, t_effect effect);
+					float min_dist, float max_dist, int depth, int refl_i, t_effect effect, float rand_val);
 
+
+//random values in range 0.0 to 1.0
+static float rand(float x, float y, float z)
+{
+    float ptr = 0.0f;
+    return fract(sin(x*112.9898f + y*179.233f + z*237.212f) * 43758.5453f, &ptr);
+}
 
 float		ft_min(float a, float b)
 {
@@ -104,19 +116,6 @@ float3	ft_rotate_y(float3 vec, float angle)
 	vec.z = (-temp.x * sin_ang) + (temp.z * cos_ang);
 	return (vec);
 }
-
-/*float3	ft_rotate_z(float3 vec, float angle)
-{
-	float cos_ang = cos(angle);
-	float sin_ang = sin(angle);
-	
-	float3 temp = vec;
-
-	vec.x = (temp.x * cos_ang) + (temp.y * sin_ang);
-	vec.y = (temp.x * sin_ang) + (temp.y * cos_ang);
-	vec.z = vec.z;
-	return (vec);
-}*/
 
 float3	ft_vec_rotate(float3 vec, float dx, float dy)
 {
@@ -194,6 +193,29 @@ int			ft_to_negative(int color)
 	int r = 255 - (color >> 16) & 0xFF;
 	int g = 255 - (color >> 8) & 0xFF;
 	int b = 255 - color & 0xFF;
+
+	return (((r & 0xFF) << 16) + ((g & 0xFF) << 8) + ((b & 0xFF)));
+}
+
+int			ft_to_black_white(int color, int factor)
+{
+	int r = 255 - (color >> 16) & 0xFF;
+	int g = 255 - (color >> 8) & 0xFF;
+	int b = 255 - color & 0xFF;
+
+	int sum = r + b + g;
+	if (sum > ((255.0f + factor)  / 2.0f) * 3.0f)
+	{
+		r = 255;
+		g = 255;
+		b = 255;
+	}
+	else
+	{
+		r = 0;
+		g = 0;
+		b = 0;
+	}
 
 	return (((r & 0xFF) << 16) + ((g & 0xFF) << 8) + ((b & 0xFF)));
 }
@@ -505,7 +527,7 @@ int		ft_trace_ray_rec(float3 origin, float3 dir,
 							int obj_count, __global int *obj_type,
 							__global float3 *light_vec,
 							__global int *light_type, __global float *light_intensity, int light_count,
-							float min_dist, float max_dist, int depth, int refl_i, t_effect effect)
+							float min_dist, float max_dist, int depth, int refl_i, t_effect effect, float rand_val)
 {
 	int color = ft_trace_ray(origin, dir, obj_pos, obj_normal,
 							obj_radius, obj_color, obj_specular,
@@ -513,7 +535,7 @@ int		ft_trace_ray_rec(float3 origin, float3 dir,
 							obj_count, obj_type,
 							light_vec,
 							light_type, light_intensity, light_count,
-							min_dist, max_dist, depth, refl_i, effect);
+							min_dist, max_dist, depth, refl_i, effect, rand_val);
 	return (color);
 }
 
@@ -525,7 +547,7 @@ int		ft_trace_ray(float3 origin, float3 dir,
 					int obj_count, __global int *obj_type,
 					__global float3 *light_vec,
 					__global int *light_type, __global float *light_intensity, int light_count,
-					float min_dist, float max_dist, int depth, int refl_i, t_effect effect)
+					float min_dist, float max_dist, int depth, int refl_i, t_effect effect, float rand_val)
 {
 	float closest;
 	int obj_i = ft_closest_intersection(origin, dir, obj_pos, obj_normal,
@@ -533,7 +555,6 @@ int		ft_trace_ray(float3 origin, float3 dir,
 										min_dist, max_dist, &closest, refl_i);
 	if (obj_i < 0)
 		return (BACKGROUND_COLOR);
-	//return (obj_color[obj_i]);
 
 	float3 point;
 	point.x = origin.x + closest * dir.x;
@@ -541,7 +562,6 @@ int		ft_trace_ray(float3 origin, float3 dir,
 	point.z = origin.z + closest * dir.z;
 
 	float3 normal;
-
 	if (obj_type[obj_i] == SPHERE)
 		normal = ft_sph_normal_calc(dir, point, obj_pos[obj_i], normal);
 	else if (obj_type[obj_i] == PLANE)
@@ -577,16 +597,122 @@ int		ft_trace_ray(float3 origin, float3 dir,
 			else
 				continue;
 
-			float s_closest;
-			int s_obj_i = ft_shadow_intersection(point, light_dir, obj_pos, obj_normal,
-												obj_radius, obj_count, obj_type,
-												0.000001f, s_max, obj_i);
-			if (s_obj_i >= 0)
-				continue;
+			
+			float s_i = 0.0f;
+
+			if (!effect.soft_shadows)
+			{
+				float s_closest;
+				int s_obj_i = ft_shadow_intersection(point, light_dir, obj_pos, obj_normal,
+													obj_radius, obj_count, obj_type,
+													0.000001f, s_max, obj_i);
+				if (s_obj_i >= 0)
+					continue;
+			}
+			else
+			{
+				float x1 = point.x;
+				float y1 = point.z;
+				float x2 = light_vec[i].x;
+				float y2 = light_vec[i].z;
+				float len = sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+
+				float xxx = (float)(1.0f * (y1 - y2)) / (float)len;
+				float yyy = (float)(1.0f * (x2 - x1)) / (float)len;
+
+				float2 vec[4];
+				vec[0].x = x2 + xxx;
+				vec[0].y = y2 + yyy;
+				vec[1].x = x2 - xxx;
+				vec[1].y = y2 + yyy;
+				vec[2].x = x2 + xxx;
+				vec[2].y = y2 - yyy;
+				vec[3].x = x2 - xxx;
+				vec[3].y = y2 - yyy;
+
+				int idx = 0;
+				float min = MAX_FLT;
+				int f = -1;
+				while (++f < 4)
+				{
+					float dx = vec[f].x - x2;
+					float dy = vec[f].y - y2;
+					float dist = sqrt(dx * dx + dy * dy);
+					if (dist < min)
+					{
+						min = dist;
+						idx = f;
+					}
+				}
+
+				float3 l_vec = (float3)(vec[idx].x, light_vec[i].y + 1.0f, vec[idx].y);
+				float3 diff = (float3)(light_vec[i].x - l_vec.x, l_vec.y, light_vec[i].z - l_vec.z);
+				float3 r_vec = (float3)(light_vec[i].x + diff.x, l_vec.y, light_vec[i].z + diff.z);
+
+				float3 v_cell[16];
+				float step = (float)(2.0f * 1.0f) / (float)effect.ss_cell;
+
+				float2 temp = (float2)(r_vec.x - l_vec.x, r_vec.z - l_vec.z);
+				float temp_len = sqrt(temp.x * temp.x + temp.y * temp.y);
+				float2 u = (float2)((float)temp.x / (float)temp_len, (float)temp.y / (float)temp_len);
+
+				int c = -1;
+				while (++c < effect.ss_cell)
+				{
+					v_cell[c].x = l_vec.x + (step * c) * u.x;
+					v_cell[c].y = l_vec.y;
+					v_cell[c].z = l_vec.z + (step * c) * u.y;
+				}
+
+				int sh = 0;
+
+				int xx = -1;
+				while (++xx < effect.ss_cell)
+				{
+					int yy = -1;
+					while (++yy < effect.ss_cell)
+					{
+						float rnd = rand_val * step;
+
+						float cell_x = v_cell[xx].x + rnd;
+						float cell_y = v_cell[xx].y - (yy * step) + rnd;
+						float cell_z = v_cell[xx].z + rnd;
+
+						float dx = point.x - cell_x;
+						float dy = point.y - cell_y;
+						float dz = point.z - cell_z;
+						float dist = sqrt(dx * dx + dy * dy + dz * dz);
+
+						neg_dir.x = (float)(cell_x - point.x) / (float)dist;
+						neg_dir.y = (float)(cell_y - point.y) / (float)dist;
+						neg_dir.z = (float)(cell_z - point.z) / (float)dist;
+
+						/*t_obj *s_o = ft_shadow_intersection(mlx, mlx->point, neg_dir, 0.000001f, dist, obj);
+						if (s_o)
+							sh++;*/
+
+						float s_o;
+						int s_obj_i = ft_shadow_intersection(point, neg_dir, obj_pos, obj_normal,
+															obj_radius, obj_count, obj_type,
+															0.000001f, dist, obj_i);
+						if (s_obj_i >= 0)
+							sh++;
+					}
+				}
+				s_i = (float)sh / (float)(effect.ss_cell * effect.ss_cell);
+			}
+
+
 
 			float n_dot_l = ft_dot_prod(normal, light_dir);
 			if (n_dot_l > 0.0f)
-				intensity += (float)(light_intensity[i] * n_dot_l) / (float)(ft_vec_len(normal) * ft_vec_len(light_dir));
+			{
+				float intens = (float)(light_intensity[i] * n_dot_l) / (float)(ft_vec_len(normal) * ft_vec_len(light_dir));
+				intens = intens * (1.0f - s_i);
+				intensity += intens;
+
+				//intensity += (float)(light_intensity[i] * n_dot_l) / (float)(ft_vec_len(normal) * ft_vec_len(light_dir));
+			}
 
 			if (obj_specular[obj_i] > 0.0f)
 			{
@@ -598,7 +724,13 @@ int		ft_trace_ray(float3 origin, float3 dir,
 
 				float r_dot_v = ft_dot_prod(s_refl, neg_dir);
 				if (r_dot_v > 0.0f)
-					intensity += (light_intensity[i] * pow((float)r_dot_v / (float)(ft_vec_len(s_refl) * ft_vec_len(neg_dir)), (int)obj_specular[obj_i]));
+				{
+					float intens = (light_intensity[i] * pow((float)r_dot_v / (float)(ft_vec_len(s_refl) * ft_vec_len(neg_dir)), (int)obj_specular[obj_i]));
+					intens = intens * (1.0f - s_i);
+					intensity += intens;
+
+					//intensity += (light_intensity[i] * pow((float)r_dot_v / (float)(ft_vec_len(s_refl) * ft_vec_len(neg_dir)), (int)obj_specular[obj_i]));
+				}
 			}
 		}
 	}
@@ -642,7 +774,7 @@ int		ft_trace_ray(float3 origin, float3 dir,
 											obj_count, obj_type,
 											light_vec,
 											light_type, light_intensity, light_count,
-											0.000001f, MAX_FLT, depth + 1, obj_i, effect);
+											0.000001f, MAX_FLT, depth + 1, obj_i, effect, rand_val);
 
 		color = ft_sum_color(color, refl_color, 1.0f - obj_mirrored[obj_i], obj_mirrored[obj_i]);
 	}
@@ -657,7 +789,7 @@ int		ft_trace_ray(float3 origin, float3 dir,
 											obj_count, obj_type,
 											light_vec,
 											light_type, light_intensity, light_count,
-											0.000001f, MAX_FLT, depth + 1, obj_i, effect);
+											0.000001f, MAX_FLT, depth + 1, obj_i, effect, rand_val);
 		color = ft_sum_color(color, trans_color, 1.0f - obj_transparency[obj_i], obj_transparency[obj_i]);
 	}
 
@@ -665,6 +797,8 @@ int		ft_trace_ray(float3 origin, float3 dir,
 		color = ft_to_sepia(color);
 	else if (effect.effect_type == GRAYSCALE)
 		color = ft_to_grayscale(color);
+	else if (effect.effect_type == BLACK_WHITE)
+		color = ft_to_black_white(color, effect.bw_factor);
 	if (effect.negative)
 		color = ft_to_negative(color);
 	return (color);
@@ -679,7 +813,8 @@ __kernel void render(__global unsigned int *buffer,
 							int obj_count, __global int *obj_type,
 							__global float3 *light_vec,
 							__global float *light_type, __global float *light_intensity, int light_count,
-							float dx, float dy, int effect_type, int cel_band, int negative)
+							float dx, float dy, int effect_type, int cel_band, int negative, int soft_shadows, int ss_cell, float seed,
+							int bw_factor)
 {
 	unsigned int pixel = get_global_id(0);
 
@@ -702,13 +837,21 @@ __kernel void render(__global unsigned int *buffer,
 	effect.effect_type = effect_type;
 	effect.cel_band = cel_band;
 	effect.negative = negative;
+	effect.soft_shadows = soft_shadows;
+	effect.ss_cell = ss_cell;
+	effect.bw_factor = bw_factor;
+
+	float fgi = (float)pixel / (float)WH;
+	float rand_val = rand(fgi, 0.0f, seed);
 
 	int color = ft_trace_ray(origin, dir, obj_pos, obj_normal,
 							obj_radius, obj_color, obj_specular,
 							obj_mirrored, obj_transparency, obj_refractive_index,
 							obj_count, obj_type,
 							light_vec, light_type, light_intensity, light_count,
-							1.0f, MAX_FLT, 0, -1, effect);
+							1.0f, MAX_FLT, 0, -1, effect, rand_val);
+
+	//int color = ft_color_convert(0xFFFFFF, rand_val);
 
 	buffer[pixel] = color;
 }

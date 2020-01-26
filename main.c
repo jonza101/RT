@@ -36,7 +36,6 @@ int		ft_gameloop(t_mlx *mlx)
 
 		mlx_put_image_to_window(mlx->mlx, mlx->win, mlx->img, 0, 0);
 
-		
 		mlx_string_put(mlx->mlx, mlx->win, 10, 20, 0xFFFFFF, fps_str);
 		mlx_string_put(mlx->mlx, mlx->win, 10, 40, 0xFFFFFF, mlx->render_device);
 		mlx_string_put(mlx->mlx, mlx->win, 10, 60, 0xFFFFFF, mlx->curr_effect);
@@ -51,7 +50,9 @@ int		ft_gameloop(t_mlx *mlx)
 
 void	ft_init(t_mlx *mlx)
 {
-    mlx->cam = (t_vec3*)malloc(sizeof(t_vec3));
+	srand(time(NULL));
+
+	mlx->cam = (t_vec3*)malloc(sizeof(t_vec3));
     mlx->cam->x = 0.0f;
     mlx->cam->y = 0.0f;
     mlx->cam->z = -0.5f;
@@ -257,6 +258,8 @@ void	ft_init(t_mlx *mlx)
 	{
 		mlx->light[i] = (t_light*)malloc(sizeof(t_light));
 		mlx->light[i]->vec = (t_vec3*)malloc(sizeof(t_vec3));
+		mlx->light[i]->intensity = 0.0f;
+		mlx->light[i]->radius = 1.0f;
 	}
 	mlx->light_count = 1;
 
@@ -266,7 +269,6 @@ void	ft_init(t_mlx *mlx)
 	mlx->light[0]->vec->z = 7.0f;
 	mlx->light[0]->intensity = 0.75f;
 	mlx->light[0]->color = 0xFF0000;
-	mlx->light[0]->radius = 1.0f;
 
 	mlx->light[1]->type = POINT_L;
 	mlx->light[1]->vec->x = 2.0f;
@@ -274,7 +276,6 @@ void	ft_init(t_mlx *mlx)
 	mlx->light[1]->vec->z = 7.0f;
 	mlx->light[1]->intensity = 0.75f;
 	mlx->light[1]->color = 0x00FF00;
-	mlx->light[1]->radius = 1.0f;
 
 	// mlx->light[2]->type = POINT_L;
 	// mlx->light[2]->vec->x = -2.0f;
@@ -325,15 +326,13 @@ void	ft_init(t_mlx *mlx)
 	mlx->render_func = ft_execute_kernel;
 	mlx->render_device = GPU_STR;
 
-	ft_init_gpu(mlx);
-	ft_load_cl_files(mlx);
-
 	mlx->cel_band = 1;
 
 	mlx->effect_str[0] = EFFECT_NONE_STR;
 	mlx->effect_str[1] = EFFECT_CEL_SHADING_STR;
 	mlx->effect_str[2] = EFFECT_SEPIA_STR;
 	mlx->effect_str[3] = EFFECT_GRAYSCALE_STR;
+	mlx->effect_str[4] = EFFECT_BLACK_WHITE_STR;
 	mlx->curr_effect = mlx->effect_str[0];
 	mlx->effect_i = 0;
 
@@ -346,10 +345,15 @@ void	ft_init(t_mlx *mlx)
 	mlx->colored_light_str[1] = COLORED_LIGHT_ON_STR;
 
 	mlx->soft_shadows = 0;
+	mlx->ss_cell = 16;
 	mlx->soft_sh_str[0] = SOFT_SHADOWS_OFF_STR;
 	mlx->soft_sh_str[1] = SOFT_SHADOWS_ON_STR;
 
-	srand(0);
+	mlx->bw_factor = 0;
+
+
+	ft_init_gpu(mlx);
+	ft_load_cl_files(mlx);
 }
 
 int		main()
@@ -364,8 +368,8 @@ int		main()
 
     ft_init(mlx);
 
-	mlx_loop_hook(mlx->mlx, ft_gameloop, mlx);
-    mlx_hook(mlx->win, 2, 1L << 0, ft_key_press, mlx);
+		mlx_loop_hook(mlx->mlx, ft_gameloop, mlx);
+	mlx_hook(mlx->win, 2, 1L << 0, ft_key_press, mlx);
 	mlx_hook(mlx->win, 3, 1L << 1, ft_key_realese, mlx);
     mlx_hook(mlx->win, 17, 0, ft_close, (void *)1);
 	mlx_loop(mlx->mlx);

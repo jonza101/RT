@@ -126,56 +126,56 @@ void	ft_init_gpu(t_mlx *mlx)
 ////////////////////////////////////////BUFFER////////////////////////////////////////////
 void	ft_obj_buffer(t_mlx *mlx)
 {
-	mlx->gpu_obj_pos = clCreateBuffer(mlx->contex, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(cl_float3) * (mlx->obj_count), mlx->obj_pos, &mlx->ret);
+	mlx->gpu_obj_pos = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_float3) * (mlx->obj_count), mlx->obj_pos, &mlx->ret);
 	if (!mlx->gpu_obj_pos || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
 	}
-	mlx->gpu_obj_normal = clCreateBuffer(mlx->contex, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(cl_float3) * (mlx->obj_count), mlx->obj_normal, &mlx->ret);
+	mlx->gpu_obj_normal = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_float3) * (mlx->obj_count), mlx->obj_normal, &mlx->ret);
 	if (!mlx->gpu_obj_normal || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
 	}
 
-	mlx->gpu_obj_radius = clCreateBuffer(mlx->contex, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * (mlx->obj_count), mlx->obj_radius, &mlx->ret);
+	mlx->gpu_obj_radius = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * (mlx->obj_count), mlx->obj_radius, &mlx->ret);
 	if (!mlx->gpu_obj_radius || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
 	}
-	mlx->gpu_obj_color = clCreateBuffer(mlx->contex, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(cl_int) * (mlx->obj_count), mlx->obj_color, &mlx->ret);
+	mlx->gpu_obj_color = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_int) * (mlx->obj_count), mlx->obj_color, &mlx->ret);
 	if (!mlx->gpu_obj_color || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
 	}
-	mlx->gpu_obj_specular = clCreateBuffer(mlx->contex, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * (mlx->obj_count), mlx->obj_specular, &mlx->ret);
+	mlx->gpu_obj_specular = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * (mlx->obj_count), mlx->obj_specular, &mlx->ret);
 	if (!mlx->gpu_obj_specular || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
 	}
-	mlx->gpu_obj_mirrored = clCreateBuffer(mlx->contex, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * (mlx->obj_count), mlx->obj_mirrored, &mlx->ret);
+	mlx->gpu_obj_mirrored = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * (mlx->obj_count), mlx->obj_mirrored, &mlx->ret);
 	if (!mlx->gpu_obj_mirrored || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
 	}
-	mlx->gpu_obj_transparency = clCreateBuffer(mlx->contex, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * (mlx->obj_count), mlx->obj_transparency, &mlx->ret);
+	mlx->gpu_obj_transparency = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * (mlx->obj_count), mlx->obj_transparency, &mlx->ret);
 	if (!mlx->gpu_obj_transparency || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
 	}
-	mlx->gpu_obj_refractive_index = clCreateBuffer(mlx->contex, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * (mlx->obj_count), mlx->obj_refractive_index, &mlx->ret);
+	mlx->gpu_obj_refractive_index = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * (mlx->obj_count), mlx->obj_refractive_index, &mlx->ret);
 	if (!mlx->gpu_obj_refractive_index || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
 	}
-	mlx->gpu_obj_type = clCreateBuffer(mlx->contex, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(cl_int) * (mlx->obj_count), mlx->obj_type, &mlx->ret);
+	mlx->gpu_obj_type = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_int) * (mlx->obj_count), mlx->obj_type, &mlx->ret);
 	if (!mlx->gpu_obj_type || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error %d\n", mlx->ret);
@@ -185,20 +185,20 @@ void	ft_obj_buffer(t_mlx *mlx)
 
 void	ft_light_buffer(t_mlx *mlx)
 {
-	mlx->gpu_light_vec = clCreateBuffer(mlx->contex, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(cl_float3) * (mlx->light_count), mlx->light_vec, &mlx->ret);
+	mlx->gpu_light_vec = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_float3) * (mlx->light_count), mlx->light_vec, &mlx->ret);
 	if (!mlx->gpu_light_vec || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error4 %d\n", mlx->ret);
 		exit(0);
 	}
 
-	mlx->gpu_light_type = clCreateBuffer(mlx->contex, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(cl_int) * (mlx->light_count), mlx->light_type, &mlx->ret);
+	mlx->gpu_light_type = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_int) * (mlx->light_count), mlx->light_type, &mlx->ret);
 	if (!mlx->gpu_light_type || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error4 %d\n", mlx->ret);
 		exit(0);
 	}
-	mlx->gpu_light_intensity = clCreateBuffer(mlx->contex, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * (mlx->light_count), mlx->light_intensity, &mlx->ret);
+	mlx->gpu_light_intensity = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * (mlx->light_count), mlx->light_intensity, &mlx->ret);
 	if (!mlx->gpu_light_intensity || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error5 %d\n", mlx->ret);
@@ -288,7 +288,6 @@ void	ft_load_cl_files(t_mlx *mlx)
 		free(line);
 		line_i++;
 	}
-	//printf("%s\n", kernel_code);
 	code_size = ft_strlen(kernel_code);
 
 	mlx->program = clCreateProgramWithSource(mlx->contex, 1, (const char**)&kernel_code, (const size_t*)&code_size, &mlx->ret);
@@ -298,8 +297,6 @@ void	ft_load_cl_files(t_mlx *mlx)
 		exit(0);
 	}
 	free(kernel_code);
-
-	// err = clBuildProgram(*program, 1, &device, "-DOPENCL___ -I include/ ", NULL, NULL);
 
 	mlx->ret = clBuildProgram(mlx->program, 1, &mlx->device_id, NULL, NULL, NULL);
 	if (mlx->ret != CL_SUCCESS)
@@ -346,6 +343,11 @@ void	ft_execute_kernel(t_mlx *mlx)
 	mlx->ret |= clSetKernelArg(mlx->kernel, 20, sizeof(cl_int), &mlx->effect_i);
 	mlx->ret |= clSetKernelArg(mlx->kernel, 21, sizeof(cl_int), &mlx->cel_band);
 	mlx->ret |= clSetKernelArg(mlx->kernel, 22, sizeof(cl_int), &mlx->negative);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 23, sizeof(cl_int), &mlx->soft_shadows);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 24, sizeof(cl_int), &mlx->ss_cell);
+	float seed = (float)rand() / (float)RAND_MAX;
+	mlx->ret |= clSetKernelArg(mlx->kernel, 25, sizeof(cl_int), &seed);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 26, sizeof(cl_int), &mlx->bw_factor);
 	if (mlx->ret != CL_SUCCESS)
 	{
 		printf("kernel_arg error %d\n", mlx->ret);

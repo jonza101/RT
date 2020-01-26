@@ -45,7 +45,7 @@ int		ft_key_realese(int keycode, t_mlx *mlx)
 
 int		ft_key_press(int keycode, t_mlx *mlx)
 {
-	// printf("%d\n", keycode);
+	//printf("%d\n", keycode);
     (keycode == MAC_ESC || keycode == 65307) ? exit(0) : 1;
 	if (keycode == MAC_W || keycode == 119)
 		mlx->wsad[0] = 1;
@@ -109,5 +109,15 @@ int		ft_key_press(int keycode, t_mlx *mlx)
 	if (keycode == MAC_Z || keycode == 122)
 		mlx->soft_shadows = !mlx->soft_shadows;
 
-    return (0);
+	if ((keycode == MAC_COMMA || keycode == 44) && mlx->ss_cell > 2)
+		mlx->ss_cell *= 0.5f;
+	if ((keycode == MAC_DOT || keycode == 46) && mlx->ss_cell < 16)
+		mlx->ss_cell *= 2;
+
+	if ((keycode == MAC_NUM_ONE || keycode == 65436) && mlx->bw_factor > 0)
+		mlx->bw_factor--;
+	if ((keycode == MAC_NUM_TWO || keycode == 65433) && mlx->bw_factor < 254)
+		mlx->bw_factor++;
+
+	return (0);
 }

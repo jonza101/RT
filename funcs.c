@@ -155,3 +155,26 @@ int			ft_to_negative(int color)
 
 	return (((r & 0xFF) << 16) + ((g & 0xFF) << 8) + ((b & 0xFF)));
 }
+
+int			ft_to_black_white(int color, int factor)
+{
+	int r = 255 - (color >> 16) & 0xFF;
+	int g = 255 - (color >> 8) & 0xFF;
+	int b = 255 - color & 0xFF;
+
+	int sum = r + b + g;
+	if (sum > ((255.0f + factor)  / 2.0f) * 3.0f)
+	{
+		r = 255;
+		g = 255;
+		b = 255;
+	}
+	else
+	{
+		r = 0;
+		g = 0;
+		b = 0;
+	}
+
+	return (((r & 0xFF) << 16) + ((g & 0xFF) << 8) + ((b & 0xFF)));
+}

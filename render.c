@@ -185,34 +185,32 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 				vec[3].y = y2 - yyy;
 
 				int idx = 0;
-				float min = __FLT_MAX__;
 				int f = -1;
 				while (++f < 4)
 				{
 					float dx = vec[f].x - x2;
 					float dy = vec[f].y - y2;
 					float dist = sqrtf(dx * dx + dy * dy);
-					if (dist < min)
+					if (dist == mlx->light[i]->radius)
 					{
-						min = dist;
 						idx = f;
+						break;
 					}
 				}
 
-				t_vec3 l_vec = {vec[idx].x, mlx->light[i]->vec->y + mlx->light[i]->radius, vec[idx].y}; //	r
+				t_vec3 l_vec = {vec[idx].x, mlx->light[i]->vec->y + mlx->light[i]->radius, vec[idx].y};
 				t_vec3 diff = {mlx->light[i]->vec->x - l_vec.x, l_vec.y, mlx->light[i]->vec->z - l_vec.z};
 				t_vec3 r_vec = {mlx->light[i]->vec->x + diff.x, l_vec.y, mlx->light[i]->vec->z + diff.z};
 
-				int cell = 16;
-				t_vec3 v_cell[cell];
-				float step = (float)(2.0f * mlx->light[i]->radius) / (float)cell;
+				t_vec3 v_cell[mlx->ss_cell];
+				float step = (float)(2.0f * mlx->light[i]->radius) / (float)mlx->ss_cell;
 
 				t_vec2 temp = {r_vec.x - l_vec.x, r_vec.z - l_vec.z};
 				float temp_len = sqrtf(temp.x * temp.x + temp.y * temp.y);
 				t_vec2 u = {(float)temp.x / (float)temp_len, (float)temp.y / (float)temp_len};
 
 				int c = -1;
-				while (++c < cell)
+				while (++c < mlx->ss_cell)
 				{
 					v_cell[c].x = l_vec.x + (step * c) * u.x;
 					v_cell[c].y = l_vec.y;
@@ -228,12 +226,12 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 				int sh = 0;
 
 				int xx = -1;
-				while (++xx < cell)
+				while (++xx < mlx->ss_cell)
 				{
 					int yy = -1;
-					while (++yy < cell)
+					while (++yy < mlx->ss_cell)
 					{
-						float rnd = ((float)rand() / (float)RAND_MAX);
+						float rnd = ((float)rand() / (float)RAND_MAX) * step;
 
 						float cell_x = v_cell[xx].x + rnd;
 						float cell_y = v_cell[xx].y - (yy * step) + rnd;
@@ -253,7 +251,7 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 							sh++;
 					}
 				}
-				s_i = (float)sh / (float)(cell * cell);
+				s_i = (float)sh / (float)(mlx->ss_cell * mlx->ss_cell);
 			}
 
 
@@ -277,6 +275,7 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 				if (r_dot_v > 0.0f)
 				{
 					float intens = (mlx->light[i]->intensity * powf((float)r_dot_v / (float)((float)ft_vec_len(mlx->s_refl) * (float)ft_vec_len(mlx->neg_dir)), obj->specular));
+					intens = intens * (1.0f - s_i);
 					intensity += intens;
 					l_color = ft_sum_color(l_color, mlx->light[i]->color, 1.0f, intens);
 				}
@@ -328,6 +327,9 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 		color = ft_to_sepia(color);
 	else if (mlx->effect_i == GRAYSCALE)
 		color = ft_to_grayscale(color);
+	else if (mlx->effect_i == BLACK_WHITE)
+		color = ft_to_black_white(color, mlx->bw_factor);
+
 	if (mlx->negative)
 		color = ft_to_negative(color);
 	return (color);

@@ -56,11 +56,12 @@
 #define AMBIENT_L 0
 #define POINT_L 1
 
-#define EFFECTS 4
+#define EFFECTS 5
 #define NONE 0
 #define CEL_SHADING 1
 #define SEPIA 2
 #define GRAYSCALE 3
+#define BLACK_WHITE 4
 
 #define GPU_STR "GPU (G)"
 #define CPU_STR "CPU (G)"
@@ -69,6 +70,7 @@
 #define EFFECT_CEL_SHADING_STR "Effect: Cel Shading (C)"
 #define EFFECT_SEPIA_STR "Effect: Sepia (C)"
 #define EFFECT_GRAYSCALE_STR "Effect: Grayscale (C)"
+#define EFFECT_BLACK_WHITE_STR "Effect: Black & White (C)"
 
 #define NEGATIVE_OFF_STR "Negative: Off (V)"
 #define NEGATIVE_ON_STR "Negative: On (V)"
@@ -79,119 +81,121 @@
 #define COLORED_LIGHT_OFF_STR "Colored Light (Unstable): Off (X)"
 #define COLORED_LIGHT_ON_STR "Colored Light (Unstable): On (X)"
 
-typedef	struct		s_vec2
+typedef	struct			s_vec2
 {
-	float			x;
-	float			y;
-}					t_vec2;
+	float				x;
+	float				y;
+}						t_vec2;
 
-typedef struct		s_vec3
+typedef struct			s_vec3
 {
-	float			x;
-	float			y;
-	float			z;
-}                  	t_vec3;
+	float				x;
+	float				y;
+	float				z;
+}                  		t_vec3;
 
-typedef	struct		s_light				//		0 - AMBIENT		|	1 - POINT	|	2 - DIRECTIONAL		|
+typedef	struct			s_light				//		0 - AMBIENT		|	1 - POINT	|	2 - DIRECTIONAL		|
 {
-	int				type;
-	float			intensity;
-	int				color;
-	float			radius;
+	int					type;
+	float				intensity;
+	int					color;
+	float				radius;
 
-	t_vec3			*vec;
-}					t_light;
+	t_vec3				*vec;
+}						t_light;
 
-typedef	struct		s_obj
+typedef	struct			s_obj
 {
-	int				type;
-	t_vec3			*c;
-	float			radius;
-	t_vec3			*normal;
+	int					type;
+	t_vec3				*c;
+	float				radius;
+	t_vec3				*normal;
 
-	t_vec3			*p0;
-	t_vec3			*p1;
-	t_vec3			*p2;
+	t_vec3				*p0;
+	t_vec3				*p1;
+	t_vec3				*p2;
 
-	int				color;
-	float			specular;
-	float           mirrored;
-	float			transparency;
-	float			refractive_index;
+	int					color;
+	float				specular;
+	float           	mirrored;
+	float				transparency;
+	float				refractive_index;
 
-	float			(*intersect) (t_vec3 *origin, t_vec3 *dir, struct s_obj *obj);
-	t_vec3*			(*normal_calc) (t_vec3 *normal, t_vec3 *dir, t_vec3 *point, struct s_obj *obj);
+	float				(*intersect) (t_vec3 *origin, t_vec3 *dir, struct s_obj *obj);
+	t_vec3*				(*normal_calc) (t_vec3 *normal, t_vec3 *dir, t_vec3 *point, struct s_obj *obj);
 
-	t_vec3			*oc_temp;
-	t_vec3			*vec_temp;
-	t_vec3			*vec_tmp;
-	t_vec3			*t_p;
+	t_vec3				*oc_temp;
+	t_vec3				*vec_temp;
+	t_vec3				*vec_tmp;
+	t_vec3				*t_p;
 
-	struct	s_obj	*next;
-}					t_obj;
+	struct	s_obj		*next;
+}						t_obj;
 
-typedef struct		s_mlx
+typedef struct			s_mlx
 {
-	void			*mlx;
-	void			*win;
-	void			*img;
-	int				*data;
-	int				bpp;
-	int				size_line;
-	int				endian;
+	void				*mlx;
+	void				*win;
+	void				*img;
+	int					*data;
+	int					bpp;
+	int					size_line;
+	int					endian;
 
-	float           dx;
-	float           dy;
+	float           	dx;
+	float           	dy;
 
-	t_vec3			*cam;
-	t_vec3			*dir;
+	t_vec3				*cam;
+	t_vec3				*dir;
+	t_vec3				*oc;
 
-	t_vec3			*oc;
+	t_vec3				*point;
+	t_vec3				*normal;
+	t_vec3				*light_dir;
 
-	t_vec3			*point;
-	t_vec3			*normal;
-	t_vec3			*light_dir;
+	t_vec3				*neg_dir;
+	t_vec3				*s_refl;
 
-	t_vec3			*neg_dir;
-	t_vec3			*s_refl;
+	t_vec3				*refl_ray;
+	t_vec3				*refr_ray;
 
-	t_vec3			*refl_ray;
-	t_vec3			*refr_ray;
+	t_vec3				*s_dir;
 
-	t_vec3			*s_dir;
+	float				closest;
 
-	float			closest;
+	t_obj				*obj_head;
+	t_obj				**obj;
+	int					obj_count;
 
-	t_obj			*obj_head;
-	t_obj			**obj;
-	int				obj_count;
+	t_light				**light;
+	int					light_count;
 
-	t_light			**light;
-	int				light_count;
+	int					wsad[4];
+	int					arrow[4];
+	int					up_down[2];
+	int					shift;
 
-	int				wsad[4];
-	int				arrow[4];
-	int				up_down[2];
-	int				shift;
+	clock_t				last_time;
+	char				*render_device;
+	void				(*render_func)(struct s_mlx *mlx);
 
-	clock_t			last_time;
-	char			*render_device;
-	void			(*render_func)(struct s_mlx *mlx);
+	int					cel_band;
 
-	int				cel_band;
+	char				*effect_str[EFFECTS];
+	char				*curr_effect;
+	char				effect_i;
 
-	char			*effect_str[EFFECTS];
-	char			*curr_effect;
-	char			effect_i;
+	int					colored_light;
+	char				*colored_light_str[2];
 
-	int				colored_light;
-	char			*colored_light_str[2];
+	int					soft_shadows;
+	int					ss_cell;
+	char				*soft_sh_str[2];
 
-	int				soft_shadows;
-	char			*soft_sh_str[2];
+	int 				negative;
+	char				*negative_str[2];
 
-	int 			negative;
-	char			*negative_str[2];
+	int					bw_factor;
 
 	cl_int				ret;
 	cl_platform_id		platform_id;
@@ -236,46 +240,45 @@ typedef struct		s_mlx
 	cl_mem				gpu_light_vec;
 	cl_mem				gpu_light_type;
 	cl_mem				gpu_light_intensity;
-
-	cl_mem				gpu_scene;
 }						t_mlx;
 
 
-float				ft_min(float a, float b);
-float				ft_max(float a, float b);
-float				ft_clamp(float a, float min, float max);
+float					ft_min(float a, float b);
+float					ft_max(float a, float b);
+float					ft_clamp(float a, float min, float max);
 
-float				ft_dot_prod(t_vec3 *a, t_vec3 *b);
-t_vec3				*ft_cross_prod(t_vec3 *vec, t_vec3 *a, t_vec3 *b);
-float				ft_vec_len(t_vec3 *vec);
-t_vec3				*ft_vec_normalize(t_vec3 *vec);
-int					ft_color_lum(int color, float lum);
-int					ft_sum_color(int c1, int c2, float k1, float k2);
-int					ft_mix_colors(int c1, int c2);
-int					ft_to_sepia(int color);
-int					ft_to_grayscale(int color);
-int					ft_to_negative(int color);
+float					ft_dot_prod(t_vec3 *a, t_vec3 *b);
+t_vec3					*ft_cross_prod(t_vec3 *vec, t_vec3 *a, t_vec3 *b);
+float					ft_vec_len(t_vec3 *vec);
+t_vec3					*ft_vec_normalize(t_vec3 *vec);
+int						ft_color_lum(int color, float lum);
+int						ft_sum_color(int c1, int c2, float k1, float k2);
+int						ft_mix_colors(int c1, int c2);
+int						ft_to_sepia(int color);
+int						ft_to_grayscale(int color);
+int						ft_to_negative(int color);
+int						ft_to_black_white(int color, int factor);
 
-void                ft_render(t_mlx *mlx);
+void        	        ft_render(t_mlx *mlx);
 
-void				ft_init_gpu(t_mlx *mlx);
-void				ft_load_cl_files(t_mlx *mlx);
-void				ft_execute_kernel(t_mlx *mlx);
+void					ft_init_gpu(t_mlx *mlx);
+void					ft_load_cl_files(t_mlx *mlx);
+void					ft_execute_kernel(t_mlx *mlx);
 
-t_vec3				*ft_vec_rotate(t_vec3 *vec, float dx, float dy, t_vec3 *temp);
-void				ft_move(t_mlx *mlx);
+t_vec3					*ft_vec_rotate(t_vec3 *vec, float dx, float dy, t_vec3 *temp);
+void					ft_move(t_mlx *mlx);
 
-float				ft_sph_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj);
-float				ft_plane_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj);
-float				ft_cone_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj);
-float				ft_cylinder_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj);
-float				ft_triangle_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj);
+float					ft_sph_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj);
+float					ft_plane_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj);
+float					ft_cone_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj);
+float					ft_cylinder_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj);
+float					ft_triangle_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj);
 
-t_vec3				*ft_sph_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj);
-t_vec3				*ft_plane_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj);
-t_vec3				*ft_cone_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj);
-t_vec3				*ft_cylinder_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj);
-t_vec3      		*ft_triangle_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj);
+t_vec3					*ft_sph_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj);
+t_vec3					*ft_plane_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj);
+t_vec3					*ft_cone_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj);
+t_vec3					*ft_cylinder_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj);
+t_vec3      			*ft_triangle_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj);
 
-int					ft_key_press(int keycode, t_mlx *mlx);
-int					ft_key_realese(int keycode, t_mlx *mlx);
+int						ft_key_press(int keycode, t_mlx *mlx);
+int						ft_key_realese(int keycode, t_mlx *mlx);
