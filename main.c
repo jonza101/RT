@@ -40,8 +40,9 @@ int		ft_gameloop(t_mlx *mlx)
 		mlx_string_put(mlx->mlx, mlx->win, 10, 40, 0xFFFFFF, mlx->render_device);
 		mlx_string_put(mlx->mlx, mlx->win, 10, 60, 0xFFFFFF, mlx->curr_effect);
 		mlx_string_put(mlx->mlx, mlx->win, 10, 80, 0xFFFFFF, mlx->negative_str[mlx->negative]);
-		mlx_string_put(mlx->mlx, mlx->win, 10, 100, 0xFFFFFF, mlx->soft_sh_str[mlx->soft_shadows]);
-		mlx_string_put(mlx->mlx, mlx->win, 10, 120, 0xFFFFFF, mlx->colored_light_str[mlx->colored_light]);
+		mlx_string_put(mlx->mlx, mlx->win, 10, 100, 0xFFFFFF, mlx->noise_str[mlx->noise]);
+		mlx_string_put(mlx->mlx, mlx->win, 10, 120, 0xFFFFFF, mlx->soft_sh_str[mlx->soft_shadows]);
+		mlx_string_put(mlx->mlx, mlx->win, 10, 140, 0xFFFFFF, mlx->colored_light_str[mlx->colored_light]);
 	}
 	free(fps_str);
 
@@ -134,6 +135,8 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[2]->color = 0xBDE300;
 	mlx->obj[2]->intersect = ft_cylinder_intersect;
 	mlx->obj[2]->normal_calc = ft_cylinder_normal_calc;
+	mlx->obj[2]->transparency = 0.75f;
+	mlx->obj[2]->refractive_index = 1.05f;
 
 	// mlx->obj[1]->type = CONE;
 	// mlx->obj[1]->c->x = 0.0f;
@@ -340,6 +343,10 @@ void	ft_init(t_mlx *mlx)
 	mlx->negative_str[0] = NEGATIVE_OFF_STR;
 	mlx->negative_str[1] = NEGATIVE_ON_STR;
 
+	mlx->noise = 0;
+	mlx->noise_str[0] = NOISE_OFF_STR;
+	mlx->noise_str[1] = NOISE_ON_STR;
+
 	mlx->colored_light = 0;
 	mlx->colored_light_str[0] = COLORED_LIGHT_OFF_STR;
 	mlx->colored_light_str[1] = COLORED_LIGHT_ON_STR;
@@ -350,6 +357,7 @@ void	ft_init(t_mlx *mlx)
 	mlx->soft_sh_str[1] = SOFT_SHADOWS_ON_STR;
 
 	mlx->bw_factor = 0;
+	mlx->ns_factor = 16;
 
 
 	ft_init_gpu(mlx);

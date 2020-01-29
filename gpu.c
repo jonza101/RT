@@ -348,6 +348,8 @@ void	ft_execute_kernel(t_mlx *mlx)
 	float seed = (float)rand() / (float)RAND_MAX;
 	mlx->ret |= clSetKernelArg(mlx->kernel, 25, sizeof(cl_int), &seed);
 	mlx->ret |= clSetKernelArg(mlx->kernel, 26, sizeof(cl_int), &mlx->bw_factor);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 27, sizeof(cl_int), &mlx->noise);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 28, sizeof(cl_int), &mlx->ns_factor);
 	if (mlx->ret != CL_SUCCESS)
 	{
 		printf("kernel_arg error %d\n", mlx->ret);

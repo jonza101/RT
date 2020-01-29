@@ -220,6 +220,24 @@ int			ft_to_black_white(int color, int factor)
 	return (((r & 0xFF) << 16) + ((g & 0xFF) << 8) + ((b & 0xFF)));
 }
 
+int			ft_to_noise(int color, int factor, float fgi, float seed)
+{
+	int rnd = (rand(fgi, 0.0f, seed)) * factor - factor;
+
+	int r = ((color >> 16) & 0xFF) + rnd;
+	int g = ((color >> 8) & 0xFF) + rnd;
+	int b = (color & 0xFF) + rnd;
+
+	r = (r < 0) ? 0 : r;
+	g = (g < 0) ? 0 : g;
+	b = (b < 0) ? 0 : b;
+	r = (r > 255) ? 255 : r;
+	g = (g > 255) ? 255 : g;
+	b = (b > 255) ? 255 : b;
+
+	return (((r & 0xFF) << 16) + ((g & 0xFF) << 8) + ((b & 0xFF)));
+}
+
 //////////////////////////////////////////////////////////////////////	INTERSECT	//////////////////////////////////////////////////////////////////////////////
 float		ft_sph_intersect(float3 origin, float3 dir, float3 obj_pos, float obj_radius)
 {
@@ -607,7 +625,8 @@ int		ft_trace_ray(float3 origin, float3 dir,
 													obj_radius, obj_count, obj_type,
 													0.000001f, s_max, obj_i);
 				if (s_obj_i >= 0)
-					continue;
+					s_i = 1.0f - obj_transparency[s_obj_i];
+					//continue;
 			}
 			else
 			{
@@ -664,7 +683,7 @@ int		ft_trace_ray(float3 origin, float3 dir,
 					v_cell[c].z = l_vec.z + (step * c) * u.y;
 				}
 
-				int sh = 0;
+				float sh = 0;
 
 				int xx = -1;
 				while (++xx < effect.ss_cell)
@@ -687,16 +706,13 @@ int		ft_trace_ray(float3 origin, float3 dir,
 						neg_dir.y = (float)(cell_y - point.y) / (float)dist;
 						neg_dir.z = (float)(cell_z - point.z) / (float)dist;
 
-						/*t_obj *s_o = ft_shadow_intersection(mlx, mlx->point, neg_dir, 0.000001f, dist, obj);
-						if (s_o)
-							sh++;*/
-
 						float s_o;
 						int s_obj_i = ft_shadow_intersection(point, neg_dir, obj_pos, obj_normal,
 															obj_radius, obj_count, obj_type,
 															0.000001f, dist, obj_i);
 						if (s_obj_i >= 0)
-							sh++;
+							sh += 1.0f;
+						sh -= obj_transparency[s_obj_i];
 					}
 				}
 				s_i = (float)sh / (float)(effect.ss_cell * effect.ss_cell);
@@ -710,8 +726,6 @@ int		ft_trace_ray(float3 origin, float3 dir,
 				float intens = (float)(light_intensity[i] * n_dot_l) / (float)(ft_vec_len(normal) * ft_vec_len(light_dir));
 				intens = intens * (1.0f - s_i);
 				intensity += intens;
-
-				//intensity += (float)(light_intensity[i] * n_dot_l) / (float)(ft_vec_len(normal) * ft_vec_len(light_dir));
 			}
 
 			if (obj_specular[obj_i] > 0.0f)
@@ -728,8 +742,6 @@ int		ft_trace_ray(float3 origin, float3 dir,
 					float intens = (light_intensity[i] * pow((float)r_dot_v / (float)(ft_vec_len(s_refl) * ft_vec_len(neg_dir)), (int)obj_specular[obj_i]));
 					intens = intens * (1.0f - s_i);
 					intensity += intens;
-
-					//intensity += (light_intensity[i] * pow((float)r_dot_v / (float)(ft_vec_len(s_refl) * ft_vec_len(neg_dir)), (int)obj_specular[obj_i]));
 				}
 			}
 		}
@@ -792,15 +804,6 @@ int		ft_trace_ray(float3 origin, float3 dir,
 											0.000001f, MAX_FLT, depth + 1, obj_i, effect, rand_val);
 		color = ft_sum_color(color, trans_color, 1.0f - obj_transparency[obj_i], obj_transparency[obj_i]);
 	}
-
-	if (effect.effect_type == SEPIA)
-		color = ft_to_sepia(color);
-	else if (effect.effect_type == GRAYSCALE)
-		color = ft_to_grayscale(color);
-	else if (effect.effect_type == BLACK_WHITE)
-		color = ft_to_black_white(color, effect.bw_factor);
-	if (effect.negative)
-		color = ft_to_negative(color);
 	return (color);
 }
 
@@ -814,7 +817,7 @@ __kernel void render(__global unsigned int *buffer,
 							__global float3 *light_vec,
 							__global float *light_type, __global float *light_intensity, int light_count,
 							float dx, float dy, int effect_type, int cel_band, int negative, int soft_shadows, int ss_cell, float seed,
-							int bw_factor)
+							int bw_factor, int noise, int ns_factor)
 {
 	unsigned int pixel = get_global_id(0);
 
@@ -850,6 +853,17 @@ __kernel void render(__global unsigned int *buffer,
 							obj_count, obj_type,
 							light_vec, light_type, light_intensity, light_count,
 							1.0f, MAX_FLT, 0, -1, effect, rand_val);
+	
+	if (effect_type == SEPIA)
+		color = ft_to_sepia(color);
+	else if (effect_type == GRAYSCALE)
+		color = ft_to_grayscale(color);
+	else if (effect_type == BLACK_WHITE)
+		color = ft_to_black_white(color, effect.bw_factor);
+	if (negative)
+		color = ft_to_negative(color);
+	if (noise)
+		color = ft_to_noise(color, ns_factor, fgi, seed);
 
 	//int color = ft_color_convert(0xFFFFFF, rand_val);
 

@@ -105,6 +105,9 @@ int		ft_key_press(int keycode, t_mlx *mlx)
 
 	if (keycode == MAC_V || keycode == 118)
 		mlx->negative = !mlx->negative;
+
+	if (keycode == MAC_F || keycode == 102)
+		mlx->noise = !mlx->noise;
 	
 	if (keycode == MAC_Z || keycode == 122)
 		mlx->soft_shadows = !mlx->soft_shadows;
@@ -118,6 +121,11 @@ int		ft_key_press(int keycode, t_mlx *mlx)
 		mlx->bw_factor--;
 	if ((keycode == MAC_NUM_TWO || keycode == 65433) && mlx->bw_factor < 254)
 		mlx->bw_factor++;
+
+	if ((keycode == MAC_NUM_FOUR || keycode == 65430) && mlx->ns_factor > 0)
+		mlx->ns_factor--;
+	if ((keycode == MAC_NUM_FIVE || keycode == 65437) && mlx->ns_factor < 254)
+		mlx->ns_factor++;
 
 	return (0);
 }

@@ -178,3 +178,21 @@ int			ft_to_black_white(int color, int factor)
 
 	return (((r & 0xFF) << 16) + ((g & 0xFF) << 8) + ((b & 0xFF)));
 }
+
+int			ft_to_noise(int color, int factor)
+{
+	int rnd = ((float)rand() / (float)RAND_MAX) * factor - factor;
+
+	int r = ((color >> 16) & 0xFF) + rnd;
+	int g = ((color >> 8) & 0xFF) + rnd;
+	int b = (color & 0xFF) + rnd;
+
+	r = (r < 0) ? 0 : r;
+	g = (g < 0) ? 0 : g;
+	b = (b < 0) ? 0 : b;
+	r = (r > 255) ? 255 : r;
+	g = (g > 255) ? 255 : g;
+	b = (b > 255) ? 255 : b;
+
+	return (((r & 0xFF) << 16) + ((g & 0xFF) << 8) + ((b & 0xFF)));
+}

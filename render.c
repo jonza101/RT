@@ -161,7 +161,8 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 			{
 				t_obj *s_obj = ft_shadow_intersection(mlx, mlx->point, mlx->light_dir, 0.000001f, s_max, obj);
 				if (s_obj)
-					continue;
+					s_i = 1.0f - s_obj->transparency;
+					//continue;
 			}
 			else
 			{
@@ -261,6 +262,7 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 				float intens = ((float)(mlx->light[i]->intensity) * (float)n_dot_l / (float)((float)ft_vec_len(mlx->normal) * (float)ft_vec_len(mlx->light_dir)));
 				intens = intens * (1.0f - s_i);
 				intensity += intens;
+
 				l_color = ft_sum_color(l_color, mlx->light[i]->color, 1.0f, intens);
 			}
 
@@ -277,6 +279,7 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 					float intens = (mlx->light[i]->intensity * powf((float)r_dot_v / (float)((float)ft_vec_len(mlx->s_refl) * (float)ft_vec_len(mlx->neg_dir)), obj->specular));
 					intens = intens * (1.0f - s_i);
 					intensity += intens;
+
 					l_color = ft_sum_color(l_color, mlx->light[i]->color, 1.0f, intens);
 				}
 			}
@@ -332,6 +335,8 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 
 	if (mlx->negative)
 		color = ft_to_negative(color);
+	if (mlx->noise)
+		color = ft_to_noise(color, mlx->ns_factor);
 	return (color);
 }
 

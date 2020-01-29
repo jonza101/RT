@@ -75,6 +75,9 @@
 #define NEGATIVE_OFF_STR "Negative: Off (V)"
 #define NEGATIVE_ON_STR "Negative: On (V)"
 
+#define NOISE_OFF_STR "Noise: Off (F)"
+#define NOISE_ON_STR "Noise: On (F)"
+
 #define SOFT_SHADOWS_OFF_STR "Soft Shadows: Off (Z)"
 #define SOFT_SHADOWS_ON_STR "Soft Shadows: On (Z)"
 
@@ -195,7 +198,11 @@ typedef struct			s_mlx
 	int 				negative;
 	char				*negative_str[2];
 
+	int					noise;
+	char				*noise_str[2];
+
 	int					bw_factor;
+	int					ns_factor;
 
 	cl_int				ret;
 	cl_platform_id		platform_id;
@@ -258,6 +265,7 @@ int						ft_to_sepia(int color);
 int						ft_to_grayscale(int color);
 int						ft_to_negative(int color);
 int						ft_to_black_white(int color, int factor);
+int						ft_to_noise(int color, int factor);
 
 void        	        ft_render(t_mlx *mlx);
 
