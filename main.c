@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:42:38 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/11/10 19:15:23 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/02 18:04:33 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,8 @@ void	ft_init(t_mlx *mlx)
 {
 	srand(time(NULL));
 
+	ft_init_txt(mlx);
+
 	mlx->cam = (t_vec3*)malloc(sizeof(t_vec3));
     mlx->cam->x = 0.0f;
     mlx->cam->y = 0.0f;
@@ -93,6 +95,8 @@ void	ft_init(t_mlx *mlx)
 		mlx->obj[i]->vec_temp = (t_vec3*)malloc(sizeof(t_vec3));
 		mlx->obj[i]->vec_tmp = (t_vec3*)malloc(sizeof(t_vec3));
 		mlx->obj[i]->t_p = (t_vec3*)malloc(sizeof(t_vec3));
+		mlx->obj[i]->n_temp = (t_vec3 *)malloc(sizeof(t_vec3));
+		mlx->obj[i]->tmp = (t_vec3 *)malloc(sizeof(t_vec3));
 
 		mlx->obj[i]->color = 0x0;
 		mlx->obj[i]->radius = 0.0f;
@@ -100,8 +104,10 @@ void	ft_init(t_mlx *mlx)
 		mlx->obj[i]->mirrored = 0.0f;
 		mlx->obj[i]->transparency = 0.0f;
 		mlx->obj[i]->refractive_index = 1.0f;
+		mlx->obj[i]->txt = NULL;
+		mlx->obj[i]->txt_trans = 0;
 	}
-	mlx->obj_count = 3;
+	mlx->obj_count = 5;
 
 	mlx->obj[0]->type = PLANE;
 	mlx->obj[0]->c->x = 0.0f;
@@ -111,45 +117,72 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[0]->normal->y = 1.0f;
 	mlx->obj[0]->normal->z = 0.0f;
 	mlx->obj[0]->color = 0xFFFFFF;
+	mlx->obj[0]->txt = mlx->txt[7];
 	mlx->obj[0]->intersect = ft_plane_intersect;
 	mlx->obj[0]->normal_calc = ft_plane_normal_calc;
+	mlx->obj[0]->txt_map = ft_plane_txt_map;
 
 	mlx->obj[1]->type = SPHERE;
 	mlx->obj[1]->c->x = 0.0f;
 	mlx->obj[1]->c->y = -0.75f;
 	mlx->obj[1]->c->z = 5.0f;
 	mlx->obj[1]->radius = 0.75f;
+	mlx->obj[1]->normal->x = 0.0f;
+	mlx->obj[1]->normal->y = 1.0f;
+	mlx->obj[1]->normal->z = 0.0f;
+	mlx->obj[1]->normal = ft_vec_normalize(mlx->obj[1]->normal);
 	mlx->obj[1]->color = 0xBDE300;
+	mlx->obj[1]->txt = mlx->txt[4];
 	mlx->obj[1]->intersect = ft_sph_intersect;
 	mlx->obj[1]->normal_calc = ft_sph_normal_calc;
+	mlx->obj[1]->txt_map = ft_sph_txt_map;
 
 	mlx->obj[2]->type = CYLINDER;
-	mlx->obj[2]->c->x = -2.0f;
+	mlx->obj[2]->c->x = -2.5f;
 	mlx->obj[2]->c->y = 0.0f;
 	mlx->obj[2]->c->z = 9.0f;
-	mlx->obj[2]->radius = 0.45f;
+	mlx->obj[2]->radius = 0.6f;
 	mlx->obj[2]->normal->x = 0.15f;
 	mlx->obj[2]->normal->y = 1.0f;
-	mlx->obj[2]->normal->z = 0.2f;
+	mlx->obj[2]->normal->z = 0.25f;
 	mlx->obj[2]->normal = ft_vec_normalize(mlx->obj[2]->normal);
 	mlx->obj[2]->color = 0xBDE300;
+	mlx->obj[2]->txt = mlx->txt[9];
 	mlx->obj[2]->intersect = ft_cylinder_intersect;
 	mlx->obj[2]->normal_calc = ft_cylinder_normal_calc;
-	mlx->obj[2]->transparency = 0.75f;
-	mlx->obj[2]->refractive_index = 1.05f;
+	mlx->obj[2]->txt_map = ft_cylinder_txt_map;
 
-	// mlx->obj[1]->type = CONE;
-	// mlx->obj[1]->c->x = 0.0f;
-	// mlx->obj[1]->c->y = 0.0f;
-	// mlx->obj[1]->c->z = 5.0f;
-	// mlx->obj[1]->radius = 0.15f;
-	// mlx->obj[1]->normal->x = 0.0f;
-	// mlx->obj[1]->normal->y = 1.0f;
-	// mlx->obj[1]->normal->z = 0.0f;
-	// mlx->obj[1]->normal = ft_vec_normalize(mlx->obj[1]->normal);
-	// mlx->obj[1]->color = 0xBDE300;
-	// mlx->obj[1]->intersect = ft_cone_intersect;
-	// mlx->obj[1]->normal_calc = ft_cone_normal_calc;
+	mlx->obj[3]->type = SPHERE;
+	mlx->obj[3]->c->x = 6.5f;
+	mlx->obj[3]->c->y = -0.5f;
+	mlx->obj[3]->c->z = 14.5f;
+	mlx->obj[3]->radius = 1.0f;
+	mlx->obj[3]->normal->x = 0.0f;
+	mlx->obj[3]->normal->y = 1.0f;
+	mlx->obj[3]->normal->z = 0.0f;
+	mlx->obj[3]->normal = ft_vec_normalize(mlx->obj[3]->normal);
+	mlx->obj[3]->color = 0xFFFFFF;
+	mlx->obj[3]->mirrored = 1.0f;
+	mlx->obj[3]->txt_trans = 1;
+	mlx->obj[3]->txt = mlx->txt[8];
+	mlx->obj[3]->intersect = ft_sph_intersect;
+	mlx->obj[3]->normal_calc = ft_sph_normal_calc;
+	mlx->obj[3]->txt_map = ft_sph_txt_map;
+
+	mlx->obj[4]->type = CONE;
+	mlx->obj[4]->c->x = 9.0f;
+	mlx->obj[4]->c->y = 2.0f;
+	mlx->obj[4]->c->z = 7.0f;
+	mlx->obj[4]->radius = 0.25f;
+	mlx->obj[4]->normal->x = -0.25f;
+	mlx->obj[4]->normal->y = 1.0f;
+	mlx->obj[4]->normal->z = -0.1f;
+	mlx->obj[4]->normal = ft_vec_normalize(mlx->obj[4]->normal);
+	mlx->obj[4]->color = 0xBDE300;
+	mlx->obj[4]->txt = mlx->txt[7];
+	mlx->obj[4]->intersect = ft_cone_intersect;
+	mlx->obj[4]->normal_calc = ft_cone_normal_calc;
+	mlx->obj[4]->txt_map = ft_cone_txt_map;
 
 
 	// mlx->obj[0]->type = SPHERE;
@@ -270,7 +303,7 @@ void	ft_init(t_mlx *mlx)
 	mlx->light[0]->vec->x = 0.0f;//-2.0f;
 	mlx->light[0]->vec->y = 0.5f;
 	mlx->light[0]->vec->z = 7.0f;
-	mlx->light[0]->intensity = 0.75f;
+	mlx->light[0]->intensity = 1.0f;
 	mlx->light[0]->color = 0xFF0000;
 
 	mlx->light[1]->type = POINT_L;

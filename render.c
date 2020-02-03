@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 18:38:56 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/11/10 19:15:28 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/02 18:04:59 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -224,7 +224,7 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 				// printf("lvx %f	lvz %f\n", l_vec.x, l_vec.z);
 				// printf("rvx %f	rvz %f\n\n", r_vec.x, r_vec.z);
 
-				int sh = 0;
+				float sh = 0;
 
 				int xx = -1;
 				while (++xx < mlx->ss_cell)
@@ -249,7 +249,10 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 
 						t_obj *s_o = ft_shadow_intersection(mlx, mlx->point, mlx->s_dir, 0.000001f, dist, obj);
 						if (s_o)
+						{
 							sh++;
+							sh -= s_o->transparency;
+						}
 					}
 				}
 				s_i = (float)sh / (float)(mlx->ss_cell * mlx->ss_cell);
@@ -307,16 +310,27 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 		}
 	}
 
-	int color = ft_color_lum(obj->color, intensity);
+	int txt_trans = 1;
+	int color = obj->color;
+	if (obj->txt)
+	{
+		color = obj->txt_map(obj, mlx->normal, mlx->point);
+		if (obj->txt_trans && color == 0x0)
+		{
+			color = obj->color;
+			txt_trans = 0;
+		}
+	}
+	color = ft_color_lum(color, intensity);
 
-	if (obj->mirrored > 0.0f && depth <= MAX_DEPTH)
+	if (obj->mirrored > 0.0f && depth <= MAX_DEPTH && !txt_trans)
 	{
 		mlx->refl_ray = ft_reflect(mlx->neg_dir, mlx->normal, mlx->refl_ray);
 		int reflected_color = ft_trace_ray(mlx, mlx->point, mlx->refl_ray, 0.000001f, __FLT_MAX__, depth + 1, obj);
 		color = ft_sum_color(color, reflected_color, 1 - obj->mirrored, obj->mirrored);
 	}
 
-	if (obj->transparency > 0.0f && depth <= MAX_DEPTH)
+	if (obj->transparency > 0.0f && depth <= MAX_DEPTH && !txt_trans)
 	{
 		mlx->refr_ray = ft_refract(dir, mlx->normal, obj->refractive_index, mlx->refr_ray);
 
@@ -342,9 +356,9 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 
 void	ft_render(t_mlx *mlx)
 {
-    int x = -W / 2 - 1;
-	int w = W / 2;
-	int h = H / 2;
+    int x = -W * 0.5f - 1;
+	int w = W * 0.5f;
+	int h = H * 0.5f;
     while (++x < w)
     {
         int y = -h - 1;

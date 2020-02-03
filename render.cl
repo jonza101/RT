@@ -24,6 +24,12 @@
 #define MAX_FLT 3.40282346638528859811704183484516925e+38F
 
 
+typedef	struct		s_rand
+{
+	float			seed;
+	float			fgi;
+}					t_rand;
+
 typedef struct		s_effect
 {
 	int				effect_type;
@@ -42,14 +48,16 @@ int		ft_trace_ray(float3 origin, float3 dir,
 					int obj_count, __global int *obj_type,
 					__global float3 *light_vec,
 					__global int *light_type, __global float *light_intensity, int light_count,
-					float min_dist, float max_dist, int depth, int refl_i, t_effect effect, float rand_val);
+					float min_dist, float max_dist, int depth, int refl_i, t_effect effect, t_rand srnd);
 
 
 //random values in range 0.0 to 1.0
-static float rand(float x, float y, float z)
+static float rand(float x, float y, float z, t_rand srnd)
 {
     float ptr = 0.0f;
-    return fract(sin(x*112.9898f + y*179.233f + z*237.212f) * 43758.5453f, &ptr);
+	float rnd = fract(sin(x*112.9898f + y*179.233f + z*237.212f) * 43758.5453f, &ptr);
+	srnd.seed = rnd;
+    return (rnd);
 }
 
 float		ft_min(float a, float b)
@@ -220,9 +228,9 @@ int			ft_to_black_white(int color, int factor)
 	return (((r & 0xFF) << 16) + ((g & 0xFF) << 8) + ((b & 0xFF)));
 }
 
-int			ft_to_noise(int color, int factor, float fgi, float seed)
+int			ft_to_noise(int color, int factor, t_rand srnd)
 {
-	int rnd = (rand(fgi, 0.0f, seed)) * factor - factor;
+	int rnd = rand(srnd.fgi, 0.0f, srnd.seed, srnd) * factor - factor;
 
 	int r = ((color >> 16) & 0xFF) + rnd;
 	int g = ((color >> 8) & 0xFF) + rnd;
@@ -545,7 +553,7 @@ int		ft_trace_ray_rec(float3 origin, float3 dir,
 							int obj_count, __global int *obj_type,
 							__global float3 *light_vec,
 							__global int *light_type, __global float *light_intensity, int light_count,
-							float min_dist, float max_dist, int depth, int refl_i, t_effect effect, float rand_val)
+							float min_dist, float max_dist, int depth, int refl_i, t_effect effect, t_rand srnd)
 {
 	int color = ft_trace_ray(origin, dir, obj_pos, obj_normal,
 							obj_radius, obj_color, obj_specular,
@@ -553,7 +561,7 @@ int		ft_trace_ray_rec(float3 origin, float3 dir,
 							obj_count, obj_type,
 							light_vec,
 							light_type, light_intensity, light_count,
-							min_dist, max_dist, depth, refl_i, effect, rand_val);
+							min_dist, max_dist, depth, refl_i, effect, srnd);
 	return (color);
 }
 
@@ -565,7 +573,7 @@ int		ft_trace_ray(float3 origin, float3 dir,
 					int obj_count, __global int *obj_type,
 					__global float3 *light_vec,
 					__global int *light_type, __global float *light_intensity, int light_count,
-					float min_dist, float max_dist, int depth, int refl_i, t_effect effect, float rand_val)
+					float min_dist, float max_dist, int depth, int refl_i, t_effect effect, t_rand srnd)
 {
 	float closest;
 	int obj_i = ft_closest_intersection(origin, dir, obj_pos, obj_normal,
@@ -650,17 +658,16 @@ int		ft_trace_ray(float3 origin, float3 dir,
 				vec[3].y = y2 - yyy;
 
 				int idx = 0;
-				float min = MAX_FLT;
 				int f = -1;
 				while (++f < 4)
 				{
 					float dx = vec[f].x - x2;
 					float dy = vec[f].y - y2;
 					float dist = sqrt(dx * dx + dy * dy);
-					if (dist < min)
+					if (dist == 1.0f)
 					{
-						min = dist;
 						idx = f;
+						break;
 					}
 				}
 
@@ -691,7 +698,8 @@ int		ft_trace_ray(float3 origin, float3 dir,
 					int yy = -1;
 					while (++yy < effect.ss_cell)
 					{
-						float rnd = rand_val * step;
+						//float rnd = rand_val * step;
+						float rnd = rand(srnd.fgi, 0.0f, srnd.seed, srnd) * step;
 
 						float cell_x = v_cell[xx].x + rnd;
 						float cell_y = v_cell[xx].y - (yy * step) + rnd;
@@ -702,17 +710,19 @@ int		ft_trace_ray(float3 origin, float3 dir,
 						float dz = point.z - cell_z;
 						float dist = sqrt(dx * dx + dy * dy + dz * dz);
 
-						neg_dir.x = (float)(cell_x - point.x) / (float)dist;
-						neg_dir.y = (float)(cell_y - point.y) / (float)dist;
-						neg_dir.z = (float)(cell_z - point.z) / (float)dist;
+						float3 ss_dir;
+						ss_dir.x = (float)(cell_x - point.x) / (float)dist;
+						ss_dir.y = (float)(cell_y - point.y) / (float)dist;
+						ss_dir.z = (float)(cell_z - point.z) / (float)dist;
 
-						float s_o;
-						int s_obj_i = ft_shadow_intersection(point, neg_dir, obj_pos, obj_normal,
+						int s_obj_i = ft_shadow_intersection(point, ss_dir, obj_pos, obj_normal,
 															obj_radius, obj_count, obj_type,
 															0.000001f, dist, obj_i);
 						if (s_obj_i >= 0)
+						{
 							sh += 1.0f;
-						sh -= obj_transparency[s_obj_i];
+							sh -= obj_transparency[s_obj_i];
+						}
 					}
 				}
 				s_i = (float)sh / (float)(effect.ss_cell * effect.ss_cell);
@@ -786,7 +796,7 @@ int		ft_trace_ray(float3 origin, float3 dir,
 											obj_count, obj_type,
 											light_vec,
 											light_type, light_intensity, light_count,
-											0.000001f, MAX_FLT, depth + 1, obj_i, effect, rand_val);
+											0.000001f, MAX_FLT, depth + 1, obj_i, effect, srnd);
 
 		color = ft_sum_color(color, refl_color, 1.0f - obj_mirrored[obj_i], obj_mirrored[obj_i]);
 	}
@@ -801,7 +811,7 @@ int		ft_trace_ray(float3 origin, float3 dir,
 											obj_count, obj_type,
 											light_vec,
 											light_type, light_intensity, light_count,
-											0.000001f, MAX_FLT, depth + 1, obj_i, effect, rand_val);
+											0.000001f, MAX_FLT, depth + 1, obj_i, effect, srnd);
 		color = ft_sum_color(color, trans_color, 1.0f - obj_transparency[obj_i], obj_transparency[obj_i]);
 	}
 	return (color);
@@ -844,15 +854,17 @@ __kernel void render(__global unsigned int *buffer,
 	effect.ss_cell = ss_cell;
 	effect.bw_factor = bw_factor;
 
-	float fgi = (float)pixel / (float)WH;
-	float rand_val = rand(fgi, 0.0f, seed);
+	t_rand srnd;
+	srnd.seed = seed;
+	srnd.fgi = (float)pixel / (float)WH;
+	//float rand_val = rand(fgi, 0.0f, seed);
 
 	int color = ft_trace_ray(origin, dir, obj_pos, obj_normal,
 							obj_radius, obj_color, obj_specular,
 							obj_mirrored, obj_transparency, obj_refractive_index,
 							obj_count, obj_type,
 							light_vec, light_type, light_intensity, light_count,
-							1.0f, MAX_FLT, 0, -1, effect, rand_val);
+							1.0f, MAX_FLT, 0, -1, effect, srnd);
 	
 	if (effect_type == SEPIA)
 		color = ft_to_sepia(color);
@@ -863,7 +875,7 @@ __kernel void render(__global unsigned int *buffer,
 	if (negative)
 		color = ft_to_negative(color);
 	if (noise)
-		color = ft_to_noise(color, ns_factor, fgi, seed);
+		color = ft_to_noise(color, ns_factor, srnd);
 
 	//int color = ft_color_convert(0xFFFFFF, rand_val);
 
