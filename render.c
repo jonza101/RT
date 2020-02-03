@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 18:38:56 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/02 18:04:59 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/03 17:11:17 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -310,7 +310,7 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 		}
 	}
 
-	int txt_trans = 1;
+	int txt_trans = 0;
 	int color = obj->color;
 	if (obj->txt)
 	{
@@ -318,19 +318,19 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 		if (obj->txt_trans && color == 0x0)
 		{
 			color = obj->color;
-			txt_trans = 0;
+			txt_trans = 1;
 		}
 	}
 	color = ft_color_lum(color, intensity);
 
-	if (obj->mirrored > 0.0f && depth <= MAX_DEPTH && !txt_trans)
+	if (obj->mirrored > 0.0f && depth <= MAX_DEPTH && ((obj->txt && txt_trans) || (!obj->txt)))
 	{
 		mlx->refl_ray = ft_reflect(mlx->neg_dir, mlx->normal, mlx->refl_ray);
 		int reflected_color = ft_trace_ray(mlx, mlx->point, mlx->refl_ray, 0.000001f, __FLT_MAX__, depth + 1, obj);
 		color = ft_sum_color(color, reflected_color, 1 - obj->mirrored, obj->mirrored);
 	}
 
-	if (obj->transparency > 0.0f && depth <= MAX_DEPTH && !txt_trans)
+	if (obj->transparency > 0.0f && depth <= MAX_DEPTH && ((obj->txt && txt_trans) || (!obj->txt)))
 	{
 		mlx->refr_ray = ft_refract(dir, mlx->normal, obj->refractive_index, mlx->refr_ray);
 
