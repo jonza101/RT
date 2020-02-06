@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/29 00:55:32 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/11/10 19:04:27 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/07 00:03:11 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ int		ft_key_realese(int keycode, t_mlx *mlx)
 
 int		ft_key_press(int keycode, t_mlx *mlx)
 {
-	//printf("%d\n", keycode);
+	// printf("%d\n", keycode);
     (keycode == MAC_ESC || keycode == 65307) ? exit(0) : 1;
 	if (keycode == MAC_W || keycode == 119)
 		mlx->wsad[0] = 1;
@@ -126,6 +126,11 @@ int		ft_key_press(int keycode, t_mlx *mlx)
 		mlx->ns_factor--;
 	if ((keycode == MAC_NUM_FIVE || keycode == 65437) && mlx->ns_factor < 254)
 		mlx->ns_factor++;
+
+	if ((keycode == MAC_Q || keycode == 113) && mlx->aa_idx > 0)
+		mlx->aa_idx--;
+	if ((keycode == MAC_E || keycode == 101) && mlx->aa_idx < 4)
+		mlx->aa_idx++;
 
 	return (0);
 }

@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:38:47 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/03 21:51:26 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/07 00:02:10 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@
 #define GRAYSCALE 3
 #define BLACK_WHITE 4
 
-#define	TXT 10
+#define	TXT 11
 
 #define GPU_STR "GPU (G)"
 #define CPU_STR "CPU (G)"
@@ -82,6 +82,12 @@
 
 #define SOFT_SHADOWS_OFF_STR "Soft Shadows: Off (Z)"
 #define SOFT_SHADOWS_ON_STR "Soft Shadows: On (Z)"
+
+#define AA_0 "AA: Off (Q, E)"
+#define AA_1 "AA: 2x (Q, E)"
+#define AA_2 "AA: 4x (Q, E)"
+#define AA_3 "AA: 16x (Q, E)"
+#define AA_4 "AA: 64x (Q, E)"
 
 #define COLORED_LIGHT_OFF_STR "Colored Light (Unstable): Off (X)"
 #define COLORED_LIGHT_ON_STR "Colored Light (Unstable): On (X)"
@@ -228,6 +234,13 @@ typedef struct			s_mlx
 	int					ns_factor;
 
 	t_img				*txt[TXT];
+
+	double				pix_len;
+	t_vec3				*aa_dir;
+
+	int					aa_idx;
+	int					aa_val[5];
+	char				*aa_str[5];
 
 
 	cl_int				ret;

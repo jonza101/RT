@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 18:38:56 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/03 21:51:40 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/07 00:07:21 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -340,17 +340,6 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 
 	if (mlx->colored_light)
 		color = ft_sum_color(color, l_color, 1.0 - intensity, intensity);
-	if (mlx->effect_i == SEPIA)
-		color = ft_to_sepia(color);
-	else if (mlx->effect_i == GRAYSCALE)
-		color = ft_to_grayscale(color);
-	else if (mlx->effect_i == BLACK_WHITE)
-		color = ft_to_black_white(color, mlx->bw_factor);
-
-	if (mlx->negative)
-		color = ft_to_negative(color);
-	if (mlx->noise)
-		color = ft_to_noise(color, mlx->ns_factor);
 	return (color);
 }
 
@@ -364,12 +353,69 @@ void	ft_render(t_mlx *mlx)
         int y = -h - 1;
         while (++y < h)
         {
+			int color;
+
 			mlx->dir->x = (float)x / (float)W * (float)AR;
 			mlx->dir->y = -(float)y / (float)H;
 			mlx->dir->z = 1.0f;
-			mlx->dir = ft_vec_rotate(mlx->dir, mlx->dx, mlx->dy, mlx->s_refl);
 
-			int color = ft_trace_ray(mlx, mlx->cam, mlx->dir, 1.0f, __FLT_MAX__, 0, NULL);
+			if (mlx->aa_idx == 0)
+			{
+				mlx->dir = ft_vec_rotate(mlx->dir, mlx->dx, mlx->dy, mlx->s_refl);
+				color = ft_trace_ray(mlx, mlx->cam, mlx->dir, 1.0f, __FLT_MAX__, 0, NULL);
+			}
+			else
+			{
+				int r = 0, g = 0, b = 0;
+
+				double aa_step = (double)mlx->pix_len / (double)mlx->aa_val[mlx->aa_idx];
+				double pix_len_half = mlx->pix_len * 0.5f;
+				t_vec3 aa_cell = (t_vec3){mlx->dir->x - pix_len_half, mlx->dir->y - pix_len_half, 1.0f};
+				int aa_x = -1;
+				while (++aa_x < mlx->aa_val[mlx->aa_idx])
+				{
+					int aa_y = -1;
+					while (++aa_y < mlx->aa_val[mlx->aa_idx])
+					{
+						mlx->aa_dir->x = aa_cell.x + aa_step * aa_x;
+						mlx->aa_dir->y = aa_cell.y + aa_step * aa_y;
+						mlx->aa_dir->z = 1.0f;
+						mlx->aa_dir = ft_vec_rotate(mlx->aa_dir, mlx->dx, mlx->dy, mlx->s_refl);
+
+						int t_color = ft_trace_ray(mlx, mlx->cam, mlx->aa_dir, 1.0f, __FLT_MAX__, 0, NULL);
+
+						r += ((t_color >> 16) & 0xFF);
+						g += ((t_color >> 8) & 0xFF);
+						b += (t_color & 0xFF);
+					}
+				}
+
+				mlx->dir = ft_vec_rotate(mlx->dir, mlx->dx, mlx->dy, mlx->s_refl);
+				int clr = ft_trace_ray(mlx, mlx->cam, mlx->dir, 1.0f, __FLT_MAX__, 0, NULL);
+				r += ((clr >> 16) & 0xFF);
+				g += ((clr >> 8) & 0xFF);
+				b += (clr & 0xFF);
+
+				int a_aa = mlx->aa_val[mlx->aa_idx] * mlx->aa_val[mlx->aa_idx] + 1;
+				r = (float)r / (float)a_aa;
+				g = (float)g / (float)a_aa;
+				b = (float)b / (float)a_aa;
+
+				color = ((r & 0xFF) << 16) + ((g & 0xFF) << 8) + ((b & 0xFF));
+			}
+
+			if (mlx->effect_i == SEPIA)
+				color = ft_to_sepia(color);
+			else if (mlx->effect_i == GRAYSCALE)
+				color = ft_to_grayscale(color);
+			else if (mlx->effect_i == BLACK_WHITE)
+				color = ft_to_black_white(color, mlx->bw_factor);
+
+			if (mlx->negative)
+				color = ft_to_negative(color);
+			if (mlx->noise)
+				color = ft_to_noise(color, mlx->ns_factor);
+
 			int xc = x + w;
 			int yc = y + h;
 			mlx->data[yc * W + xc] = color;

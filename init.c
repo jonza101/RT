@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/30 20:15:28 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/03 21:25:46 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/06 23:16:36 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,8 +26,8 @@ void	ft_init_txt(t_mlx *mlx)
 	char	*line;
 
 	char *txt[TXT] = {"textures/venus.xpm", "textures/earth.xpm", "textures/earth_night.xpm", "textures/moon.xpm",
-					"textures/mars.xpm", "textures/jupiter.xpm", "textures/saturn.xpm", "textures/p_cer.xpm",
-					"textures/m_scuff.xpm", "textures/brick.xpm"};
+					"textures/mars.xpm", "textures/jupiter.xpm", "textures/saturn.xpm", "textures/wbg_tile.xpm",
+					"textures/m_scuff.xpm", "textures/brick.xpm", "textures/g_tile.xpm"};
 
 	int i = -1;
 	while (++i < TXT)

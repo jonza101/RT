@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/30 22:05:45 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/06 16:41:56 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/06 22:30:54 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,8 +110,8 @@ int		ft_plane_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 	}
 
 	obj->vec_tmp = ft_cross_prod(obj->vec_tmp, normal, obj->vec_temp);
-	float u = ft_clamp(0.5f + (float)fmodf(ft_dot_prod(obj->vec_temp, point), 8.0f) / 16.0f, 0.0f, 1.0f);
-	float v = ft_clamp(0.5f + (float)fmod(ft_dot_prod(obj->vec_tmp, point), 8.0f) / 16.0f, 0.0f, 1.0f);
+	float u = ft_clamp(0.5f + (float)fmodf(ft_dot_prod(obj->vec_temp, point), 4.0f) / 8.0f, 0.0f, 1.0f);
+	float v = ft_clamp(0.5f + (float)fmod(ft_dot_prod(obj->vec_tmp, point), 4.0f) / 8.0f, 0.0f, 1.0f);
 	int tx = (float)u * (float)obj->txt->w;
 	int ty = (float)v * (float)obj->txt->h;
 	int color = obj->txt->data[ty * obj->txt->w + tx];

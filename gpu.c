@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/11/03 23:36:16 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/03 21:53:19 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/06 23:00:25 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,18 +67,18 @@ void	ft_init_gpu_txt(t_mlx *mlx)
 	}
 
 	mlx->obj_txt = (cl_ulong4 *)malloc(sizeof(cl_ulong4) * mlx->txt_pix);
-	mlx->obj_txt[0].w = 0;
 	printf("txt_pix %u\n", mlx->txt_pix);
+	mlx->obj_txt[0].w = 0;
 	mlx->txt_pix = 0;
 	int last_wh = 0;
 	i = -1;
 	while (++i < TXT)
 	{
-		mlx->obj_txt[i].x = mlx->txt[i]->w;
-		mlx->obj_txt[i].y = mlx->txt[i]->h;
+		mlx->obj_txt[i].x = (cl_ulong)mlx->txt[i]->w;
+		mlx->obj_txt[i].y = (cl_ulong)mlx->txt[i]->h;
 		if (i > 0)
-			mlx->obj_txt[i].w = last_wh + (mlx->txt[i - 1]->w * mlx->txt[i - 1]->h);
-		last_wh = mlx->obj_txt[i].w;
+			mlx->obj_txt[i].w = (cl_ulong)(last_wh + (mlx->txt[i - 1]->w * mlx->txt[i - 1]->h));
+		last_wh = (cl_ulong)mlx->obj_txt[i].w;
 
 		int y = -1;
 		while (++y < mlx->txt[i]->h)
@@ -86,7 +86,7 @@ void	ft_init_gpu_txt(t_mlx *mlx)
 			int x = -1;
 			while (++x < mlx->txt[i]->w)
 			{
-				mlx->obj_txt[mlx->txt_pix].z = mlx->txt[i]->data[y * mlx->txt[i]->w + x];
+				mlx->obj_txt[mlx->txt_pix].z = (cl_ulong)mlx->txt[i]->data[y * mlx->txt[i]->w + x];
 				mlx->txt_pix++;
 			}
 		}

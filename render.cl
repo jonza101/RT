@@ -525,8 +525,8 @@ int		ft_plane_txt_map(__global ulong4 *obj_txt, int txt_idx, float3 normal, floa
 	}
 
 	float3 vec_tmp = ft_cross_prod(normal, vec_temp);
-	float u = ft_clamp(0.5f + (float)fmod(ft_dot_prod(vec_temp, point), 8.0f) / 16.0f, 0.0f, 1.0f);
-	float v = ft_clamp(0.5f + (float)fmod(ft_dot_prod(vec_tmp, point), 8.0f) / 16.0f, 0.0f, 1.0f);
+	float u = ft_clamp(0.5f + (float)fmod(ft_dot_prod(vec_temp, point), 4.0f) / 8.0f, 0.0f, 1.0f);
+	float v = ft_clamp(0.5f + (float)fmod(ft_dot_prod(vec_tmp, point), 4.0f) / 8.0f, 0.0f, 1.0f);
 	int tx = (float)u * (float)obj_txt[txt_idx].x;
 	int ty = (float)v * (float)obj_txt[txt_idx].y;
 	int color = obj_txt[ty * obj_txt[txt_idx].x + tx + obj_txt[txt_idx].w].z;
@@ -939,8 +939,7 @@ int		ft_trace_ray(float3 origin, float3 dir,
 
 	color = ft_color_convert(color, intensity);
 
-	//													&& ((obj->txt && txt_trans) || (!obj->txt))
-	if (obj_mirrored[obj_i] > 0.0f  && depth <= MAX_DEPTH && ((obj_txt_misc[obj_i].x >= 0 && txt_trans) || (obj_txt_misc[obj_i].x < 0)))
+	if (obj_mirrored[obj_i] > 0.0f && depth <= MAX_DEPTH && ((obj_txt_misc[obj_i].x >= 0 && txt_trans) || (obj_txt_misc[obj_i].x < 0)))
 	{
 		float refl_dot = ft_dot_prod(neg_dir, normal);
 
@@ -961,7 +960,7 @@ int		ft_trace_ray(float3 origin, float3 dir,
 		color = ft_sum_color(color, refl_color, 1.0f - obj_mirrored[obj_i], obj_mirrored[obj_i]);
 	}
 
-	if (obj_transparency[obj_i] > 0.0f && depth <= MAX_DEPTH)
+	if (obj_transparency[obj_i] > 0.0f && depth <= MAX_DEPTH && ((obj_txt_misc[obj_i].x >= 0 && txt_trans) || (obj_txt_misc[obj_i].x < 0)))
 	{
 		float3 refr_ray = ft_refract(dir, normal, obj_refractive_index[obj_i], refr_ray);
 
