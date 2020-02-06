@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/30 20:15:28 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/02 17:46:28 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/03 21:25:46 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,7 @@ void	ft_init_txt(t_mlx *mlx)
 		mlx->txt[i] = (t_img *)malloc(sizeof(t_img));
 		mlx->txt[i]->w = atoi(&tmp[0][1]);
 		mlx->txt[i]->h = atoi(tmp[1]);
+		mlx->txt[i]->txt_idx = i;
 		mlx->txt[i]->img = mlx_xpm_file_to_image(mlx->mlx, txt[i], &mlx->txt[i]->w, &mlx->txt[i]->h);
 		mlx->txt[i]->data = (int*)mlx_get_data_addr(mlx->txt[i]->img, &mlx->txt[i]->bpp, &mlx->txt[i]->size_line, &mlx->txt[i]->endian);
 		ft_strsplit_free(tmp);

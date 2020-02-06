@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/11/03 23:36:16 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/11/14 14:53:19 by jkimberl         ###   ########.fr       */
+/*   Updated: 2020/02/03 21:53:19 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,11 +50,54 @@ void	ft_device_info(t_mlx *mlx)
 	printf("\n-----------------------------------------\n\n");
 }
 
+void	ft_init_gpu_txt(t_mlx *mlx)
+{
+	int i = -1;
+	while (++i < TXT)
+	{
+		int y = -1;
+		while (++y < mlx->txt[i]->h)
+		{
+			int x = -1;
+			while (++x < mlx->txt[i]->w)
+			{
+				mlx->txt_pix++;
+			}
+		}
+	}
+
+	mlx->obj_txt = (cl_ulong4 *)malloc(sizeof(cl_ulong4) * mlx->txt_pix);
+	mlx->obj_txt[0].w = 0;
+	printf("txt_pix %u\n", mlx->txt_pix);
+	mlx->txt_pix = 0;
+	int last_wh = 0;
+	i = -1;
+	while (++i < TXT)
+	{
+		mlx->obj_txt[i].x = mlx->txt[i]->w;
+		mlx->obj_txt[i].y = mlx->txt[i]->h;
+		if (i > 0)
+			mlx->obj_txt[i].w = last_wh + (mlx->txt[i - 1]->w * mlx->txt[i - 1]->h);
+		last_wh = mlx->obj_txt[i].w;
+
+		int y = -1;
+		while (++y < mlx->txt[i]->h)
+		{
+			int x = -1;
+			while (++x < mlx->txt[i]->w)
+			{
+				mlx->obj_txt[mlx->txt_pix].z = mlx->txt[i]->data[y * mlx->txt[i]->w + x];
+				mlx->txt_pix++;
+			}
+		}
+	}
+}
+
 void	ft_init_gpu_light(t_mlx *mlx)
 {
 	mlx->light_vec = (cl_float3*)malloc(sizeof(cl_float3) * mlx->light_count);
-	mlx->light_type = (int*)malloc(sizeof(int) * mlx->light_count);
-	mlx->light_intensity = (float*)malloc(sizeof(float) * mlx->light_count);
+	mlx->light_type = (cl_int*)malloc(sizeof(cl_int) * mlx->light_count);
+	mlx->light_intensity = (cl_float*)malloc(sizeof(cl_float) * mlx->light_count);
 
 	int i = -1;
 	while (++i < mlx->light_count)
@@ -74,13 +117,14 @@ void	ft_init_gpu_obj(t_mlx *mlx)
 {
 	mlx->obj_pos = (cl_float3*)malloc(sizeof(cl_float3) * mlx->obj_count);
 	mlx->obj_normal = (cl_float3*)malloc(sizeof(cl_float3) * mlx->obj_count);
-	mlx->obj_radius = (float*)malloc(sizeof(float) * mlx->obj_count);
-	mlx->obj_color = (int*)malloc(sizeof(int) * mlx->obj_count);
-	mlx->obj_specular = (float*)malloc(sizeof(float) * mlx->obj_count);
-	mlx->obj_mirrored = (float*)malloc(sizeof(float) * mlx->obj_count);
-	mlx->obj_transparency = (float*)malloc(sizeof(float) * mlx->obj_count);
-	mlx->obj_refractive_index = (float*)malloc(sizeof(float) * mlx->obj_count);
-	mlx->obj_type = (int*)malloc(sizeof(int) * mlx->obj_count);
+	mlx->obj_radius = (cl_float*)malloc(sizeof(cl_float) * mlx->obj_count);
+	mlx->obj_color = (cl_int*)malloc(sizeof(cl_int) * mlx->obj_count);
+	mlx->obj_specular = (cl_float*)malloc(sizeof(cl_float) * mlx->obj_count);
+	mlx->obj_mirrored = (cl_float*)malloc(sizeof(cl_float) * mlx->obj_count);
+	mlx->obj_transparency = (cl_float*)malloc(sizeof(cl_float) * mlx->obj_count);
+	mlx->obj_refractive_index = (cl_float*)malloc(sizeof(cl_float) * mlx->obj_count);
+	mlx->obj_type = (cl_int*)malloc(sizeof(cl_int) * mlx->obj_count);
+	mlx->obj_txt_misc = (cl_int3*)malloc(sizeof(cl_int3) * mlx->obj_count);
 
 	int i = -1;
 	while (++i < mlx->obj_count)
@@ -98,8 +142,10 @@ void	ft_init_gpu_obj(t_mlx *mlx)
 		mlx->obj_transparency[i] = mlx->obj[i]->transparency;
 		mlx->obj_refractive_index[i] = mlx->obj[i]->refractive_index;
 		mlx->obj_type[i] = mlx->obj[i]->type;
+		mlx->obj_txt_misc[i].x = (mlx->obj[i]->txt) ? mlx->obj[i]->txt->txt_idx : -1;
+		mlx->obj_txt_misc[i].y = mlx->obj[i]->txt_trans;
+		mlx->obj_txt_misc[i].z = mlx->obj[i]->txt_ignore_color;
 	}
-	ft_init_gpu_light(mlx);
 }
 
 void	ft_init_gpu(t_mlx *mlx)
@@ -121,6 +167,8 @@ void	ft_init_gpu(t_mlx *mlx)
 		exit(0);
 
 	ft_init_gpu_obj(mlx);
+	ft_init_gpu_light(mlx);
+	ft_init_gpu_txt(mlx);
 }
 
 ////////////////////////////////////////BUFFER////////////////////////////////////////////
@@ -181,6 +229,19 @@ void	ft_obj_buffer(t_mlx *mlx)
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
 	}
+
+	mlx->gpu_obj_txt = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_ulong4) * (mlx->txt_pix), mlx->obj_txt, &mlx->ret);
+	if (!mlx->gpu_obj_txt || mlx->ret != CL_SUCCESS)
+	{
+		printf("buffer_create error %d\n", mlx->ret);
+		exit(0);
+	}
+	mlx->gpu_obj_txt_idx = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_int3) * (mlx->obj_count), mlx->obj_txt_misc, &mlx->ret);
+	if (!mlx->gpu_obj_txt_idx || mlx->ret != CL_SUCCESS)
+	{
+		printf("buffer_create error %d\n", mlx->ret);
+		exit(0);
+	}
 }
 
 void	ft_light_buffer(t_mlx *mlx)
@@ -233,6 +294,8 @@ void	ft_obj_args(t_mlx *mlx)
 	mlx->ret |= clSetKernelArg(mlx->kernel, 11, sizeof(cl_mem), &mlx->gpu_obj_refractive_index);
 	mlx->ret |= clSetKernelArg(mlx->kernel, 12, sizeof(cl_int), &mlx->obj_count);
 	mlx->ret |= clSetKernelArg(mlx->kernel, 13, sizeof(cl_mem), &mlx->gpu_obj_type);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 29, sizeof(cl_mem), &mlx->gpu_obj_txt);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 30, sizeof(cl_mem), &mlx->gpu_obj_txt_idx);
 	if (mlx->ret != CL_SUCCESS)
 	{
 		printf("kernel_arg error8 %d\n", mlx->ret);
@@ -356,7 +419,6 @@ void	ft_execute_kernel(t_mlx *mlx)
 		exit(0);
 	}
 
-	// mlx->local_work_size = 800;//864;		// SHOULD TO FIX IT
 	mlx->ret = clEnqueueNDRangeKernel(mlx->command_queue, mlx->kernel, 1, NULL, &mlx->global_work_size, &mlx->local_work_size, 0, NULL, NULL);
 	if (mlx->ret != CL_SUCCESS)
 	{

@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:38:47 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/02 17:52:53 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/03 21:51:26 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,6 +97,8 @@ typedef struct			s_img
 
 	int					w;
 	int					h;
+
+	int					txt_idx;
 }						t_img;
 
 typedef	struct			s_vec2
@@ -140,6 +142,7 @@ typedef	struct			s_obj
 	float				refractive_index;
 	t_img				*txt;
 	int					txt_trans;
+	int					txt_ignore_color;
 
 	float				(*intersect) (t_vec3 *origin, t_vec3 *dir, struct s_obj *obj);
 	t_vec3*				(*normal_calc) (t_vec3 *normal, t_vec3 *dir, t_vec3 *point, struct s_obj *obj);
@@ -243,17 +246,21 @@ typedef struct			s_mlx
 
 	cl_float3			*obj_pos;
 	cl_float3			*obj_normal;
-	float				*obj_radius;
-	int					*obj_color;
-	float				*obj_specular;
-	float				*obj_mirrored;
-	float				*obj_transparency;
-	float				*obj_refractive_index;
-	int					*obj_type;
+	cl_float			*obj_radius;
+	cl_int				*obj_color;
+	cl_float			*obj_specular;
+	cl_float			*obj_mirrored;
+	cl_float			*obj_transparency;
+	cl_float			*obj_refractive_index;
+	cl_int				*obj_type;
 
 	cl_float3			*light_vec;
-	int					*light_type;
-	float				*light_intensity;
+	cl_int				*light_type;
+	cl_float			*light_intensity;
+
+	cl_ulong4			*obj_txt;				//		|	X - TXT_W	|	Y - TXT_H		|	Z - COLOR				|	W - TXT_OFFSET	|
+	cl_int3				*obj_txt_misc;			//		|	X - TXT_IDX	|	Y - TXT_TRANS	|	Z - TXT_INGORE_COLOR	|
+	unsigned long		txt_pix;
 
 	int					gpu;
 
@@ -270,6 +277,9 @@ typedef struct			s_mlx
 	cl_mem				gpu_light_vec;
 	cl_mem				gpu_light_type;
 	cl_mem				gpu_light_intensity;
+
+	cl_mem				gpu_obj_txt;
+	cl_mem				gpu_obj_txt_idx;
 }						t_mlx;
 
 

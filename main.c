@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:42:38 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/02 18:04:33 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/06 16:30:03 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,6 +106,7 @@ void	ft_init(t_mlx *mlx)
 		mlx->obj[i]->refractive_index = 1.0f;
 		mlx->obj[i]->txt = NULL;
 		mlx->obj[i]->txt_trans = 0;
+		mlx->obj[i]->txt_ignore_color = 0x0;
 	}
 	mlx->obj_count = 5;
 
@@ -303,7 +304,7 @@ void	ft_init(t_mlx *mlx)
 	mlx->light[0]->vec->x = 0.0f;//-2.0f;
 	mlx->light[0]->vec->y = 0.5f;
 	mlx->light[0]->vec->z = 7.0f;
-	mlx->light[0]->intensity = 1.0f;
+	mlx->light[0]->intensity = 0.75f;
 	mlx->light[0]->color = 0xFF0000;
 
 	mlx->light[1]->type = POINT_L;

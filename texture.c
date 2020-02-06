@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/30 22:05:45 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/02 18:03:19 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/06 16:41:56 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,8 @@ t_vec3 *ft_vec_transform(t_obj *obj, t_vec3 *normal, t_vec3 *point)			//		I DONT
 	float cos_x, cos_z;
 	float alpha_x, alpha_z;
 
-	if (ft_vec_len(obj->n_temp) < 1e-5f)
+	float n_len = ft_vec_len(obj->n_temp);
+	if (n_len < 1e-5f)
 	{
 		obj->vec_temp->x = obj->t_p->x;
 		obj->vec_temp->y = obj->t_p->y;
@@ -33,7 +34,7 @@ t_vec3 *ft_vec_transform(t_obj *obj, t_vec3 *normal, t_vec3 *point)			//		I DONT
 	}
 	else
 	{
-		cos_x = (float)obj->n_temp->x / (float)ft_vec_len(obj->n_temp);
+		cos_x = (float)obj->n_temp->x / (float)n_len;
 		alpha_x = (obj->n_temp->y > 0.0f) ? acosf(cos_x) : -acosf(cos_x);
 	}
 
@@ -93,8 +94,6 @@ int		ft_sph_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 
 int		ft_plane_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 {
-	t_vec3 *temp = (t_vec3*)malloc(sizeof(t_vec3));
-
 	if (normal->x != 0.0f || normal->y != 0.0f)
 	{
 		obj->vec_temp->x = normal->y;
@@ -111,8 +110,8 @@ int		ft_plane_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 	}
 
 	obj->vec_tmp = ft_cross_prod(obj->vec_tmp, normal, obj->vec_temp);
-	float u = ft_clamp(0.5f + fmodf(ft_dot_prod(obj->vec_temp, point), 8.0f) / 16.0f, 0.0f, 1.0f);
-	float v = ft_clamp(0.5f + fmod(ft_dot_prod(obj->vec_tmp, point), 8.0f) / 16.0f, 0.0f, 1.0f);
+	float u = ft_clamp(0.5f + (float)fmodf(ft_dot_prod(obj->vec_temp, point), 8.0f) / 16.0f, 0.0f, 1.0f);
+	float v = ft_clamp(0.5f + (float)fmod(ft_dot_prod(obj->vec_tmp, point), 8.0f) / 16.0f, 0.0f, 1.0f);
 	int tx = (float)u * (float)obj->txt->w;
 	int ty = (float)v * (float)obj->txt->h;
 	int color = obj->txt->data[ty * obj->txt->w + tx];

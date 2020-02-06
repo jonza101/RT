@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 18:38:56 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/03 17:11:17 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/03 21:51:40 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -315,7 +315,7 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 	if (obj->txt)
 	{
 		color = obj->txt_map(obj, mlx->normal, mlx->point);
-		if (obj->txt_trans && color == 0x0)
+		if (obj->txt_trans && color == obj->txt_ignore_color)
 		{
 			color = obj->color;
 			txt_trans = 1;
