@@ -1,0 +1,63 @@
+objects count: 5
+lights count: 2
+object {
+	type: plane
+	center: 0 -1.5 25
+	normal: 0 1 0
+	color: 0xFFFFFF
+	txt: 7
+	specular: 0
+	mirrored: 0
+}
+object {
+	type: sphere
+	center: 0 -0.75 5
+	radius: 0.75
+	normal: 0 1 0
+	color: 0xBDE300
+	txt: 4
+	specular: 0
+	mirrored: 0
+}
+object {
+	type: cylinder
+	center: -2.5 0 9
+	radius: 0.6
+	normal: 0.15 1 0.25
+	color: 0xBDE300
+	txt: 9
+	specular: 0
+	mirrored: 0
+}
+object {
+	type: sphere
+	center: 6.5 -0.5 14.5
+	radius: 1
+	normal: 0 1 0
+	color: 0xFFFFFF
+	txt: 1
+	specular: 0
+	mirrored: 1
+}
+object {
+	type: cone
+	center: 9 2 7
+	radius: 0.25
+	normal: -0.25 1 -1
+	color: 0xBDE300
+	txt: 7
+	specular: 0
+	mirrored: 0
+}
+light {
+	type: point
+	intensity: 1
+	color: 0xFF0000
+	vec: 0 0.5 7
+}
+light {
+	type: point
+	intensity: 0.75
+	color: 0x00FF00
+	vec: 2 0.5 7
+}
