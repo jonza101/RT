@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 18:38:56 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/08 17:56:35 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/09 02:55:35 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -369,9 +369,11 @@ void	ft_render(t_mlx *mlx)
 			{
 				int r = 0, g = 0, b = 0;
 
-				double aa_step = (double)mlx->pix_len / (double)mlx->aa_val[mlx->aa_idx];
-				double pix_len_half = mlx->pix_len * 0.5f;
-				t_vec3 aa_cell = (t_vec3){mlx->aa_dir_cpy->x - pix_len_half, mlx->aa_dir_cpy->y - pix_len_half, 1.0f};
+				double aa_step_x = (double)mlx->aa_misc.x / (double)mlx->aa_val[mlx->aa_idx];
+				double aa_step_y = (double)mlx->aa_misc.y / (double)mlx->aa_val[mlx->aa_idx];
+				double pix_len_half_x = mlx->aa_misc.x * 0.5f;
+				double pix_len_half_y = mlx->aa_misc.y * 0.5f;
+				t_vec3 aa_cell = (t_vec3){mlx->aa_dir_cpy->x - pix_len_half_x, mlx->aa_dir_cpy->y - pix_len_half_y, 1.0f};
 
 				int aa_x = -1;
 				while (++aa_x < mlx->aa_val[mlx->aa_idx])
@@ -379,8 +381,8 @@ void	ft_render(t_mlx *mlx)
 					int aa_y = -1;
 					while (++aa_y < mlx->aa_val[mlx->aa_idx])
 					{
-						mlx->aa_dir->x = aa_cell.x + aa_step * aa_x;
-						mlx->aa_dir->y = aa_cell.y + aa_step * aa_y;
+						mlx->aa_dir->x = aa_cell.x + aa_step_x * aa_x;
+						mlx->aa_dir->y = aa_cell.y + aa_step_y * aa_y;
 						mlx->aa_dir->z = 1.0f;
 						mlx->aa_dir = ft_vec_rotate(mlx->aa_dir, mlx->dx, mlx->dy, mlx->s_refl);
 

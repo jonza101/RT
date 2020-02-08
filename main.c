@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:42:38 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/08 17:16:10 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/09 02:51:20 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -394,8 +394,6 @@ void	ft_init(t_mlx *mlx)
 	mlx->bw_factor = 0;
 	mlx->ns_factor = 16;
 
-	mlx->pix_len = (double)1.0f / (double)W;
-	printf("pix_len %f\n", mlx->pix_len);
 	mlx->aa_dir = (t_vec3*)malloc(sizeof(t_vec3));
 	mlx->aa_dir_cpy = (t_vec3 *)malloc(sizeof(t_vec3));
 
@@ -410,8 +408,9 @@ void	ft_init(t_mlx *mlx)
 	mlx->aa_str[2] = AA_2;
 	mlx->aa_str[3] = AA_3;
 
-	mlx->aa_misc.x = (int)mlx->aa_idx;
-	mlx->aa_misc.y = (double)mlx->pix_len;
+	mlx->aa_misc.x = (double)1.0f / (double)W;
+	mlx->aa_misc.y = (double)1.0f / (double)H;
+	mlx->aa_misc.z = (int)mlx->aa_val[mlx->aa_idx];
 
 
 	ft_init_gpu(mlx);

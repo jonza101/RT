@@ -999,7 +999,7 @@ __kernel void render(__global unsigned int *buffer,
 							__global float3 *light_vec,
 							__global float *light_type, __global float *light_intensity, int light_count,
 							float dx, float dy, int effect_type, int cel_band, int negative, int soft_shadows, int ss_cell, float seed,
-							int bw_factor, int noise, int ns_factor, __global ulong4 *obj_txt, __global int3 *obj_txt_misc, double2 aa_misc)
+							int bw_factor, int noise, int ns_factor, __global ulong4 *obj_txt, __global int3 *obj_txt_misc, double3 aa_misc)
 {
 	unsigned int pixel = get_global_id(0);
 
@@ -1046,23 +1046,25 @@ __kernel void render(__global unsigned int *buffer,
 	{
 		int r = 0, g = 0, b = 0;
 
-		double aa_step = (double)aa_misc.y / (double)aa_misc.x;
-		double pix_len_half = aa_misc.y * 0.5f;
+		double aa_step_x = (double)aa_misc.x / (double)aa_misc.z;
+		double aa_step_y = (double)aa_misc.y / (double)aa_misc.z;
+		double pix_len_half_x = aa_misc.x * 0.5f;
+		double pix_len_half_y = aa_misc.y * 0.5f;
 		float3 aa_dir;
 		float3 aa_cell;
-		aa_cell.x = dir_cpy.x - pix_len_half;
-		aa_cell.y = dir_cpy.y - pix_len_half;
+		aa_cell.x = dir_cpy.x - pix_len_half_x;
+		aa_cell.y = dir_cpy.y - pix_len_half_y;
 		aa_cell.z = 1.0f;
 
 		int aa_x = -1;
-		while (++aa_x < (int)aa_misc.x)
+		while (++aa_x < (int)aa_misc.z)
 		{
 			int aa_y = -1;
-			while (++aa_y < (int)aa_misc.x)
+			while (++aa_y < (int)aa_misc.z)
 			{
 				
-				aa_dir.x = aa_cell.x + aa_step * aa_x;
-				aa_dir.y = aa_cell.y + aa_step * aa_y;
+				aa_dir.x = aa_cell.x + aa_step_x * aa_x;
+				aa_dir.y = aa_cell.y + aa_step_y * aa_y;
 				aa_dir.z = 1.0f;
 				aa_dir = ft_vec_rotate(aa_dir, dx, dy);
 
@@ -1084,7 +1086,7 @@ __kernel void render(__global unsigned int *buffer,
 		g += ((color >> 8) & 0xFF);
 		b += (color & 0xFF);
 
-		int a_aa = (int)aa_misc.x * (int)aa_misc.x + 1;
+		int a_aa = (int)aa_misc.z * (int)aa_misc.z + 1;
 		r = (float)r / (float)a_aa;
 		g = (float)g / (float)a_aa;
 		b = (float)b / (float)a_aa;

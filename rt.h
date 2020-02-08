@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:38:47 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/08 17:37:24 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/09 02:50:58 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,7 +92,11 @@
 #define COLORED_LIGHT_ON_STR "Colored Light (Unstable): On (X)"
 
 
-typedef struct			s_img
+#define EDGE_THRESHOLD_MIN 0.0312f
+#define EDGE_THRESHOLD_MAX 0.125f
+
+
+typedef struct 			s_img
 {
 	void				*img;
 	int					bpp;
@@ -234,14 +238,13 @@ typedef struct			s_mlx
 
 	t_img				*txt[TXT];
 
-	double				pix_len;
 	t_vec3				*aa_dir;
 	t_vec3				*aa_dir_cpy;
 
 	int					aa_idx;
 	int					aa_val[4];
 	char				*aa_str[4];
-	cl_double2			aa_misc;			//		|	X - AA_VALUE	|	Y - PIXEL_LEN	|
+	cl_double3			aa_misc;			//		|	X - PIX_LEN_X	|	Y - PIXEL_LEN_Y		|	Z - AA_VAL	|
 
 
 	cl_int				ret;
@@ -272,7 +275,7 @@ typedef struct			s_mlx
 	cl_int				*light_type;
 	cl_float			*light_intensity;
 
-	cl_ulong4			*obj_txt;				//		|	X - TXT_W	|	Y - TXT_H		|	Z - COLOR				|	W - TXT_OFFSET	|	S0 - TXT_PIXEL	|
+	cl_ulong4			*obj_txt;				//		|	X - TXT_W	|	Y - TXT_H		|	Z - COLOR				|	W - TXT_OFFSET	|
 	cl_int3				*obj_txt_misc;			//		|	X - TXT_IDX	|	Y - TXT_TRANS	|	Z - TXT_INGORE_COLOR	|
 	unsigned long		txt_pix;
 

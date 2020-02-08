@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/11/03 23:36:16 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/08 17:39:55 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/09 02:41:50 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -414,7 +414,7 @@ void	ft_execute_kernel(t_mlx *mlx)
 	mlx->ret |= clSetKernelArg(mlx->kernel, 26, sizeof(cl_int), &mlx->bw_factor);
 	mlx->ret |= clSetKernelArg(mlx->kernel, 27, sizeof(cl_int), &mlx->noise);
 	mlx->ret |= clSetKernelArg(mlx->kernel, 28, sizeof(cl_int), &mlx->ns_factor);
-	mlx->ret |= clSetKernelArg(mlx->kernel, 31, sizeof(cl_double2), &mlx->aa_misc);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 31, sizeof(cl_double3), &mlx->aa_misc);
 	if (mlx->ret != CL_SUCCESS)
 	{
 		printf("kernel_arg error %d\n", mlx->ret);
