@@ -786,7 +786,7 @@ int		ft_trace_ray(float3 origin, float3 dir,
 					s_i = 1.0f - obj_transparency[s_obj_i];
 					//continue;
 			}
-			else if (effect.soft_shadows)
+			else
 			{
 				float x1 = point.x;
 				float y1 = point.z;
