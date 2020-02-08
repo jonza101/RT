@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 18:38:56 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/07 00:07:21 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/08 17:56:35 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -353,24 +353,26 @@ void	ft_render(t_mlx *mlx)
         int y = -h - 1;
         while (++y < h)
         {
-			int color;
-
 			mlx->dir->x = (float)x / (float)W * (float)AR;
 			mlx->dir->y = -(float)y / (float)H;
 			mlx->dir->z = 1.0f;
 
-			if (mlx->aa_idx == 0)
-			{
-				mlx->dir = ft_vec_rotate(mlx->dir, mlx->dx, mlx->dy, mlx->s_refl);
-				color = ft_trace_ray(mlx, mlx->cam, mlx->dir, 1.0f, __FLT_MAX__, 0, NULL);
-			}
-			else
+			mlx->aa_dir_cpy->x = mlx->dir->x;
+			mlx->aa_dir_cpy->y = mlx->dir->y;
+			mlx->aa_dir_cpy->z = mlx->dir->z;
+
+			mlx->dir = ft_vec_rotate(mlx->dir, mlx->dx, mlx->dy, mlx->s_refl);
+
+			int color = ft_trace_ray(mlx, mlx->cam, mlx->dir, 1.0f, __FLT_MAX__, 0, NULL);
+			
+			if (mlx->aa_idx > 0)
 			{
 				int r = 0, g = 0, b = 0;
 
 				double aa_step = (double)mlx->pix_len / (double)mlx->aa_val[mlx->aa_idx];
 				double pix_len_half = mlx->pix_len * 0.5f;
-				t_vec3 aa_cell = (t_vec3){mlx->dir->x - pix_len_half, mlx->dir->y - pix_len_half, 1.0f};
+				t_vec3 aa_cell = (t_vec3){mlx->aa_dir_cpy->x - pix_len_half, mlx->aa_dir_cpy->y - pix_len_half, 1.0f};
+
 				int aa_x = -1;
 				while (++aa_x < mlx->aa_val[mlx->aa_idx])
 				{
@@ -390,11 +392,9 @@ void	ft_render(t_mlx *mlx)
 					}
 				}
 
-				mlx->dir = ft_vec_rotate(mlx->dir, mlx->dx, mlx->dy, mlx->s_refl);
-				int clr = ft_trace_ray(mlx, mlx->cam, mlx->dir, 1.0f, __FLT_MAX__, 0, NULL);
-				r += ((clr >> 16) & 0xFF);
-				g += ((clr >> 8) & 0xFF);
-				b += (clr & 0xFF);
+				r += ((color >> 16) & 0xFF);
+				g += ((color >> 8) & 0xFF);
+				b += (color & 0xFF);
 
 				int a_aa = mlx->aa_val[mlx->aa_idx] * mlx->aa_val[mlx->aa_idx] + 1;
 				r = (float)r / (float)a_aa;

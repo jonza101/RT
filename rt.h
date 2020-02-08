@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:38:47 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/07 00:02:10 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/08 17:37:24 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,7 +87,6 @@
 #define AA_1 "AA: 2x (Q, E)"
 #define AA_2 "AA: 4x (Q, E)"
 #define AA_3 "AA: 16x (Q, E)"
-#define AA_4 "AA: 64x (Q, E)"
 
 #define COLORED_LIGHT_OFF_STR "Colored Light (Unstable): Off (X)"
 #define COLORED_LIGHT_ON_STR "Colored Light (Unstable): On (X)"
@@ -237,10 +236,12 @@ typedef struct			s_mlx
 
 	double				pix_len;
 	t_vec3				*aa_dir;
+	t_vec3				*aa_dir_cpy;
 
 	int					aa_idx;
-	int					aa_val[5];
-	char				*aa_str[5];
+	int					aa_val[4];
+	char				*aa_str[4];
+	cl_double2			aa_misc;			//		|	X - AA_VALUE	|	Y - PIXEL_LEN	|
 
 
 	cl_int				ret;
@@ -271,7 +272,7 @@ typedef struct			s_mlx
 	cl_int				*light_type;
 	cl_float			*light_intensity;
 
-	cl_ulong4			*obj_txt;				//		|	X - TXT_W	|	Y - TXT_H		|	Z - COLOR				|	W - TXT_OFFSET	|
+	cl_ulong4			*obj_txt;				//		|	X - TXT_W	|	Y - TXT_H		|	Z - COLOR				|	W - TXT_OFFSET	|	S0 - TXT_PIXEL	|
 	cl_int3				*obj_txt_misc;			//		|	X - TXT_IDX	|	Y - TXT_TRANS	|	Z - TXT_INGORE_COLOR	|
 	unsigned long		txt_pix;
 

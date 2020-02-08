@@ -21,6 +21,8 @@
 #define GRAYSCALE 3
 #define BLACK_WHITE 4
 
+#define	TXT 11
+
 #define MAX_FLT 3.40282346638528859811704183484516925e+38F
 
 
@@ -77,7 +79,7 @@ float		ft_max(float a, float b)
 
 float	ft_clamp(float a, float min_val, float max_val)
 {
-	return (min(max(a, min_val), max_val));
+	return (ft_min(ft_max(a, min_val), max_val));
 }
 
 float ft_dot_prod(float3 a, float3 b)
@@ -497,11 +499,14 @@ float3		ft_vec_transform(float3 obj_pos, float3 obj_normal, float3 normal, float
 
 int		ft_sph_txt_map(__global ulong4 *obj_txt, int txt_idx, float3 normal)
 {
-	float u = ft_clamp(0.5f + (float)atan2(normal.z, normal.x) / (float)(2.0f * 3.14159f), 0.0f, 1.0f);
-	float v = ft_clamp(0.5f - (float)asin(normal.y) / (float)3.14159f, 0.0f, 1.0f);
+	float u = 0.5f + (float)atan2(normal.z, normal.x) / (float)(2.0f * 3.14159f);
+	float v = 0.5f - (float)asin(normal.y) / (float)3.14159f;
 	int tx = (float)u * (float)obj_txt[txt_idx].x;
 	int ty = (float)v * (float)obj_txt[txt_idx].y;
-	int color = obj_txt[ty * obj_txt[txt_idx].x + tx + obj_txt[txt_idx].w].z;
+	int pix = ty * obj_txt[txt_idx].x + tx + obj_txt[txt_idx].w;
+	pix = (pix >= obj_txt[TXT].w) ? obj_txt[TXT].w - 1 : pix;
+	int color = obj_txt[pix].z;
+
 	return (color);
 }
 
@@ -525,22 +530,28 @@ int		ft_plane_txt_map(__global ulong4 *obj_txt, int txt_idx, float3 normal, floa
 	}
 
 	float3 vec_tmp = ft_cross_prod(normal, vec_temp);
-	float u = ft_clamp(0.5f + (float)fmod(ft_dot_prod(vec_temp, point), 4.0f) / 8.0f, 0.0f, 1.0f);
-	float v = ft_clamp(0.5f + (float)fmod(ft_dot_prod(vec_tmp, point), 4.0f) / 8.0f, 0.0f, 1.0f);
+	float u = 0.5f + (float)fmod(ft_dot_prod(vec_temp, point), 4.0f) / 8.0f;
+	float v = 0.5f + (float)fmod(ft_dot_prod(vec_tmp, point), 4.0f) / 8.0f;
 	int tx = (float)u * (float)obj_txt[txt_idx].x;
 	int ty = (float)v * (float)obj_txt[txt_idx].y;
-	int color = obj_txt[ty * obj_txt[txt_idx].x + tx + obj_txt[txt_idx].w].z;
+	int pix = ty * obj_txt[txt_idx].x + tx + obj_txt[txt_idx].w;
+	pix = (pix >= obj_txt[TXT].w) ? obj_txt[TXT].w - 1 : pix;
+	int color = obj_txt[pix].z;
+
 	return (color);
 }
 
 int		ft_cylinder_txt_map(__global ulong4 *obj_txt, int txt_idx, float3 obj_pos, float3 obj_normal, float obj_radius, float3 normal, float3 point)
 {
 	float3 vec = ft_vec_transform(obj_pos, obj_normal, normal, point);
-	float u = ft_clamp(0.5f + ((float)atan2(vec.x, vec.y) / (float)(2.0f * 3.14159f)), 0.0f, 1.0f);
-	float v = ft_clamp(0.5f - (modf((float)vec.z / (float)obj_radius * 0.25f, &v) * 0.5f), 0.0f, 1.0f);
+	float u = 0.5f + ((float)atan2(vec.x, vec.y) / (float)(2.0f * 3.14159f));
+	float v = 0.5f - (modf((float)vec.z / (float)obj_radius * 0.25f, &v) * 0.5f);
 	int tx = (float)u * (float)obj_txt[txt_idx].x;
 	int ty = (float)v * (float)obj_txt[txt_idx].y;
-	int color = obj_txt[ty * obj_txt[txt_idx].x + tx + obj_txt[txt_idx].w].z;
+	int pix = ty * obj_txt[txt_idx].x + tx + obj_txt[txt_idx].w;
+	pix = (pix >= obj_txt[TXT].w) ? obj_txt[TXT].w - 1 : pix;
+	int color = obj_txt[pix].z;
+
 	return (color);
 }
 
@@ -548,11 +559,14 @@ int		ft_cone_txt_map(__global ulong4 *obj_txt, int txt_idx, float3 obj_pos, floa
 {
 	float3 vec = ft_vec_transform(obj_pos, obj_normal, normal, point);
 	float p = (float)((float)vec.x / (float)vec.z) / (float)tan(obj_radius);
-	float u = ft_clamp((float)((vec.y > 0.0) ? acos(p) : (2.0f * 3.14159f - acos(p))) / (float)(2.0f * 3.14159f), 0.0f, 1.0f);
-	float v = ft_clamp(0.5f - modf(vec.z * 0.5f, &v) * 0.5f, 0.0f, 1.0f);
+	float u = (float)((vec.y > 0.0) ? acos(p) : (2.0f * 3.14159f - acos(p))) / (float)(2.0f * 3.14159f);
+	float v = 0.5f - modf(vec.z * 0.5f, &v) * 0.5f;
 	int tx = (float)u * (float)obj_txt[txt_idx].x;
 	int ty = (float)v * (float)obj_txt[txt_idx].y;
-	int color = obj_txt[ty * obj_txt[txt_idx].x + tx + obj_txt[txt_idx].w].z;
+	int pix = ty * obj_txt[txt_idx].x + tx + obj_txt[txt_idx].w;
+	pix = (pix >= obj_txt[TXT].w) ? obj_txt[TXT].w - 1 : pix;
+	int color = obj_txt[pix].z;
+
 	return (color);
 }
 
@@ -772,7 +786,7 @@ int		ft_trace_ray(float3 origin, float3 dir,
 					s_i = 1.0f - obj_transparency[s_obj_i];
 					//continue;
 			}
-			else
+			else if (effect.soft_shadows)
 			{
 				float x1 = point.x;
 				float y1 = point.z;
@@ -834,7 +848,6 @@ int		ft_trace_ray(float3 origin, float3 dir,
 					int yy = -1;
 					while (++yy < effect.ss_cell)
 					{
-						//float rnd = rand_val * step;
 						float rnd = rand(srnd.fgi, 0.0f, srnd.seed, srnd) * step;
 
 						float cell_x = v_cell[xx].x + rnd;
@@ -927,8 +940,6 @@ int		ft_trace_ray(float3 origin, float3 dir,
 			color = ft_cylinder_txt_map(obj_txt, obj_txt_misc[obj_i].x, obj_pos[obj_i], obj_normal[obj_i], obj_radius[obj_i], normal, point);
 		else if (obj_type[obj_i] == CONE)
 			color = ft_cone_txt_map(obj_txt, obj_txt_misc[obj_i].x, obj_pos[obj_i], obj_normal[obj_i], obj_radius[obj_i], normal, point);
-		else
-			color = obj_color[obj_i];
 
 		if (obj_txt_misc[obj_i].y && color == obj_txt_misc[obj_i].z)
 		{
@@ -988,25 +999,14 @@ __kernel void render(__global unsigned int *buffer,
 							__global float3 *light_vec,
 							__global float *light_type, __global float *light_intensity, int light_count,
 							float dx, float dy, int effect_type, int cel_band, int negative, int soft_shadows, int ss_cell, float seed,
-							int bw_factor, int noise, int ns_factor, __global ulong4 *obj_txt, __global int3 *obj_txt_misc)
+							int bw_factor, int noise, int ns_factor, __global ulong4 *obj_txt, __global int3 *obj_txt_misc, double2 aa_misc)
 {
 	unsigned int pixel = get_global_id(0);
 
 	int y = pixel / W - (H * 0.5f);
 	int x = pixel % W - (W * 0.5f);
 
-	float3 origin;
-	origin.x = origin_x;
-	origin.y = origin_y;
-	origin.z = origin_z;
-
-	float3 dir;
-	dir.x = (float)x / (float)W * (float)AR;
-	dir.y = -(float)y / (float)H;
-	dir.z = 1.0f;
-
-	dir = ft_vec_rotate(dir, dx, dy);
-
+	
 	t_effect effect;
 	effect.effect_type = effect_type;
 	effect.cel_band = cel_band;
@@ -1018,7 +1018,21 @@ __kernel void render(__global unsigned int *buffer,
 	t_rand srnd;
 	srnd.seed = seed;
 	srnd.fgi = (float)pixel / (float)WH;
-	//float rand_val = rand(fgi, 0.0f, seed);
+
+
+	float3 origin;
+	origin.x = origin_x;
+	origin.y = origin_y;
+	origin.z = origin_z;
+
+	float3 dir;
+	dir.x = (float)x / (float)W * (float)AR;
+	dir.y = -(float)y / (float)H;
+	dir.z = 1.0f;
+
+	float3 dir_cpy = dir;
+
+	dir = ft_vec_rotate(dir, dx, dy);
 
 	int color = ft_trace_ray(origin, dir, obj_pos, obj_normal,
 							obj_radius, obj_color, obj_specular,
@@ -1027,6 +1041,56 @@ __kernel void render(__global unsigned int *buffer,
 							light_vec, light_type, light_intensity, light_count,
 							1.0f, MAX_FLT, 0, -1, effect, srnd,
 							obj_txt, obj_txt_misc);
+
+	if (aa_misc.x > 0)
+	{
+		int r = 0, g = 0, b = 0;
+
+		double aa_step = (double)aa_misc.y / (double)aa_misc.x;
+		double pix_len_half = aa_misc.y * 0.5f;
+		float3 aa_dir;
+		float3 aa_cell;
+		aa_cell.x = dir_cpy.x - pix_len_half;
+		aa_cell.y = dir_cpy.y - pix_len_half;
+		aa_cell.z = 1.0f;
+
+		int aa_x = -1;
+		while (++aa_x < (int)aa_misc.x)
+		{
+			int aa_y = -1;
+			while (++aa_y < (int)aa_misc.x)
+			{
+				
+				aa_dir.x = aa_cell.x + aa_step * aa_x;
+				aa_dir.y = aa_cell.y + aa_step * aa_y;
+				aa_dir.z = 1.0f;
+				aa_dir = ft_vec_rotate(aa_dir, dx, dy);
+
+				int t_color = ft_trace_ray(origin, aa_dir, obj_pos, obj_normal,
+										obj_radius, obj_color, obj_specular,
+										obj_mirrored, obj_transparency, obj_refractive_index,
+										obj_count, obj_type,
+										light_vec, light_type, light_intensity, light_count,
+										1.0f, MAX_FLT, 0, -1, effect, srnd,
+										obj_txt, obj_txt_misc);
+
+				r += ((t_color >> 16) & 0xFF);
+				g += ((t_color >> 8) & 0xFF);
+				b += (t_color & 0xFF);
+			}
+		}
+
+		r += ((color >> 16) & 0xFF);
+		g += ((color >> 8) & 0xFF);
+		b += (color & 0xFF);
+
+		int a_aa = (int)aa_misc.x * (int)aa_misc.x + 1;
+		r = (float)r / (float)a_aa;
+		g = (float)g / (float)a_aa;
+		b = (float)b / (float)a_aa;
+
+		color = ((r & 0xFF) << 16) + ((g & 0xFF) << 8) + ((b & 0xFF));
+	}
 	
 	if (effect_type == SEPIA)
 		color = ft_to_sepia(color);
@@ -1038,8 +1102,6 @@ __kernel void render(__global unsigned int *buffer,
 		color = ft_to_negative(color);
 	if (noise)
 		color = ft_to_noise(color, ns_factor, srnd);
-
-	//int color = ft_color_convert(0xFFFFFF, rand_val);
 
 	buffer[pixel] = color;
 }

@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:42:38 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/07 00:01:02 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/08 17:16:10 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,7 +119,7 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[0]->normal->y = 1.0f;
 	mlx->obj[0]->normal->z = 0.0f;
 	mlx->obj[0]->color = 0xFFFFFF;
-	mlx->obj[0]->txt = mlx->txt[7];
+	mlx->obj[0]->txt = mlx->txt[10];
 	mlx->obj[0]->intersect = ft_plane_intersect;
 	mlx->obj[0]->normal_calc = ft_plane_normal_calc;
 	mlx->obj[0]->txt_map = ft_plane_txt_map;
@@ -181,7 +181,7 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[4]->normal->z = -0.1f;
 	mlx->obj[4]->normal = ft_vec_normalize(mlx->obj[4]->normal);
 	mlx->obj[4]->color = 0xBDE300;
-	mlx->obj[4]->txt = mlx->txt[10];
+	mlx->obj[4]->txt = mlx->txt[7];
 	mlx->obj[4]->intersect = ft_cone_intersect;
 	mlx->obj[4]->normal_calc = ft_cone_normal_calc;
 	mlx->obj[4]->txt_map = ft_cone_txt_map;
@@ -397,19 +397,22 @@ void	ft_init(t_mlx *mlx)
 	mlx->pix_len = (double)1.0f / (double)W;
 	printf("pix_len %f\n", mlx->pix_len);
 	mlx->aa_dir = (t_vec3*)malloc(sizeof(t_vec3));
+	mlx->aa_dir_cpy = (t_vec3 *)malloc(sizeof(t_vec3));
 
 	mlx->aa_idx = 0;
 	mlx->aa_val[0] = 0;
 	mlx->aa_val[1] = 1;
 	mlx->aa_val[2] = 2;
-	mlx->aa_val[3] = 8;
-	mlx->aa_val[4] = 16;
+	mlx->aa_val[3] = 4;
 	
 	mlx->aa_str[0] = AA_0;
 	mlx->aa_str[1] = AA_1;
 	mlx->aa_str[2] = AA_2;
 	mlx->aa_str[3] = AA_3;
-	mlx->aa_str[4] = AA_4;
+
+	mlx->aa_misc.x = (int)mlx->aa_idx;
+	mlx->aa_misc.y = (double)mlx->pix_len;
+
 
 	ft_init_gpu(mlx);
 	ft_load_cl_files(mlx);

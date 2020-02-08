@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/11/03 23:36:16 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/06 23:00:25 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/08 17:39:55 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,8 +66,9 @@ void	ft_init_gpu_txt(t_mlx *mlx)
 		}
 	}
 
-	mlx->obj_txt = (cl_ulong4 *)malloc(sizeof(cl_ulong4) * mlx->txt_pix);
+	mlx->obj_txt = (cl_ulong4*)malloc(sizeof(cl_ulong4) * (mlx->txt_pix));
 	printf("txt_pix %u\n", mlx->txt_pix);
+	mlx->obj_txt[TXT].w = mlx->txt_pix;
 	mlx->obj_txt[0].w = 0;
 	mlx->txt_pix = 0;
 	int last_wh = 0;
@@ -413,6 +414,7 @@ void	ft_execute_kernel(t_mlx *mlx)
 	mlx->ret |= clSetKernelArg(mlx->kernel, 26, sizeof(cl_int), &mlx->bw_factor);
 	mlx->ret |= clSetKernelArg(mlx->kernel, 27, sizeof(cl_int), &mlx->noise);
 	mlx->ret |= clSetKernelArg(mlx->kernel, 28, sizeof(cl_int), &mlx->ns_factor);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 31, sizeof(cl_double2), &mlx->aa_misc);
 	if (mlx->ret != CL_SUCCESS)
 	{
 		printf("kernel_arg error %d\n", mlx->ret);
@@ -426,7 +428,12 @@ void	ft_execute_kernel(t_mlx *mlx)
 		printf("global %zu				local %zu\n", mlx->global_work_size, mlx->local_work_size);
 		exit(0);
 	}
-	clFinish(mlx->command_queue);
+	mlx->ret = clFinish(mlx->command_queue);
+	if (mlx->ret != CL_SUCCESS)
+	{
+		printf("cl_finish error %d\n", mlx->ret);
+		exit(0);
+	}
 
 	mlx->ret = clEnqueueReadBuffer(mlx->command_queue, mlx->buffer, CL_TRUE, 0, sizeof(unsigned int) * (W * H), mlx->data, 0, NULL, NULL);
 	if (mlx->ret != CL_SUCCESS)
