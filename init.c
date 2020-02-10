@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/30 20:15:28 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/06 23:16:36 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/10 22:14:27 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,9 +25,8 @@ void	ft_init_txt(t_mlx *mlx)
 	int		fd;
 	char	*line;
 
-	char *txt[TXT] = {"textures/venus.xpm", "textures/earth.xpm", "textures/earth_night.xpm", "textures/moon.xpm",
-					"textures/mars.xpm", "textures/jupiter.xpm", "textures/saturn.xpm", "textures/wbg_tile.xpm",
-					"textures/m_scuff.xpm", "textures/brick.xpm", "textures/g_tile.xpm"};
+	char *txt[TXT] = {"textures/wbg_tile.xpm", "textures/m_scuff.xpm", "textures/brick.xpm", "textures/g_tile.xpm",
+						"textures/paint.xpm"};
 
 	int i = -1;
 	while (++i < TXT)
@@ -40,7 +39,7 @@ void	ft_init_txt(t_mlx *mlx)
 			(j < 3) ? ft_strdel(&line) : 1;
 		}
 		char **tmp = ft_strsplit(line, ' ');
-		mlx->txt[i] = (t_img *)malloc(sizeof(t_img));
+		mlx->txt[i] = (t_img*)malloc(sizeof(t_img));
 		mlx->txt[i]->w = atoi(&tmp[0][1]);
 		mlx->txt[i]->h = atoi(tmp[1]);
 		mlx->txt[i]->txt_idx = i;
@@ -50,4 +49,48 @@ void	ft_init_txt(t_mlx *mlx)
 		ft_strdel(&line);
 		close(fd);
 	}
+}
+
+void	ft_init_bump(t_mlx *mlx)
+{
+	int 	fd;
+	char 	*line;
+
+	char	*bump[BUMP] = {"textures/bump/wbg_tile_bump.xpm", "textures/bump/brick_bump.xpm",
+							"textures/bump/g_tile_bump.xpm", "textures/bump/paint_bump.xpm"};
+
+	int i = -1;
+	while (++i < BUMP)
+	{
+		fd = open(bump[i], O_RDONLY);
+		int j = -1;
+		while (++j < 4)
+		{
+			get_next_line(fd, &line);
+			(j < 3) ? ft_strdel(&line) : 1;
+		}
+		char **tmp = ft_strsplit(line, ' ');
+		mlx->bump[i] = (t_bump*)malloc(sizeof(t_bump));
+		mlx->bump[i]->img = (t_img*)malloc(sizeof(t_img));
+		mlx->bump[i]->img->w = atoi(&tmp[0][1]);
+		mlx->bump[i]->img->h = atoi(tmp[1]);
+		mlx->bump[i]->img->txt_idx = i;
+		mlx->bump[i]->img->img = mlx_xpm_file_to_image(mlx->mlx, bump[i], &mlx->bump[i]->img->w, &mlx->bump[i]->img->h);
+		mlx->bump[i]->img->data = (int *)mlx_get_data_addr(mlx->bump[i]->img->img, &mlx->bump[i]->img->bpp, &mlx->bump[i]->img->size_line, &mlx->bump[i]->img->endian);
+		ft_strsplit_free(tmp);
+		ft_strdel(&line);
+		close(fd);
+	}
+
+	// i = -1;
+	// while (++i < BUMP)
+	// {
+	// 	mlx->bump[i]->gradient = (t_vec2**)malloc(sizeof(t_vec2*) * (mlx->bump[i]->img));
+
+	// 	int x = -1;
+	// 	while (++x < mlx->bump[i]->img->w)
+	// 	{
+	// 		int left_color = (x > 0) ? mlx->bump[i]->img->data[]
+	// 	}
+	// }
 }

@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:38:47 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/09 02:50:58 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/10 20:54:31 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,8 @@
 #define GRAYSCALE 3
 #define BLACK_WHITE 4
 
-#define	TXT 11
+#define	TXT 5
+#define BUMP 4
 
 #define GPU_STR "GPU (G)"
 #define CPU_STR "CPU (G)"
@@ -83,10 +84,10 @@
 #define SOFT_SHADOWS_OFF_STR "Soft Shadows: Off (Z)"
 #define SOFT_SHADOWS_ON_STR "Soft Shadows: On (Z)"
 
-#define AA_0 "AA: Off (Q, E)"
-#define AA_1 "AA: 2x (Q, E)"
-#define AA_2 "AA: 4x (Q, E)"
-#define AA_3 "AA: 16x (Q, E)"
+#define AA_0 "SSAA: Off (Q, E)"
+#define AA_1 "SSAA: 2x (Q, E)"
+#define AA_2 "SSAA: 4x (Q, E)"
+#define AA_3 "SSAA: 16x (Q, E)"
 
 #define COLORED_LIGHT_OFF_STR "Colored Light (Unstable): Off (X)"
 #define COLORED_LIGHT_ON_STR "Colored Light (Unstable): On (X)"
@@ -94,7 +95,21 @@
 
 #define EDGE_THRESHOLD_MIN 0.0312f
 #define EDGE_THRESHOLD_MAX 0.125f
+#define SUBPIXEL_QUALITY  0.75f
 
+
+typedef	struct			s_vec2
+{
+	float				x;
+	float				y;
+}						t_vec2;
+
+typedef struct			s_vec3
+{
+	float				x;
+	float				y;
+	float				z;
+}                  		t_vec3;
 
 typedef struct 			s_img
 {
@@ -110,18 +125,11 @@ typedef struct 			s_img
 	int					txt_idx;
 }						t_img;
 
-typedef	struct			s_vec2
+typedef	struct			s_bump
 {
-	float				x;
-	float				y;
-}						t_vec2;
-
-typedef struct			s_vec3
-{
-	float				x;
-	float				y;
-	float				z;
-}                  		t_vec3;
+	t_img				*img;
+	t_vec2				**gradient;
+}						t_bump;
 
 typedef	struct			s_light				//		0 - AMBIENT		|	1 - POINT	|	2 - DIRECTIONAL		|
 {
@@ -152,10 +160,13 @@ typedef	struct			s_obj
 	t_img				*txt;
 	int					txt_trans;
 	int					txt_ignore_color;
+	t_bump				*bump;
+	t_vec2				*uv;
 
 	float				(*intersect) (t_vec3 *origin, t_vec3 *dir, struct s_obj *obj);
 	t_vec3*				(*normal_calc) (t_vec3 *normal, t_vec3 *dir, t_vec3 *point, struct s_obj *obj);
-	int					(*txt_map) (struct s_obj *obj, t_vec3 *normal, t_vec3 *point);
+	int					(*txt_mapping) (struct s_obj *obj, t_vec3 *normal, t_vec3 *point);
+	t_vec3*				(*bump_mapping) (struct s_obj *obj, t_vec3 *normal, t_vec3 *point);
 
 	t_vec3				*oc_temp;
 	t_vec3				*vec_temp;
@@ -237,6 +248,7 @@ typedef struct			s_mlx
 	int					ns_factor;
 
 	t_img				*txt[TXT];
+	t_bump				*bump[BUMP];
 
 	t_vec3				*aa_dir;
 	t_vec3				*aa_dir_cpy;
@@ -343,7 +355,13 @@ int						ft_plane_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
 int 					ft_cylinder_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
 int						ft_cone_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
 
+t_vec3 					*ft_sph_bump_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
+t_vec3					*ft_plane_bump_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
+t_vec3					*ft_cylinder_bump_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
+t_vec3					*ft_cone_bump_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
+
 int						ft_key_press(int keycode, t_mlx *mlx);
 int						ft_key_realese(int keycode, t_mlx *mlx);
 
 void 					ft_init_txt(t_mlx *mlx);
+void 					ft_init_bump(t_mlx *mlx);

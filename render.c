@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 18:38:56 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/09 02:55:35 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/10 20:35:35 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,8 +124,13 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 	mlx->point->x = origin->x + mlx->closest * dir->x;
 	mlx->point->y = origin->y + mlx->closest * dir->y;
 	mlx->point->z = origin->z + mlx->closest * dir->z;
+	
 
 	mlx->normal = obj->normal_calc(mlx->normal, dir, mlx->point, obj);
+	if (obj->bump)
+	{
+		mlx->normal = obj->bump_mapping(obj, mlx->normal, mlx->point);
+	}
 
 	mlx->neg_dir->x = -dir->x;
 	mlx->neg_dir->y = -dir->y;
@@ -314,7 +319,15 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 	int color = obj->color;
 	if (obj->txt)
 	{
-		color = obj->txt_map(obj, mlx->normal, mlx->point);
+		if (!obj->bump)
+			color = obj->txt_mapping(obj, mlx->normal, mlx->point);
+		else
+		{
+			int tx = obj->uv->x * obj->txt->w;
+			int ty = obj->uv->y * obj->txt->h;
+			color = obj->txt->data[ty * obj->txt->w + tx];
+		}
+		
 		if (obj->txt_trans && color == obj->txt_ignore_color)
 		{
 			color = obj->color;
