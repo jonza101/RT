@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/29 00:55:32 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/10 22:15:05 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/12 01:01:45 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,7 +109,7 @@ int		ft_key_press(int keycode, t_mlx *mlx)
 	if (keycode == MAC_F || keycode == 102)
 		mlx->noise = !mlx->noise;
 	
-	if ((keycode == MAC_Z || keycode == 122) && mlx->aa_idx == 0)
+	if (keycode == MAC_Z || keycode == 122)
 		mlx->soft_shadows = !mlx->soft_shadows;
 
 	if ((keycode == MAC_COMMA || keycode == 44) && mlx->ss_cell > 2)
@@ -127,16 +127,19 @@ int		ft_key_press(int keycode, t_mlx *mlx)
 	if ((keycode == MAC_NUM_FIVE || keycode == 65437) && mlx->ns_factor < 254)
 		mlx->ns_factor++;
 
-	if ((keycode == MAC_Q || keycode == 113) && mlx->aa_idx > 0 && !mlx->soft_shadows)
+	if ((keycode == MAC_Q || keycode == 113) && mlx->aa_idx > 0)
 	{
 		mlx->aa_idx--;
 		mlx->aa_misc.z = mlx->aa_val[mlx->aa_idx];
 	}
-	if ((keycode == MAC_E || keycode == 101) && mlx->aa_idx < 3 && !mlx->soft_shadows)
+	if ((keycode == MAC_E || keycode == 101) && mlx->aa_idx < 3)
 	{
 		mlx->aa_idx++;
 		mlx->aa_misc.z = mlx->aa_val[mlx->aa_idx];
 	}
+
+	if (keycode == MAC_B || keycode == 98)
+		mlx->bump_mapping = !mlx->bump_mapping;
 
 	return (0);
 }

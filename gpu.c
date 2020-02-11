@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/11/03 23:36:16 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/09 02:41:50 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/12 00:55:47 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,9 +42,9 @@ void	ft_device_info(t_mlx *mlx)
 	printf("d_available: %s\n", d_available ? "Yes" : "No");
 	printf("d_num_cores: %u\n", d_n_cores);
 	printf("d_clock_freq: %u\n", d_clock_freq);
-	printf("d_amount_mem: %f mb\n", (float)d_amount_mem / 1048576);
-	printf("d_max_alloc_mem: %f mb\n", (float)d_max_alloc_mem / 1048576);
-	printf("d_local_mem: %u kb\n", (unsigned int)d_local_mem);
+	printf("d_amount_mem: %f mb\n", (float)d_amount_mem / 1024.0f / 1024.0f);
+	printf("d_max_alloc_mem: %f mb\n", (float)d_max_alloc_mem / 1024.0f / 1024.0f);
+	printf("d_local_mem: %u kb\n", (unsigned int)((float)d_local_mem / 1024.0f));
 	printf("d_max_group_size: %zu\n", d_max_group_size);
 	printf("d_address_bits: %u\n", d_address_bits);
 	printf("\n-----------------------------------------\n\n");
@@ -52,6 +52,8 @@ void	ft_device_info(t_mlx *mlx)
 
 void	ft_init_gpu_txt(t_mlx *mlx)
 {
+	mlx->txt_pix = 0;
+
 	int i = -1;
 	while (++i < TXT)
 	{
@@ -92,6 +94,50 @@ void	ft_init_gpu_txt(t_mlx *mlx)
 			}
 		}
 	}
+
+
+	mlx->bump_pix = 0;
+
+	i = -1;
+	while (++i < BUMP)
+	{
+		int y = -1;
+		while (++y < mlx->bump[i]->h)
+		{
+			int x = -1;
+			while (++x < mlx->bump[i]->w)
+			{
+				mlx->bump_pix++;
+			}
+		}
+	}
+
+	mlx->obj_bump_map = (cl_ulong4*)malloc(sizeof(cl_ulong4) * (mlx->bump_pix));
+	printf("bump_pix %u\n", mlx->bump_pix);
+	mlx->obj_bump_map[BUMP].w = mlx->bump_pix;
+	mlx->obj_bump_map[0].w = 0;
+	mlx->bump_pix = 0;
+	last_wh = 0;
+	i = -1;
+	while (++i < BUMP)
+	{
+		mlx->obj_bump_map[i].x = (cl_ulong)mlx->bump[i]->w;
+		mlx->obj_bump_map[i].y = (cl_ulong)mlx->bump[i]->h;
+		if (i > 0)
+			mlx->obj_bump_map[i].w = (cl_ulong)(last_wh + (mlx->bump[i - 1]->w * mlx->bump[i - 1]->h));
+		last_wh = (cl_ulong)mlx->obj_bump_map[i].w;
+
+		int y = -1;
+		while (++y < mlx->bump[i]->h)
+		{
+			int x = -1;
+			while (++x < mlx->bump[i]->w)
+			{
+				mlx->obj_bump_map[mlx->bump_pix].z = (cl_ulong)mlx->bump[i]->data[y * mlx->bump[i]->w + x];
+				mlx->bump_pix++;
+			}
+		}
+	}
 }
 
 void	ft_init_gpu_light(t_mlx *mlx)
@@ -126,6 +172,7 @@ void	ft_init_gpu_obj(t_mlx *mlx)
 	mlx->obj_refractive_index = (cl_float*)malloc(sizeof(cl_float) * mlx->obj_count);
 	mlx->obj_type = (cl_int*)malloc(sizeof(cl_int) * mlx->obj_count);
 	mlx->obj_txt_misc = (cl_int3*)malloc(sizeof(cl_int3) * mlx->obj_count);
+	mlx->obj_bump_idx = (cl_int*)malloc(sizeof(cl_int) * mlx->obj_count);
 
 	int i = -1;
 	while (++i < mlx->obj_count)
@@ -146,6 +193,7 @@ void	ft_init_gpu_obj(t_mlx *mlx)
 		mlx->obj_txt_misc[i].x = (mlx->obj[i]->txt) ? mlx->obj[i]->txt->txt_idx : -1;
 		mlx->obj_txt_misc[i].y = mlx->obj[i]->txt_trans;
 		mlx->obj_txt_misc[i].z = mlx->obj[i]->txt_ignore_color;
+		mlx->obj_bump_idx[i] = (mlx->obj[i]->bump) ? mlx->obj[i]->bump->txt_idx : -1;
 	}
 }
 
@@ -237,8 +285,20 @@ void	ft_obj_buffer(t_mlx *mlx)
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
 	}
-	mlx->gpu_obj_txt_idx = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_int3) * (mlx->obj_count), mlx->obj_txt_misc, &mlx->ret);
-	if (!mlx->gpu_obj_txt_idx || mlx->ret != CL_SUCCESS)
+	mlx->gpu_obj_txt_misc = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_int3) * (mlx->obj_count), mlx->obj_txt_misc, &mlx->ret);
+	if (!mlx->gpu_obj_txt_misc || mlx->ret != CL_SUCCESS)
+	{
+		printf("buffer_create error %d\n", mlx->ret);
+		exit(0);
+	}
+	mlx->gpu_obj_bump = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_ulong4) * (mlx->bump_pix), mlx->obj_bump_map, &mlx->ret);
+	if (!mlx->gpu_obj_bump || mlx->ret != CL_SUCCESS)
+	{
+		printf("buffer_create error %d\n", mlx->ret);
+		exit(0);
+	}
+	mlx->gpu_obj_bump_idx = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_int) * (mlx->obj_count), mlx->obj_bump_idx, &mlx->ret);
+	if (!mlx->gpu_obj_bump_idx || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
@@ -296,7 +356,9 @@ void	ft_obj_args(t_mlx *mlx)
 	mlx->ret |= clSetKernelArg(mlx->kernel, 12, sizeof(cl_int), &mlx->obj_count);
 	mlx->ret |= clSetKernelArg(mlx->kernel, 13, sizeof(cl_mem), &mlx->gpu_obj_type);
 	mlx->ret |= clSetKernelArg(mlx->kernel, 29, sizeof(cl_mem), &mlx->gpu_obj_txt);
-	mlx->ret |= clSetKernelArg(mlx->kernel, 30, sizeof(cl_mem), &mlx->gpu_obj_txt_idx);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 30, sizeof(cl_mem), &mlx->gpu_obj_txt_misc);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 32, sizeof(cl_mem), &mlx->gpu_obj_bump);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 33, sizeof(cl_mem), &mlx->gpu_obj_bump_idx);
 	if (mlx->ret != CL_SUCCESS)
 	{
 		printf("kernel_arg error8 %d\n", mlx->ret);
@@ -415,6 +477,7 @@ void	ft_execute_kernel(t_mlx *mlx)
 	mlx->ret |= clSetKernelArg(mlx->kernel, 27, sizeof(cl_int), &mlx->noise);
 	mlx->ret |= clSetKernelArg(mlx->kernel, 28, sizeof(cl_int), &mlx->ns_factor);
 	mlx->ret |= clSetKernelArg(mlx->kernel, 31, sizeof(cl_double3), &mlx->aa_misc);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 34, sizeof(cl_int), &mlx->bump_mapping);
 	if (mlx->ret != CL_SUCCESS)
 	{
 		printf("kernel_arg error %d\n", mlx->ret);
@@ -425,13 +488,14 @@ void	ft_execute_kernel(t_mlx *mlx)
 	if (mlx->ret != CL_SUCCESS)
 	{
 		printf("enqueue error %d\n", mlx->ret);
-		printf("global %zu				local %zu\n", mlx->global_work_size, mlx->local_work_size);
+		printf("global %zu		local %zu\n", mlx->global_work_size, mlx->local_work_size);
 		exit(0);
 	}
 	mlx->ret = clFinish(mlx->command_queue);
 	if (mlx->ret != CL_SUCCESS)
 	{
 		printf("cl_finish error %d\n", mlx->ret);
+		printf("global %zu		local %zu\n", mlx->global_work_size, mlx->local_work_size);
 		exit(0);
 	}
 

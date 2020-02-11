@@ -22,6 +22,7 @@
 #define BLACK_WHITE 4
 
 #define	TXT 5
+#define BUMP 4
 
 #define MAX_FLT 3.40282346638528859811704183484516925e+38F
 
@@ -40,6 +41,8 @@ typedef struct		s_effect
 	int 			soft_shadows;
 	int				ss_cell;
 	int				bw_factor;
+
+	int				bump_mapping;
 }                  	t_effect;
 
 int		ft_trace_ray(float3 origin, float3 dir,
@@ -51,7 +54,7 @@ int		ft_trace_ray(float3 origin, float3 dir,
 					__global float3 *light_vec,
 					__global int *light_type, __global float *light_intensity, int light_count,
 					float min_dist, float max_dist, int depth, int refl_i, t_effect effect, t_rand srnd,
-					__global ulong4 *obj_txt, __global int3 *obj_txt_misc);
+					__global ulong4 *obj_txt, __global int3 *obj_txt_misc, __global ulong4 *obj_bump, __global int *obj_bump_idx);
 
 
 //random values in range 0.0 to 1.0
@@ -541,6 +544,21 @@ int		ft_plane_txt_map(__global ulong4 *obj_txt, int txt_idx, float3 normal, floa
 	return (color);
 }
 
+int		ft_cone_txt_map(__global ulong4 *obj_txt, int txt_idx, float3 obj_pos, float3 obj_normal, float obj_radius, float3 normal, float3 point)
+{
+	float3 vec = ft_vec_transform(obj_pos, obj_normal, normal, point);
+	float p = (float)((float)vec.x / (float)vec.z) / (float)tan(obj_radius);
+	float u = (float)((vec.y > 0.0) ? acos(p) : (2.0f * 3.14159f - acos(p))) / (float)(2.0f * 3.14159f);
+	float v = 0.5f - modf(vec.z * 0.5f, &v) * 0.5f;
+	int tx = (float)u * (float)obj_txt[txt_idx].x;
+	int ty = (float)v * (float)obj_txt[txt_idx].y;
+	int pix = ty * obj_txt[txt_idx].x + tx + obj_txt[txt_idx].w;
+	pix = (pix >= obj_txt[TXT].w) ? obj_txt[TXT].w - 1 : pix;
+	int color = obj_txt[pix].z;
+
+	return (color);
+}
+
 int		ft_cylinder_txt_map(__global ulong4 *obj_txt, int txt_idx, float3 obj_pos, float3 obj_normal, float obj_radius, float3 normal, float3 point)
 {
 	float3 vec = ft_vec_transform(obj_pos, obj_normal, normal, point);
@@ -555,19 +573,45 @@ int		ft_cylinder_txt_map(__global ulong4 *obj_txt, int txt_idx, float3 obj_pos, 
 	return (color);
 }
 
-int		ft_cone_txt_map(__global ulong4 *obj_txt, int txt_idx, float3 obj_pos, float3 obj_normal, float obj_radius, float3 normal, float3 point)
-{
-	float3 vec = ft_vec_transform(obj_pos, obj_normal, normal, point);
-	float p = (float)((float)vec.x / (float)vec.z) / (float)tan(obj_radius);
-	float u = (float)((vec.y > 0.0) ? acos(p) : (2.0f * 3.14159f - acos(p))) / (float)(2.0f * 3.14159f);
-	float v = 0.5f - modf(vec.z * 0.5f, &v) * 0.5f;
-	int tx = (float)u * (float)obj_txt[txt_idx].x;
-	int ty = (float)v * (float)obj_txt[txt_idx].y;
-	int pix = ty * obj_txt[txt_idx].x + tx + obj_txt[txt_idx].w;
-	pix = (pix >= obj_txt[TXT].w) ? obj_txt[TXT].w - 1 : pix;
-	int color = obj_txt[pix].z;
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	return (color);
+float3		ft_bump_maping(float3 normal, __global ulong4 *obj_bump, int bump_idx, float2 uv)
+{
+	int tx = (float)uv.x * (float)obj_bump[bump_idx].x;
+	int ty = (float)uv.y * (float)obj_bump[bump_idx].y;
+
+	int pix = ty * obj_bump[bump_idx].x + tx + obj_bump[bump_idx].w;
+	pix = (pix >= obj_bump[BUMP].w) ? obj_bump[BUMP].w - 1 : pix;
+
+	int left_color = (tx > 0) ? obj_bump[pix - 1].z : obj_bump[pix].z;
+	int right_color = (tx < obj_bump[bump_idx].x - 1) ? obj_bump[pix + 1].z : obj_bump[pix].z;
+	int l_r = (left_color >> 16) & 0xFF;
+	int l_g = (left_color >> 8) & 0xFF;
+	int l_b = left_color & 0xFF;
+	int r_r = (right_color >> 16) & 0xFF;
+	int r_g = (right_color >> 8) & 0xFF;
+	int r_b = right_color & 0xFF;
+	float l_i = (float)((float)(l_r + l_g + l_b) / 3.0f) / 255.0f;
+	float r_i = (float)((float)(r_r + r_g + r_b) / 3.0f) / 255.0f;
+	float x_gradient = (l_i - r_i);
+
+	int up_color = (ty > 0) ? obj_bump[pix - obj_bump[bump_idx].x].z : obj_bump[pix].z;
+	int down_color = (ty < obj_bump[bump_idx].y - 1) ? obj_bump[pix + obj_bump[bump_idx].x].z : obj_bump[pix].z;
+	int u_r = (up_color >> 16) & 0xFF;
+	int u_g = (up_color >> 8) & 0xFF;
+	int u_b = up_color & 0xFF;
+	int d_r = (down_color >> 16) & 0xFF;
+	int d_g = (down_color >> 8) & 0xFF;
+	int d_b = down_color & 0xFF;
+	float u_i = (float)((float)(u_r + u_g + u_b) / 3.0f) / 255.0f;
+	float d_i = (float)((float)(d_r + d_g + d_b) / 3.0f) / 255.0f;
+	float y_gradient = (u_i - d_i);
+
+	normal.x = normal.x - x_gradient - y_gradient;
+	normal.y = normal.y - x_gradient - y_gradient;
+	normal.z = normal.z - x_gradient - y_gradient;
+	normal = ft_vec_normalize(normal);
+	return (normal);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -701,7 +745,7 @@ int		ft_trace_ray_rec(float3 origin, float3 dir,
 							__global float3 *light_vec,
 							__global int *light_type, __global float *light_intensity, int light_count,
 							float min_dist, float max_dist, int depth, int refl_i, t_effect effect, t_rand srnd,
-							__global ulong4 *obj_txt, __global int3 *obj_txt_misc)
+							__global ulong4 *obj_txt, __global int3 *obj_txt_misc, __global ulong4 *obj_bump, __global int *obj_bump_idx)
 {
 	int color = ft_trace_ray(origin, dir, obj_pos, obj_normal,
 							obj_radius, obj_color, obj_specular,
@@ -710,7 +754,7 @@ int		ft_trace_ray_rec(float3 origin, float3 dir,
 							light_vec,
 							light_type, light_intensity, light_count,
 							min_dist, max_dist, depth, refl_i, effect, srnd,
-							obj_txt, obj_txt_misc);
+							obj_txt, obj_txt_misc, obj_bump, obj_bump_idx);
 	return (color);
 }
 
@@ -723,7 +767,7 @@ int		ft_trace_ray(float3 origin, float3 dir,
 					__global float3 *light_vec,
 					__global int *light_type, __global float *light_intensity, int light_count,
 					float min_dist, float max_dist, int depth, int refl_i, t_effect effect, t_rand srnd,
-					__global ulong4 *obj_txt, __global int3 *obj_txt_misc)
+					__global ulong4 *obj_txt, __global int3 *obj_txt_misc, __global ulong4 *obj_bump, __global int *obj_bump_idx)
 {
 	float closest;
 	int obj_i = ft_closest_intersection(origin, dir, obj_pos, obj_normal,
@@ -746,6 +790,58 @@ int		ft_trace_ray(float3 origin, float3 dir,
 		normal = ft_cone_normal_calc(dir, point, obj_pos[obj_i], obj_normal[obj_i], obj_radius[obj_i], normal);
 	else if (obj_type[obj_i] == CYLINDER)
 		normal = ft_cylinder_normal_calc(dir, point, obj_pos[obj_i], obj_normal[obj_i], normal);
+
+	float2 uv;
+	if (effect.bump_mapping && obj_bump_idx[obj_i] >= 0)
+	{
+		if (obj_type[obj_i] == SPHERE)
+		{
+			uv.x = 0.5f + (float)atan2(normal.z, normal.x) / (float)(2.0f * 3.14159f);
+			uv.y = 0.5f - (float)asin(normal.y) / (float)3.14159f;
+			normal = ft_bump_maping(normal, obj_bump, obj_bump_idx[obj_i], uv);
+		}
+		else if (obj_type[obj_i] == PLANE)
+		{
+			float3 vec_temp;
+
+			if (normal.x != 0.0f || normal.y != 0.0f)
+			{
+				vec_temp.x = normal.y;
+				vec_temp.y = -normal.x;
+				vec_temp.z = 0.0f;
+				vec_temp = ft_vec_normalize(vec_temp);
+			}
+			else
+			{
+				vec_temp.x = 0.0f;
+				vec_temp.y = 1.0f;
+				vec_temp.z = 0.0f;
+				vec_temp = ft_vec_normalize(vec_temp);
+			}
+
+			float3 vec_tmp = ft_cross_prod(normal, vec_temp);
+			uv.x = 0.5f + (float)fmod(ft_dot_prod(vec_temp, point), 4.0f) / 8.0f;
+			uv.y = 0.5f + (float)fmod(ft_dot_prod(vec_tmp, point), 4.0f) / 8.0f;
+			normal = ft_bump_maping(normal, obj_bump, obj_bump_idx[obj_i], uv);
+		}
+		else if (obj_type[obj_i] == CONE)
+		{
+			float3 vec = ft_vec_transform(obj_pos[obj_i], obj_normal[obj_i], normal, point);
+			float p = (float)((float)vec.x / (float)vec.z) / (float)tan(obj_radius[obj_i]);
+			uv.x = (float)((vec.y > 0.0) ? acos(p) : (2.0f * 3.14159f - acos(p))) / (float)(2.0f * 3.14159f);
+			float v = 0.5f - modf(vec.z * 0.5f, &v) * 0.5f;
+			uv.y = v;
+			normal = ft_bump_maping(normal, obj_bump, obj_bump_idx[obj_i], uv);
+		}
+		else if (obj_type[obj_i] == CYLINDER)
+		{
+			float3 vec = ft_vec_transform(obj_pos[obj_i], obj_normal[obj_i], normal, point);
+			uv.x = 0.5f + ((float)atan2(vec.x, vec.y) / (float)(2.0f * 3.14159f));
+			float v = 0.5f - (modf((float)vec.z / (float)obj_radius[obj_i] * 0.25f, &v) * 0.5f);
+			uv.y = v;
+			normal = ft_bump_maping(normal, obj_bump, obj_bump_idx[obj_i], uv);
+		}
+	}
 
 	float3 neg_dir;
 	neg_dir.x = -dir.x;
@@ -825,7 +921,7 @@ int		ft_trace_ray(float3 origin, float3 dir,
 				float3 diff = (float3)(light_vec[i].x - l_vec.x, l_vec.y, light_vec[i].z - l_vec.z);
 				float3 r_vec = (float3)(light_vec[i].x + diff.x, l_vec.y, light_vec[i].z + diff.z);
 
-				float3 v_cell[16];
+				float3 v_cell[4];
 				float step = (float)(2.0f * 1.0f) / (float)effect.ss_cell;
 
 				float2 temp = (float2)(r_vec.x - l_vec.x, r_vec.z - l_vec.z);
@@ -932,14 +1028,25 @@ int		ft_trace_ray(float3 origin, float3 dir,
 	int color = obj_color[obj_i];
 	if (obj_txt_misc[obj_i].x >= 0)
 	{
-		if (obj_type[obj_i] == SPHERE)
-			color = ft_sph_txt_map(obj_txt, obj_txt_misc[obj_i].x, normal);
-		else if (obj_type[obj_i] == PLANE)
-			color = ft_plane_txt_map(obj_txt, obj_txt_misc[obj_i].x, normal, point);
-		else if (obj_type[obj_i] == CYLINDER)
-			color = ft_cylinder_txt_map(obj_txt, obj_txt_misc[obj_i].x, obj_pos[obj_i], obj_normal[obj_i], obj_radius[obj_i], normal, point);
-		else if (obj_type[obj_i] == CONE)
-			color = ft_cone_txt_map(obj_txt, obj_txt_misc[obj_i].x, obj_pos[obj_i], obj_normal[obj_i], obj_radius[obj_i], normal, point);
+		if (obj_bump_idx[obj_i] == -1 || !effect.bump_mapping)
+		{
+			if (obj_type[obj_i] == SPHERE)
+				color = ft_sph_txt_map(obj_txt, obj_txt_misc[obj_i].x, normal);
+			else if (obj_type[obj_i] == PLANE)
+				color = ft_plane_txt_map(obj_txt, obj_txt_misc[obj_i].x, normal, point);
+			else if (obj_type[obj_i] == CYLINDER)
+				color = ft_cylinder_txt_map(obj_txt, obj_txt_misc[obj_i].x, obj_pos[obj_i], obj_normal[obj_i], obj_radius[obj_i], normal, point);
+			else if (obj_type[obj_i] == CONE)
+				color = ft_cone_txt_map(obj_txt, obj_txt_misc[obj_i].x, obj_pos[obj_i], obj_normal[obj_i], obj_radius[obj_i], normal, point);
+		}
+		else if (effect.bump_mapping && obj_bump_idx[obj_i] >= 0)
+		{
+			int tx = (float)uv.x * (float)obj_txt[obj_txt_misc[obj_i].x].x;
+			int ty = (float)uv.y * (float)obj_txt[obj_txt_misc[obj_i].x].y;
+			int pix = ty * obj_txt[obj_txt_misc[obj_i].x].x + tx + obj_txt[obj_txt_misc[obj_i].x].w;
+			pix = (pix >= obj_txt[TXT].w) ? obj_txt[TXT].w - 1 : pix;
+			color = obj_txt[pix].z;
+		}
 
 		if (obj_txt_misc[obj_i].y && color == obj_txt_misc[obj_i].z)
 		{
@@ -966,7 +1073,7 @@ int		ft_trace_ray(float3 origin, float3 dir,
 											light_vec,
 											light_type, light_intensity, light_count,
 											0.000001f, MAX_FLT, depth + 1, obj_i, effect, srnd,
-											obj_txt, obj_txt_misc);
+											obj_txt, obj_txt_misc, obj_bump, obj_bump_idx);
 
 		color = ft_sum_color(color, refl_color, 1.0f - obj_mirrored[obj_i], obj_mirrored[obj_i]);
 	}
@@ -982,7 +1089,7 @@ int		ft_trace_ray(float3 origin, float3 dir,
 											light_vec,
 											light_type, light_intensity, light_count,
 											0.000001f, MAX_FLT, depth + 1, obj_i, effect, srnd,
-											obj_txt, obj_txt_misc);
+											obj_txt, obj_txt_misc, obj_bump, obj_bump_idx);
 
 		color = ft_sum_color(color, trans_color, 1.0f - obj_transparency[obj_i], obj_transparency[obj_i]);
 	}
@@ -999,7 +1106,8 @@ __kernel void render(__global unsigned int *buffer,
 							__global float3 *light_vec,
 							__global float *light_type, __global float *light_intensity, int light_count,
 							float dx, float dy, int effect_type, int cel_band, int negative, int soft_shadows, int ss_cell, float seed,
-							int bw_factor, int noise, int ns_factor, __global ulong4 *obj_txt, __global int3 *obj_txt_misc, double3 aa_misc)
+							int bw_factor, int noise, int ns_factor, __global ulong4 *obj_txt, __global int3 *obj_txt_misc, double3 aa_misc,
+							__global ulong4 *obj_bump, __global int *obj_bump_idx, int bump_mapping)
 {
 	unsigned int pixel = get_global_id(0);
 
@@ -1014,6 +1122,7 @@ __kernel void render(__global unsigned int *buffer,
 	effect.soft_shadows = soft_shadows;
 	effect.ss_cell = ss_cell;
 	effect.bw_factor = bw_factor;
+	effect.bump_mapping = bump_mapping;
 
 	t_rand srnd;
 	srnd.seed = seed;
@@ -1040,7 +1149,7 @@ __kernel void render(__global unsigned int *buffer,
 							obj_count, obj_type,
 							light_vec, light_type, light_intensity, light_count,
 							1.0f, MAX_FLT, 0, -1, effect, srnd,
-							obj_txt, obj_txt_misc);
+							obj_txt, obj_txt_misc, obj_bump, obj_bump_idx);
 
 	if (aa_misc.x > 0)
 	{
@@ -1074,7 +1183,7 @@ __kernel void render(__global unsigned int *buffer,
 										obj_count, obj_type,
 										light_vec, light_type, light_intensity, light_count,
 										1.0f, MAX_FLT, 0, -1, effect, srnd,
-										obj_txt, obj_txt_misc);
+										obj_txt, obj_txt_misc, obj_bump, obj_bump_idx);
 
 				r += ((t_color >> 16) & 0xFF);
 				g += ((t_color >> 8) & 0xFF);

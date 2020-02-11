@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:42:38 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/10 22:17:14 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/12 00:50:17 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,8 @@ int		ft_gameloop(t_mlx *mlx)
 		mlx_string_put(mlx->mlx, mlx->win, 10, 100, 0xFFFFFF, mlx->noise_str[mlx->noise]);
 		mlx_string_put(mlx->mlx, mlx->win, 10, 120, 0xFFFFFF, mlx->soft_sh_str[mlx->soft_shadows]);
 		mlx_string_put(mlx->mlx, mlx->win, 10, 140, 0xFFFFFF, mlx->aa_str[mlx->aa_idx]);
-		mlx_string_put(mlx->mlx, mlx->win, 10, 160, 0xFFFFFF, mlx->colored_light_str[mlx->colored_light]);
+		mlx_string_put(mlx->mlx, mlx->win, 10, 160, 0xFFFFFF, mlx->bump_str[mlx->bump_mapping]);
+		mlx_string_put(mlx->mlx, mlx->win, 10, 180, 0xFFFFFF, mlx->colored_light_str[mlx->colored_light]);
 	}
 	free(fps_str);
 
@@ -123,7 +124,7 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[0]->normal->z = 0.0f;
 	mlx->obj[0]->color = 0xFFFFFF;
 	mlx->obj[0]->txt = mlx->txt[3];
-	mlx->obj[0]->bump = mlx->bump[2];
+	// mlx->obj[0]->bump = mlx->bump[2];
 	mlx->obj[0]->intersect = ft_plane_intersect;
 	mlx->obj[0]->normal_calc = ft_plane_normal_calc;
 	mlx->obj[0]->txt_mapping = ft_plane_txt_map;
@@ -423,6 +424,10 @@ void	ft_init(t_mlx *mlx)
 	mlx->aa_misc.x = (double)1.0f / (double)W;
 	mlx->aa_misc.y = (double)1.0f / (double)H;
 	mlx->aa_misc.z = (int)mlx->aa_val[mlx->aa_idx];
+
+	mlx->bump_mapping = 1;
+	mlx->bump_str[0] = BUMP_OFF;
+	mlx->bump_str[1] = BUMP_ON;
 
 
 	ft_init_gpu(mlx);

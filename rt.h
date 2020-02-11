@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:38:47 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/10 20:54:31 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/12 00:13:01 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,24 +70,27 @@
 #define CPU_STR "CPU (G)"
 
 #define EFFECT_NONE_STR "Effect: None (C)"
-#define EFFECT_CEL_SHADING_STR "Effect: Cel Shading (C)"
+#define EFFECT_CEL_SHADING_STR "Effect: Cel Shading (C) (-/+)"
 #define EFFECT_SEPIA_STR "Effect: Sepia (C)"
 #define EFFECT_GRAYSCALE_STR "Effect: Grayscale (C)"
-#define EFFECT_BLACK_WHITE_STR "Effect: Black & White (C)"
+#define EFFECT_BLACK_WHITE_STR "Effect: Black & White (C) (Num 1/Num 2)"
 
 #define NEGATIVE_OFF_STR "Negative: Off (V)"
 #define NEGATIVE_ON_STR "Negative: On (V)"
 
 #define NOISE_OFF_STR "Noise: Off (F)"
-#define NOISE_ON_STR "Noise: On (F)"
+#define NOISE_ON_STR "Noise: On (F) (Num 4/Num 5)"
 
 #define SOFT_SHADOWS_OFF_STR "Soft Shadows: Off (Z)"
-#define SOFT_SHADOWS_ON_STR "Soft Shadows: On (Z)"
+#define SOFT_SHADOWS_ON_STR "Soft Shadows: On (Z) (</>)"
 
 #define AA_0 "SSAA: Off (Q, E)"
 #define AA_1 "SSAA: 2x (Q, E)"
 #define AA_2 "SSAA: 4x (Q, E)"
 #define AA_3 "SSAA: 16x (Q, E)"
+
+#define BUMP_OFF "Bump Mapping: Off (B)"
+#define BUMP_ON "Bump Mapping: On (B)"
 
 #define COLORED_LIGHT_OFF_STR "Colored Light (Unstable): Off (X)"
 #define COLORED_LIGHT_ON_STR "Colored Light (Unstable): On (X)"
@@ -125,12 +128,6 @@ typedef struct 			s_img
 	int					txt_idx;
 }						t_img;
 
-typedef	struct			s_bump
-{
-	t_img				*img;
-	t_vec2				**gradient;
-}						t_bump;
-
 typedef	struct			s_light				//		0 - AMBIENT		|	1 - POINT	|	2 - DIRECTIONAL		|
 {
 	int					type;
@@ -160,7 +157,7 @@ typedef	struct			s_obj
 	t_img				*txt;
 	int					txt_trans;
 	int					txt_ignore_color;
-	t_bump				*bump;
+	t_img				*bump;
 	t_vec2				*uv;
 
 	float				(*intersect) (t_vec3 *origin, t_vec3 *dir, struct s_obj *obj);
@@ -248,7 +245,10 @@ typedef struct			s_mlx
 	int					ns_factor;
 
 	t_img				*txt[TXT];
-	t_bump				*bump[BUMP];
+	t_img 				*bump[BUMP];
+
+	int					bump_mapping;
+	char 				*bump_str[2];
 
 	t_vec3				*aa_dir;
 	t_vec3				*aa_dir_cpy;
@@ -290,6 +290,9 @@ typedef struct			s_mlx
 	cl_ulong4			*obj_txt;				//		|	X - TXT_W	|	Y - TXT_H		|	Z - COLOR				|	W - TXT_OFFSET	|
 	cl_int3				*obj_txt_misc;			//		|	X - TXT_IDX	|	Y - TXT_TRANS	|	Z - TXT_INGORE_COLOR	|
 	unsigned long		txt_pix;
+	cl_ulong4			*obj_bump_map;			//		|	X - BUMP_W	|	Y - BUMP_H		|	Z - COLOR				|	W - BUMP_OFFSET	|
+	cl_int				*obj_bump_idx;
+	unsigned long		bump_pix;
 
 	int					gpu;
 
@@ -308,7 +311,10 @@ typedef struct			s_mlx
 	cl_mem				gpu_light_intensity;
 
 	cl_mem				gpu_obj_txt;
-	cl_mem				gpu_obj_txt_idx;
+	cl_mem				gpu_obj_txt_misc;
+
+	cl_mem				gpu_obj_bump;
+	cl_mem				gpu_obj_bump_idx;
 }						t_mlx;
 
 

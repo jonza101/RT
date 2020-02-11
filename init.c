@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/30 20:15:28 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/10 22:14:27 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/11 22:17:26 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,27 +70,14 @@ void	ft_init_bump(t_mlx *mlx)
 			(j < 3) ? ft_strdel(&line) : 1;
 		}
 		char **tmp = ft_strsplit(line, ' ');
-		mlx->bump[i] = (t_bump*)malloc(sizeof(t_bump));
-		mlx->bump[i]->img = (t_img*)malloc(sizeof(t_img));
-		mlx->bump[i]->img->w = atoi(&tmp[0][1]);
-		mlx->bump[i]->img->h = atoi(tmp[1]);
-		mlx->bump[i]->img->txt_idx = i;
-		mlx->bump[i]->img->img = mlx_xpm_file_to_image(mlx->mlx, bump[i], &mlx->bump[i]->img->w, &mlx->bump[i]->img->h);
-		mlx->bump[i]->img->data = (int *)mlx_get_data_addr(mlx->bump[i]->img->img, &mlx->bump[i]->img->bpp, &mlx->bump[i]->img->size_line, &mlx->bump[i]->img->endian);
+		mlx->bump[i] = (t_img*)malloc(sizeof(t_img));
+		mlx->bump[i]->w = atoi(&tmp[0][1]);
+		mlx->bump[i]->h = atoi(tmp[1]);
+		mlx->bump[i]->txt_idx = i;
+		mlx->bump[i]->img = mlx_xpm_file_to_image(mlx->mlx, bump[i], &mlx->bump[i]->w, &mlx->bump[i]->h);
+		mlx->bump[i]->data = (int *)mlx_get_data_addr(mlx->bump[i]->img, &mlx->bump[i]->bpp, &mlx->bump[i]->size_line, &mlx->bump[i]->endian);
 		ft_strsplit_free(tmp);
 		ft_strdel(&line);
 		close(fd);
 	}
-
-	// i = -1;
-	// while (++i < BUMP)
-	// {
-	// 	mlx->bump[i]->gradient = (t_vec2**)malloc(sizeof(t_vec2*) * (mlx->bump[i]->img));
-
-	// 	int x = -1;
-	// 	while (++x < mlx->bump[i]->img->w)
-	// 	{
-	// 		int left_color = (x > 0) ? mlx->bump[i]->img->data[]
-	// 	}
-	// }
 }

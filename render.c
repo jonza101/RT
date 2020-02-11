@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 18:38:56 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/10 20:35:35 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/11 22:43:09 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,7 +127,7 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 	
 
 	mlx->normal = obj->normal_calc(mlx->normal, dir, mlx->point, obj);
-	if (obj->bump)
+	if (mlx->bump_mapping && obj->bump)
 	{
 		mlx->normal = obj->bump_mapping(obj, mlx->normal, mlx->point);
 	}
@@ -319,9 +319,9 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 	int color = obj->color;
 	if (obj->txt)
 	{
-		if (!obj->bump)
+		if (!obj->bump || !mlx->bump_mapping)
 			color = obj->txt_mapping(obj, mlx->normal, mlx->point);
-		else
+		else if (mlx->bump_mapping && obj->bump)
 		{
 			int tx = obj->uv->x * obj->txt->w;
 			int ty = obj->uv->y * obj->txt->h;
