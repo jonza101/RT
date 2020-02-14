@@ -584,7 +584,7 @@ float3		ft_bump_maping(float3 normal, __global ulong4 *obj_bump, int bump_idx, f
 	pix = (pix >= obj_bump[BUMP].w) ? obj_bump[BUMP].w - 1 : pix;
 
 	int left_color = (tx > 0) ? obj_bump[pix - 1].z : obj_bump[pix].z;
-	int right_color = (tx < obj_bump[bump_idx].x - 1) ? obj_bump[pix + 1].z : obj_bump[pix].z;
+	int right_color = (tx < obj_bump[bump_idx].x - 1 && pix + 1 < obj_bump[BUMP].w) ? obj_bump[pix + 1].z : obj_bump[pix].z;
 	int l_r = (left_color >> 16) & 0xFF;
 	int l_g = (left_color >> 8) & 0xFF;
 	int l_b = left_color & 0xFF;
@@ -596,7 +596,7 @@ float3		ft_bump_maping(float3 normal, __global ulong4 *obj_bump, int bump_idx, f
 	float x_gradient = (l_i - r_i);
 
 	int up_color = (ty > 0) ? obj_bump[pix - obj_bump[bump_idx].x].z : obj_bump[pix].z;
-	int down_color = (ty < obj_bump[bump_idx].y - 1) ? obj_bump[pix + obj_bump[bump_idx].x].z : obj_bump[pix].z;
+	int down_color = (ty < obj_bump[bump_idx].y - 1 && pix + obj_bump[bump_idx].x < obj_bump[BUMP].w) ? obj_bump[pix + obj_bump[bump_idx].x].z : obj_bump[pix].z;
 	int u_r = (up_color >> 16) & 0xFF;
 	int u_g = (up_color >> 8) & 0xFF;
 	int u_b = up_color & 0xFF;
