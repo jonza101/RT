@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:38:47 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/12 00:13:01 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/19 21:20:36 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@
 #define PLANE 1
 #define CONE 2
 #define CYLINDER 3
-#define TRIANGLE 4
+#define CAPSULE 4
 
 #define AMBIENT_L 0
 #define POINT_L 1
@@ -63,8 +63,9 @@
 #define GRAYSCALE 3
 #define BLACK_WHITE 4
 
-#define	TXT 5
+#define	TXT 4
 #define BUMP 4
+#define RGH 4
 
 #define GPU_STR "GPU (G)"
 #define CPU_STR "CPU (G)"
@@ -145,19 +146,14 @@ typedef	struct			s_obj
 	float				radius;
 	t_vec3				*normal;
 
-	t_vec3				*p0;
-	t_vec3				*p1;
-	t_vec3				*p2;
-
 	int					color;
 	float				specular;
 	float           	mirrored;
 	float				transparency;
 	float				refractive_index;
 	t_img				*txt;
-	int					txt_trans;
-	int					txt_ignore_color;
 	t_img				*bump;
+	t_img				*rgh;
 	t_vec2				*uv;
 
 	float				(*intersect) (t_vec3 *origin, t_vec3 *dir, struct s_obj *obj);
@@ -246,6 +242,7 @@ typedef struct			s_mlx
 
 	t_img				*txt[TXT];
 	t_img 				*bump[BUMP];
+	t_img				*rgh[RGH];
 
 	int					bump_mapping;
 	char 				*bump_str[2];
@@ -288,7 +285,7 @@ typedef struct			s_mlx
 	cl_float			*light_intensity;
 
 	cl_ulong4			*obj_txt;				//		|	X - TXT_W	|	Y - TXT_H		|	Z - COLOR				|	W - TXT_OFFSET	|
-	cl_int3				*obj_txt_misc;			//		|	X - TXT_IDX	|	Y - TXT_TRANS	|	Z - TXT_INGORE_COLOR	|
+	cl_int3				*obj_txt_misc;			//		|	X - TXT_IDX	|
 	unsigned long		txt_pix;
 	cl_ulong4			*obj_bump_map;			//		|	X - BUMP_W	|	Y - BUMP_H		|	Z - COLOR				|	W - BUMP_OFFSET	|
 	cl_int				*obj_bump_idx;
@@ -348,18 +345,17 @@ float					ft_sph_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj);
 float					ft_plane_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj);
 float					ft_cone_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj);
 float					ft_cylinder_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj);
-float					ft_triangle_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj);
 
 t_vec3					*ft_sph_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj);
 t_vec3					*ft_plane_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj);
 t_vec3					*ft_cone_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj);
 t_vec3					*ft_cylinder_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj);
-t_vec3      			*ft_triangle_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj);
 
 int						ft_sph_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
 int						ft_plane_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
 int 					ft_cylinder_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
 int						ft_cone_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
+int						ft_capsule_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
 
 t_vec3 					*ft_sph_bump_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
 t_vec3					*ft_plane_bump_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
@@ -371,3 +367,4 @@ int						ft_key_realese(int keycode, t_mlx *mlx);
 
 void 					ft_init_txt(t_mlx *mlx);
 void 					ft_init_bump(t_mlx *mlx);
+void					ft_init_rgh(t_mlx *mlx);

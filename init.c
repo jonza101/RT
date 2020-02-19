@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/30 20:15:28 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/11 22:17:26 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/19 21:15:44 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ void	ft_init_txt(t_mlx *mlx)
 	int		fd;
 	char	*line;
 
-	char *txt[TXT] = {"textures/wbg_tile.xpm", "textures/m_scuff.xpm", "textures/brick.xpm", "textures/g_tile.xpm",
+	char *txt[TXT] = {"textures/wbg_tile.xpm", "textures/brick.xpm", "textures/g_tile.xpm",
 						"textures/paint.xpm"};
 
 	int i = -1;
@@ -80,4 +80,36 @@ void	ft_init_bump(t_mlx *mlx)
 		ft_strdel(&line);
 		close(fd);
 	}
+}
+
+void	ft_init_rgh(t_mlx *mlx)
+{
+	int		fd;
+	char	*line;
+
+	char	*rgh[RGH] = {"textures/rgh/wbg_tile_rgh.xpm", "textures/rgh/brick_rgh.xpm",
+						"textures/rgh/g_tile_rgh.xpm", "textures/rgh/paint_rgh.xpm"};
+
+	int i = -1;
+	while (++i < RGH)
+	{
+		fd = open(rgh[i], O_RDONLY);
+		int j = -1;
+		while (++j < 4)
+		{
+			get_next_line(fd, &line);
+			(j < 3) ? ft_strdel(&line) : 1;
+		}
+		char **tmp = ft_strsplit(line, ' ');
+		mlx->rgh[i] = (t_img*)malloc(sizeof(t_img));
+		mlx->rgh[i]->w = atoi(&tmp[0][1]);
+		mlx->rgh[i]->h = atoi(tmp[1]);
+		mlx->rgh[i]->txt_idx = i;
+		mlx->rgh[i]->img = mlx_xpm_file_to_image(mlx->mlx, rgh[i], &mlx->rgh[i]->w, &mlx->rgh[i]->h);
+		mlx->rgh[i]->data = (int *)mlx_get_data_addr(mlx->rgh[i]->img, &mlx->rgh[i]->bpp, &mlx->rgh[i]->size_line, &mlx->rgh[i]->endian);
+		ft_strsplit_free(tmp);
+		ft_strdel(&line);
+		close(fd);
+	}
+	
 }

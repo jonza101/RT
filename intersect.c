@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/23 16:38:57 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/11/10 18:30:01 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/19 21:20:21 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,63 +107,4 @@ float		ft_cylinder_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj)
     if (t1 < t2)
         return (t1);
     return (t2);
-}
-
-float		ft_triangle_intersect(t_vec3 *origin, t_vec3 *dir, t_obj *obj)
-{
-	float area2 = ft_vec_len(obj->normal);
-
-	float n_dot_raydir = ft_dot_prod(obj->normal, dir);
-	if (fabs(n_dot_raydir) < 0.000001f)
-		return (-1.0f);
-
-	float d = ft_dot_prod(obj->normal, obj->p0);
-
-	float t = (float)(ft_dot_prod(obj->normal, origin) + d) / (float)n_dot_raydir;
-	if (t < 0.0f)
-		return (-1.0f);
-
-	obj->t_p->x = origin->x + t * dir->x;
-	obj->t_p->y = origin->y + t * dir->y;
-	obj->t_p->z = origin->z + t * dir->z;
-
-
-	obj->oc_temp->x = obj->p1->x - obj->p0->x;
-	obj->oc_temp->y = obj->p1->y - obj->p0->y;
-	obj->oc_temp->z = obj->p1->z - obj->p0->z;
-
-	obj->vec_temp->x = obj->t_p->x - obj->p0->x;
-	obj->vec_temp->y = obj->t_p->y - obj->p0->y;
-	obj->vec_temp->z = obj->t_p->z - obj->p0->z;
-
-	obj->vec_tmp = ft_cross_prod(obj->vec_tmp, obj->oc_temp, obj->vec_temp);
-	if (ft_dot_prod(obj->normal, obj->vec_tmp) < 0.0f)
-		return (-1.0f);
-
-
-	obj->oc_temp->x = obj->p2->x - obj->p1->x;
-	obj->oc_temp->y = obj->p2->y - obj->p1->y;
-	obj->oc_temp->z = obj->p2->z - obj->p1->z;
-
-	obj->vec_temp->x = obj->t_p->x - obj->p1->x;
-	obj->vec_temp->y = obj->t_p->y - obj->p1->y;
-	obj->vec_temp->z = obj->t_p->z - obj->p1->z;
-
-	obj->vec_tmp = ft_cross_prod(obj->vec_tmp, obj->oc_temp, obj->vec_temp);
-	if (ft_dot_prod(obj->normal, obj->vec_tmp) < 0.0f)
-		return (-1.0f);
-
-
-	obj->oc_temp->x = obj->p0->x - obj->p2->x;
-	obj->oc_temp->y = obj->p0->y - obj->p2->y;
-	obj->oc_temp->z = obj->p0->z - obj->p2->z;
-
-	obj->vec_temp->x = obj->t_p->x - obj->p2->x;
-	obj->vec_temp->y = obj->t_p->y - obj->p2->y;
-	obj->vec_temp->z = obj->t_p->z - obj->p2->z;
-
-	obj->vec_tmp = ft_cross_prod(obj->vec_tmp, obj->oc_temp, obj->vec_temp);
-	if (ft_dot_prod(obj->normal, obj->vec_tmp) < 0.0f)
-		return (-1.0f);
-	return (t);
 }

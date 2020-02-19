@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/11/03 23:36:16 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/12 00:55:47 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/19 20:13:09 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -191,8 +191,6 @@ void	ft_init_gpu_obj(t_mlx *mlx)
 		mlx->obj_refractive_index[i] = mlx->obj[i]->refractive_index;
 		mlx->obj_type[i] = mlx->obj[i]->type;
 		mlx->obj_txt_misc[i].x = (mlx->obj[i]->txt) ? mlx->obj[i]->txt->txt_idx : -1;
-		mlx->obj_txt_misc[i].y = mlx->obj[i]->txt_trans;
-		mlx->obj_txt_misc[i].z = mlx->obj[i]->txt_ignore_color;
 		mlx->obj_bump_idx[i] = (mlx->obj[i]->bump) ? mlx->obj[i]->bump->txt_idx : -1;
 	}
 }

@@ -21,7 +21,7 @@
 #define GRAYSCALE 3
 #define BLACK_WHITE 4
 
-#define	TXT 5
+#define	TXT 4
 #define BUMP 4
 
 #define MAX_FLT 3.40282346638528859811704183484516925e+38F
@@ -586,25 +586,17 @@ float3		ft_bump_maping(float3 normal, __global ulong4 *obj_bump, int bump_idx, f
 	int left_color = (tx > 0) ? obj_bump[pix - 1].z : obj_bump[pix].z;
 	int right_color = (tx < obj_bump[bump_idx].x - 1 && pix + 1 < obj_bump[BUMP].w) ? obj_bump[pix + 1].z : obj_bump[pix].z;
 	int l_r = (left_color >> 16) & 0xFF;
-	int l_g = (left_color >> 8) & 0xFF;
-	int l_b = left_color & 0xFF;
 	int r_r = (right_color >> 16) & 0xFF;
-	int r_g = (right_color >> 8) & 0xFF;
-	int r_b = right_color & 0xFF;
-	float l_i = (float)((float)(l_r + l_g + l_b) / 3.0f) / 255.0f;
-	float r_i = (float)((float)(r_r + r_g + r_b) / 3.0f) / 255.0f;
+	float l_i = (float)l_r / 255.0f;
+	float r_i = (float)r_r / 255.0f;
 	float x_gradient = (l_i - r_i);
 
 	int up_color = (ty > 0) ? obj_bump[pix - obj_bump[bump_idx].x].z : obj_bump[pix].z;
 	int down_color = (ty < obj_bump[bump_idx].y - 1 && pix + obj_bump[bump_idx].x < obj_bump[BUMP].w) ? obj_bump[pix + obj_bump[bump_idx].x].z : obj_bump[pix].z;
 	int u_r = (up_color >> 16) & 0xFF;
-	int u_g = (up_color >> 8) & 0xFF;
-	int u_b = up_color & 0xFF;
 	int d_r = (down_color >> 16) & 0xFF;
-	int d_g = (down_color >> 8) & 0xFF;
-	int d_b = down_color & 0xFF;
-	float u_i = (float)((float)(u_r + u_g + u_b) / 3.0f) / 255.0f;
-	float d_i = (float)((float)(d_r + d_g + d_b) / 3.0f) / 255.0f;
+	float u_i = (float)u_r / 255.0f;
+	float d_i = (float)d_r / 255.0f;
 	float y_gradient = (u_i - d_i);
 
 	normal.x = normal.x - x_gradient - y_gradient;
@@ -859,12 +851,17 @@ int		ft_trace_ray(float3 origin, float3 dir,
 			intensity += light_intensity[i];
 		else
 		{
+			float l_dist = 0.0f;
 			if (light_type[i] == POINT_L)
 			{
-				light_dir.x = light_vec[i].x - point.x;
-				light_dir.y = light_vec[i].y - point.y;
-				light_dir.z = light_vec[i].z - point.z;
-				s_max = 1.0f;
+				float dx = light_vec[i].x - point.x;
+				float dy = light_vec[i].y - point.y;
+				float dz = light_vec[i].z - point.z;
+				l_dist = sqrt(dx * dx + dy * dy + dz * dz);
+
+				light_dir.x = (float)(light_vec[i].x - point.x) / (float)l_dist;
+				light_dir.y = (float)(light_vec[i].y - point.y) / (float)l_dist;
+				light_dir.z = (float)(light_vec[i].z - point.z) / (float)l_dist;
 			}
 			else
 				continue;
@@ -877,7 +874,7 @@ int		ft_trace_ray(float3 origin, float3 dir,
 				float s_closest;
 				int s_obj_i = ft_shadow_intersection(point, light_dir, obj_pos, obj_normal,
 													obj_radius, obj_count, obj_type,
-													0.000001f, s_max, obj_i);
+													0.000001f, l_dist, obj_i);
 				if (s_obj_i >= 0)
 					s_i = 1.0f - obj_transparency[s_obj_i];
 					//continue;
@@ -1024,7 +1021,6 @@ int		ft_trace_ray(float3 origin, float3 dir,
 		}
 	}
 
-	int txt_trans = 0;
 	int color = obj_color[obj_i];
 	if (obj_txt_misc[obj_i].x >= 0)
 	{
@@ -1047,17 +1043,11 @@ int		ft_trace_ray(float3 origin, float3 dir,
 			pix = (pix >= obj_txt[TXT].w) ? obj_txt[TXT].w - 1 : pix;
 			color = obj_txt[pix].z;
 		}
-
-		if (obj_txt_misc[obj_i].y && color == obj_txt_misc[obj_i].z)
-		{
-			color = obj_color[obj_i];
-			txt_trans = 1;
-		}
 	}
 
 	color = ft_color_convert(color, intensity);
 
-	if (obj_mirrored[obj_i] > 0.0f && depth <= MAX_DEPTH && ((obj_txt_misc[obj_i].x >= 0 && txt_trans) || (obj_txt_misc[obj_i].x < 0)))
+	if (obj_mirrored[obj_i] > 0.0f && depth <= MAX_DEPTH)
 	{
 		float refl_dot = ft_dot_prod(neg_dir, normal);
 
@@ -1078,7 +1068,7 @@ int		ft_trace_ray(float3 origin, float3 dir,
 		color = ft_sum_color(color, refl_color, 1.0f - obj_mirrored[obj_i], obj_mirrored[obj_i]);
 	}
 
-	if (obj_transparency[obj_i] > 0.0f && depth <= MAX_DEPTH && ((obj_txt_misc[obj_i].x >= 0 && txt_trans) || (obj_txt_misc[obj_i].x < 0)))
+	if (obj_transparency[obj_i] > 0.0f && depth <= MAX_DEPTH)
 	{
 		float3 refr_ray = ft_refract(dir, normal, obj_refractive_index[obj_i], refr_ray);
 

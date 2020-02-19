@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:42:38 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/12 00:50:17 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/19 21:20:14 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,7 @@ void	ft_init(t_mlx *mlx)
 
 	ft_init_txt(mlx);
 	ft_init_bump(mlx);
+	ft_init_rgh(mlx);
 
 	mlx->cam = (t_vec3*)malloc(sizeof(t_vec3));
     mlx->cam->x = 0.0f;
@@ -92,9 +93,6 @@ void	ft_init(t_mlx *mlx)
 		mlx->obj[i]->c = (t_vec3*)malloc(sizeof(t_vec3));
 		mlx->obj[i]->normal = (t_vec3*)malloc(sizeof(t_vec3));
 		mlx->obj[i]->oc_temp = (t_vec3*)malloc(sizeof(t_vec3));
-		mlx->obj[i]->p0 = (t_vec3*)malloc(sizeof(t_vec3));
-		mlx->obj[i]->p1 = (t_vec3*)malloc(sizeof(t_vec3));
-		mlx->obj[i]->p2 = (t_vec3*)malloc(sizeof(t_vec3));
 		mlx->obj[i]->vec_temp = (t_vec3*)malloc(sizeof(t_vec3));
 		mlx->obj[i]->vec_tmp = (t_vec3*)malloc(sizeof(t_vec3));
 		mlx->obj[i]->t_p = (t_vec3*)malloc(sizeof(t_vec3));
@@ -109,11 +107,10 @@ void	ft_init(t_mlx *mlx)
 		mlx->obj[i]->transparency = 0.0f;
 		mlx->obj[i]->refractive_index = 1.0f;
 		mlx->obj[i]->txt = NULL;
-		mlx->obj[i]->txt_trans = 0;
-		mlx->obj[i]->txt_ignore_color = 0x0;
 		mlx->obj[i]->bump = NULL;
+		mlx->obj[i]->rgh = NULL;
 	}
-	mlx->obj_count = 5;
+	mlx->obj_count = 3;
 
 	mlx->obj[0]->type = PLANE;
 	mlx->obj[0]->c->x = 0.0f;
@@ -123,8 +120,10 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[0]->normal->y = 1.0f;
 	mlx->obj[0]->normal->z = 0.0f;
 	mlx->obj[0]->color = 0xFFFFFF;
-	mlx->obj[0]->txt = mlx->txt[3];
-	// mlx->obj[0]->bump = mlx->bump[2];
+	mlx->obj[0]->txt = mlx->txt[0];
+	mlx->obj[0]->bump = mlx->bump[0];
+	mlx->obj[0]->rgh = mlx->rgh[0];
+	mlx->obj[0]->mirrored = 0.75f;
 	mlx->obj[0]->intersect = ft_plane_intersect;
 	mlx->obj[0]->normal_calc = ft_plane_normal_calc;
 	mlx->obj[0]->txt_mapping = ft_plane_txt_map;
@@ -138,9 +137,8 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[1]->normal->x = 0.0f;
 	mlx->obj[1]->normal->y = 1.0f;
 	mlx->obj[1]->normal->z = 0.0f;
-	mlx->obj[1]->normal = ft_vec_normalize(mlx->obj[1]->normal);
 	mlx->obj[1]->color = 0xBDE300;
-	mlx->obj[1]->txt = mlx->txt[4];
+	mlx->obj[1]->txt = mlx->txt[3];
 	mlx->obj[1]->bump = mlx->bump[3];
 	mlx->obj[1]->intersect = ft_sph_intersect;
 	mlx->obj[1]->normal_calc = ft_sph_normal_calc;
@@ -157,47 +155,13 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[2]->normal->z = 0.25f;
 	mlx->obj[2]->normal = ft_vec_normalize(mlx->obj[2]->normal);
 	mlx->obj[2]->color = 0xBDE300;
-	mlx->obj[2]->txt = mlx->txt[2];
+	mlx->obj[2]->txt = mlx->txt[1];
 	mlx->obj[2]->bump = mlx->bump[1];
 	mlx->obj[2]->intersect = ft_cylinder_intersect;
 	mlx->obj[2]->normal_calc = ft_cylinder_normal_calc;
 	mlx->obj[2]->txt_mapping = ft_cylinder_txt_map;
 	mlx->obj[2]->bump_mapping = ft_cylinder_bump_map;
 
-	mlx->obj[3]->type = SPHERE;
-	mlx->obj[3]->c->x = 6.5f;
-	mlx->obj[3]->c->y = -0.5f;
-	mlx->obj[3]->c->z = 14.5f;
-	mlx->obj[3]->radius = 1.0f;
-	mlx->obj[3]->normal->x = 0.0f;
-	mlx->obj[3]->normal->y = 1.0f;
-	mlx->obj[3]->normal->z = 0.0f;
-	mlx->obj[3]->normal = ft_vec_normalize(mlx->obj[3]->normal);
-	mlx->obj[3]->color = 0xFFFFFF;
-	mlx->obj[3]->mirrored = 1.0f;
-	mlx->obj[3]->txt_trans = 1;
-	mlx->obj[3]->txt = mlx->txt[1];
-	mlx->obj[3]->intersect = ft_sph_intersect;
-	mlx->obj[3]->normal_calc = ft_sph_normal_calc;
-	mlx->obj[3]->txt_mapping = ft_sph_txt_map;
-	mlx->obj[3]->bump_mapping = ft_sph_bump_map;
-
-	mlx->obj[4]->type = CONE;
-	mlx->obj[4]->c->x = 9.0f;
-	mlx->obj[4]->c->y = 2.0f;
-	mlx->obj[4]->c->z = 7.0f;
-	mlx->obj[4]->radius = 0.25f;
-	mlx->obj[4]->normal->x = -0.25f;
-	mlx->obj[4]->normal->y = 1.0f;
-	mlx->obj[4]->normal->z = -0.1f;
-	mlx->obj[4]->normal = ft_vec_normalize(mlx->obj[4]->normal);
-	mlx->obj[4]->color = 0xBDE300;
-	mlx->obj[4]->txt = mlx->txt[0];
-	mlx->obj[4]->bump = mlx->bump[0];
-	mlx->obj[4]->intersect = ft_cone_intersect;
-	mlx->obj[4]->normal_calc = ft_cone_normal_calc;
-	mlx->obj[4]->txt_mapping = ft_cone_txt_map;
-	mlx->obj[4]->bump_mapping = ft_cone_bump_map;
 
 
 	// mlx->obj[0]->type = SPHERE;
@@ -284,22 +248,6 @@ void	ft_init(t_mlx *mlx)
 	// mlx->obj[6]->color = 0x8D41D9;
 	// mlx->obj[6]->intersect = ft_plane_intersect;
 	// mlx->obj[6]->normal_calc = ft_plane_normal_calc;
-
-	// mlx->obj[7]->type = TRIANGLE;
-	// mlx->obj[7]->p0->x = -4.0f;
-	// mlx->obj[7]->p0->y = 1.0f;
-	// mlx->obj[7]->p0->z = 4.0f;
-	// mlx->obj[7]->p1->x = -3.0f;
-	// mlx->obj[7]->p1->y = 1.75f;
-	// mlx->obj[7]->p1->z = 6.0f;
-	// mlx->obj[7]->p2->x = -3.5f;
-	// mlx->obj[7]->p2->y = 0.0f;
-	// mlx->obj[7]->p2->z = 4.5f;
-	// mlx->obj[7]->normal = ft_triangle_normal_calc(mlx->obj[7]->normal, mlx->obj[7]->normal, mlx->obj[7]->normal, mlx->obj[7]);
-	// mlx->obj[7]->color = 0xA8EEFF;
-	// mlx->obj[7]->mirrored = 0.2f;
-	// mlx->obj[7]->intersect = ft_triangle_intersect;
-	// mlx->obj[7]->normal_calc = ft_triangle_normal_calc;
 
 
 	mlx->light_count = 5;

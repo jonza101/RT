@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/23 17:41:14 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2019/10/28 23:57:07 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/19 21:20:26 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,20 +70,5 @@ t_vec3		*ft_cylinder_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_o
     normal->y = point->y - normal->y;
     normal->z = point->z - normal->z;
     normal = ft_vec_normalize(normal);
-    return (normal);
-}
-
-t_vec3      *ft_triangle_normal_calc(t_vec3 *normal, t_vec3 *dir, t_vec3 *point, t_obj *obj)
-{
-    obj->oc_temp->x = obj->p1->x - obj->p0->x;
-    obj->oc_temp->y = obj->p1->y - obj->p0->y;
-    obj->oc_temp->z = obj->p1->z - obj->p0->z;
-
-    obj->vec_temp->x = obj->p2->x - obj->p0->x;
-    obj->vec_temp->y = obj->p2->y - obj->p0->y;
-    obj->vec_temp->z = obj->p2->z - obj->p0->z;
-
-    normal = ft_cross_prod(normal, obj->oc_temp, obj->vec_temp);
-    // normal = ft_vec_normalize(normal);
     return (normal);
 }
