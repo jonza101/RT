@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/30 22:05:45 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/19 19:47:19 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/19 21:25:20 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,18 +138,6 @@ int			ft_cone_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 	float p = (float)((float)obj->vec_tmp->x / (float)obj->vec_tmp->z) / (float)tanf(obj->radius);
 	float u = ft_clamp((float)((obj->vec_tmp->y > 0.0f) ? acosf(p) : 2.0f * CL_M_PI - acosf(p)) / (float)(2.0f * CL_M_PI), 0.0f, 1.0f);
 	float v = ft_clamp(0.5f - modff(obj->vec_tmp->z * 0.5f, &v) * 0.5f, 0.0f, 1.0f);
-	int tx = (float)u * (float)obj->txt->w;
-	int ty = (float)v * (float)obj->txt->h;
-	int color = obj->txt->data[ty * obj->txt->w + tx];
-
-	return (color);
-}
-
-int			ft_capsule_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
-{
-	obj->vec_tmp = ft_vec_transform(obj, normal, point);
-	float u = 0.0f;
-	float v = ft_clamp(0.5f - modff(obj->vec_tmp->z / obj->radius * 0.25f, &v) * 0.5f, 0.0f, 1.0f);
 	int tx = (float)u * (float)obj->txt->w;
 	int ty = (float)v * (float)obj->txt->h;
 	int color = obj->txt->data[ty * obj->txt->w + tx];

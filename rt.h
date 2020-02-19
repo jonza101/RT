@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:38:47 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/19 21:20:36 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/19 21:25:30 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,6 @@
 #define PLANE 1
 #define CONE 2
 #define CYLINDER 3
-#define CAPSULE 4
 
 #define AMBIENT_L 0
 #define POINT_L 1
@@ -355,7 +354,6 @@ int						ft_sph_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
 int						ft_plane_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
 int 					ft_cylinder_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
 int						ft_cone_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
-int						ft_capsule_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
 
 t_vec3 					*ft_sph_bump_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
 t_vec3					*ft_plane_bump_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
