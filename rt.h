@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:38:47 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/19 21:25:30 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/20 16:51:12 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -159,6 +159,7 @@ typedef	struct			s_obj
 	t_vec3*				(*normal_calc) (t_vec3 *normal, t_vec3 *dir, t_vec3 *point, struct s_obj *obj);
 	int					(*txt_mapping) (struct s_obj *obj, t_vec3 *normal, t_vec3 *point);
 	t_vec3*				(*bump_mapping) (struct s_obj *obj, t_vec3 *normal, t_vec3 *point);
+	float				(*rgh_mapping) (struct s_obj *obj, t_vec3 *normal, t_vec3 *point);
 
 	t_vec3				*oc_temp;
 	t_vec3				*vec_temp;
@@ -283,12 +284,13 @@ typedef struct			s_mlx
 	cl_int				*light_type;
 	cl_float			*light_intensity;
 
-	cl_ulong4			*obj_txt;				//		|	X - TXT_W	|	Y - TXT_H		|	Z - COLOR				|	W - TXT_OFFSET	|
-	cl_int3				*obj_txt_misc;			//		|	X - TXT_IDX	|
+	cl_ulong4			*obj_txt;				//		|	X - TXT_W	|	Y - TXT_H		|	Z - COLOR		|	W - TXT_OFFSET	|
+	cl_int3				*obj_txt_bump_rgh_idx;	//		|	X - TXT_IDX	|	Y - BUMP_IDX	|	Z - RGH_IDX		|
 	unsigned long		txt_pix;
-	cl_ulong4			*obj_bump_map;			//		|	X - BUMP_W	|	Y - BUMP_H		|	Z - COLOR				|	W - BUMP_OFFSET	|
-	cl_int				*obj_bump_idx;
+	cl_ulong4			*obj_bump_map;			//		|	X - BUMP_W	|	Y - BUMP_H		|	Z - COLOR		|	W - BUMP_OFFSET	|
 	unsigned long		bump_pix;
+	cl_ulong4			*obj_rgh_map;				//		|	X - RGH_W	|	Y - RGH_H		|	Z - COLOR		|	W - TGH_OFFSET	|
+	unsigned long		rgh_pix;
 
 	int					gpu;
 
@@ -307,10 +309,13 @@ typedef struct			s_mlx
 	cl_mem				gpu_light_intensity;
 
 	cl_mem				gpu_obj_txt;
-	cl_mem				gpu_obj_txt_misc;
+	cl_mem				gpu_txt_bump_rgh_idx;
 
 	cl_mem				gpu_obj_bump;
-	cl_mem				gpu_obj_bump_idx;
+
+	cl_mem				gpu_obj_rgh;
+
+
 }						t_mlx;
 
 
@@ -359,6 +364,11 @@ t_vec3 					*ft_sph_bump_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
 t_vec3					*ft_plane_bump_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
 t_vec3					*ft_cylinder_bump_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
 t_vec3					*ft_cone_bump_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
+
+float 					ft_sph_rgh_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
+float	 				ft_plane_rgh_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
+float 					ft_cylinder_rgh_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
+float 					ft_cone_rgh_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
 
 int						ft_key_press(int keycode, t_mlx *mlx);
 int						ft_key_realese(int keycode, t_mlx *mlx);

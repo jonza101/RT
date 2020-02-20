@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 18:38:56 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/19 20:48:23 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/20 16:47:46 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -297,24 +297,29 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 	int color = obj->color;
 	if (obj->txt)
 	{
-		if (!obj->bump || !mlx->bump_mapping)
-			color = obj->txt_mapping(obj, mlx->normal, mlx->point);
-		else if (mlx->bump_mapping && obj->bump)
+		if (mlx->bump_mapping && obj->bump)
 		{
 			int tx = obj->uv->x * obj->txt->w;
 			int ty = obj->uv->y * obj->txt->h;
 			color = obj->txt->data[ty * obj->txt->w + tx];
 		}
+		else if (!obj->bump || !mlx->bump_mapping)
+			color = obj->txt_mapping(obj, mlx->normal, mlx->point);
 	}
 	color = ft_color_lum(color, intensity);
 
 	float mirror = obj->mirrored;
 	if (obj->rgh && mirror > 0.0f)
 	{
-		int tx = obj->uv->x * obj->rgh->w;
-		int ty = obj->uv->y * obj->rgh->h;
-		int clr = obj->rgh->data[ty * obj->rgh->w + tx];
-		mirror = (1.0 - (float)((clr >> 16) & 0xFF) / 255.0f) * mirror;
+		if ((obj->bump && mlx->bump_mapping) || obj->txt)
+		{
+			int tx = obj->uv->x * obj->rgh->w;
+			int ty = obj->uv->y * obj->rgh->h;
+			int clr = obj->rgh->data[ty * obj->rgh->w + tx];
+			mirror = (1.0 - (float)((clr >> 16) & 0xFF) / 255.0f) * mirror;
+		}
+		else
+			mirror = obj->rgh_mapping(obj, mlx->normal, mlx->point);
 	}
 
 	if (mirror > 0.0f && depth <= MAX_DEPTH)

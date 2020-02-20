@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:42:38 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/19 21:20:14 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/20 17:33:23 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,6 +100,8 @@ void	ft_init(t_mlx *mlx)
 		mlx->obj[i]->tmp = (t_vec3*)malloc(sizeof(t_vec3));
 		mlx->obj[i]->uv = (t_vec2*)malloc(sizeof(t_vec2));
 
+		mlx->obj[i]->type = -1;
+
 		mlx->obj[i]->color = 0x0;
 		mlx->obj[i]->radius = 0.0f;
 		mlx->obj[i]->specular = 0.0f;
@@ -128,6 +130,7 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[0]->normal_calc = ft_plane_normal_calc;
 	mlx->obj[0]->txt_mapping = ft_plane_txt_map;
 	mlx->obj[0]->bump_mapping = ft_plane_bump_map;
+	mlx->obj[0]->rgh_mapping = ft_plane_rgh_map;
 
 	mlx->obj[1]->type = SPHERE;
 	mlx->obj[1]->c->x = 0.0f;
@@ -140,10 +143,13 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[1]->color = 0xBDE300;
 	mlx->obj[1]->txt = mlx->txt[3];
 	mlx->obj[1]->bump = mlx->bump[3];
+	// mlx->obj[1]->rgh = mlx->rgh[3];
+	// mlx->obj[1]->mirrored = 0.25f;
 	mlx->obj[1]->intersect = ft_sph_intersect;
 	mlx->obj[1]->normal_calc = ft_sph_normal_calc;
 	mlx->obj[1]->txt_mapping = ft_sph_txt_map;
 	mlx->obj[1]->bump_mapping = ft_sph_bump_map;
+	mlx->obj[1]->rgh_mapping = ft_sph_rgh_map;
 
 	mlx->obj[2]->type = CYLINDER;
 	mlx->obj[2]->c->x = -2.5f;
@@ -161,6 +167,7 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[2]->normal_calc = ft_cylinder_normal_calc;
 	mlx->obj[2]->txt_mapping = ft_cylinder_txt_map;
 	mlx->obj[2]->bump_mapping = ft_cylinder_bump_map;
+	mlx->obj[2]->rgh_mapping = ft_cylinder_rgh_map;
 
 
 

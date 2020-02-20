@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/30 22:05:45 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/19 21:25:20 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/20 16:10:40 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,6 +86,8 @@ int			ft_sph_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 {
 	float u = ft_clamp(0.5f + (float)atan2f(normal->z, normal->x) / (float)(2.0f * CL_M_PI), 0.0f, 1.0f);
 	float v = ft_clamp(0.5f - (float)asinf(normal->y) / (float)(CL_M_PI), 0.0f, 1.0f);
+	obj->uv->x = u;
+	obj->uv->y = v;
 	int tx = (float)u * (float)obj->txt->w;
 	int ty = (float)v * (float)obj->txt->h;
 	int color = obj->txt->data[ty * obj->txt->w + tx];
@@ -113,6 +115,8 @@ int			ft_plane_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 	obj->vec_tmp = ft_cross_prod(obj->vec_tmp, normal, obj->vec_temp);
 	float u = ft_clamp(0.5f + (float)fmodf(ft_dot_prod(obj->vec_temp, point), 4.0f) / 8.0f, 0.0f, 1.0f);
 	float v = ft_clamp(0.5f + (float)fmod(ft_dot_prod(obj->vec_tmp, point), 4.0f) / 8.0f, 0.0f, 1.0f);
+	obj->uv->x = u;
+	obj->uv->y = v;
 	int tx = (float)u * (float)obj->txt->w;
 	int ty = (float)v * (float)obj->txt->h;
 	int color = obj->txt->data[ty * obj->txt->w + tx];
@@ -125,6 +129,8 @@ int 		ft_cylinder_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 	obj->vec_tmp = ft_vec_transform(obj, normal, point);
 	float u = ft_clamp(0.5f + (float)atan2(obj->vec_tmp->x, obj->vec_tmp->y) / (float)(2.0f * CL_M_PI), 0.0f, 1.0f);
 	float v = ft_clamp(0.5f - modff(obj->vec_tmp->z / obj->radius * 0.25f, &v) * 0.5f, 0.0f, 1.0f);
+	obj->uv->x = u;
+	obj->uv->y = v;
 	int tx = (float)u * (float)obj->txt->w;
 	int ty = (float)v * (float)obj->txt->h;
 	int color = obj->txt->data[ty * obj->txt->w + tx];
@@ -138,12 +144,16 @@ int			ft_cone_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 	float p = (float)((float)obj->vec_tmp->x / (float)obj->vec_tmp->z) / (float)tanf(obj->radius);
 	float u = ft_clamp((float)((obj->vec_tmp->y > 0.0f) ? acosf(p) : 2.0f * CL_M_PI - acosf(p)) / (float)(2.0f * CL_M_PI), 0.0f, 1.0f);
 	float v = ft_clamp(0.5f - modff(obj->vec_tmp->z * 0.5f, &v) * 0.5f, 0.0f, 1.0f);
+	obj->uv->x = u;
+	obj->uv->y = v;
 	int tx = (float)u * (float)obj->txt->w;
 	int ty = (float)v * (float)obj->txt->h;
 	int color = obj->txt->data[ty * obj->txt->w + tx];
 
 	return (color);
 }
+
+
 
 t_vec3		*ft_bump_maping(t_vec3 *normal, t_img *bump_map, float u, float v)
 {
@@ -230,4 +240,77 @@ t_vec3		*ft_cylinder_bump_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 	obj->uv->y = v;
 	normal = ft_bump_maping(normal, obj->bump, u, v);
 	return (normal);
+}
+
+
+
+float 	ft_sph_rgh_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
+{
+	float u = ft_clamp(0.5f + (float)atan2f(normal->z, normal->x) / (float)(2.0f * CL_M_PI), 0.0f, 1.0f);
+	float v = ft_clamp(0.5f - (float)asinf(normal->y) / (float)(CL_M_PI), 0.0f, 1.0f);
+	int tx = (float)u * (float)obj->rgh->w;
+	int ty = (float)v * (float)obj->rgh->h;
+	int color = obj->rgh->data[ty * obj->rgh->w + tx];
+
+	float mirror = (1.0 - (float)((color >> 16) & 0xFF) / 255.0f) * obj->mirrored;
+
+	return (mirror);
+}
+
+float	 ft_plane_rgh_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
+{
+	if (normal->x != 0.0f || normal->y != 0.0f)
+	{
+		obj->vec_temp->x = normal->y;
+		obj->vec_temp->y = -normal->x;
+		obj->vec_temp->z = 0.0f;
+		obj->vec_temp = ft_vec_normalize(obj->vec_temp);
+	}
+	else
+	{
+		obj->vec_temp->x = 0.0f;
+		obj->vec_temp->y = 1.0f;
+		obj->vec_temp->z = 0.0f;
+		obj->vec_temp = ft_vec_normalize(obj->vec_temp);
+	}
+
+	obj->vec_tmp = ft_cross_prod(obj->vec_tmp, normal, obj->vec_temp);
+	float u = ft_clamp(0.5f + (float)fmodf(ft_dot_prod(obj->vec_temp, point), 4.0f) / 8.0f, 0.0f, 1.0f);
+	float v = ft_clamp(0.5f + (float)fmod(ft_dot_prod(obj->vec_tmp, point), 4.0f) / 8.0f, 0.0f, 1.0f);
+	int tx = (float)u * (float)obj->rgh->w;
+	int ty = (float)v * (float)obj->rgh->h;
+	int color = obj->rgh->data[ty * obj->rgh->w + tx];
+
+	float mirror = (1.0 - (float)((color >> 16) & 0xFF) / 255.0f) * obj->mirrored;
+
+	return (mirror);
+}
+
+float 	ft_cylinder_rgh_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
+{
+	obj->vec_tmp = ft_vec_transform(obj, normal, point);
+	float u = ft_clamp(0.5f + (float)atan2(obj->vec_tmp->x, obj->vec_tmp->y) / (float)(2.0f * CL_M_PI), 0.0f, 1.0f);
+	float v = ft_clamp(0.5f - modff(obj->vec_tmp->z / obj->radius * 0.25f, &v) * 0.5f, 0.0f, 1.0f);
+	int tx = (float)u * (float)obj->rgh->w;
+	int ty = (float)v * (float)obj->rgh->h;
+	int color = obj->rgh->data[ty * obj->rgh->w + tx];
+
+	float mirror = (1.0 - (float)((color >> 16) & 0xFF) / 255.0f) * obj->mirrored;
+
+	return (mirror);
+}
+
+float 	ft_cone_rgh_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
+{
+	obj->vec_tmp = ft_vec_transform(obj, normal, point);
+	float p = (float)((float)obj->vec_tmp->x / (float)obj->vec_tmp->z) / (float)tanf(obj->radius);
+	float u = ft_clamp((float)((obj->vec_tmp->y > 0.0f) ? acosf(p) : 2.0f * CL_M_PI - acosf(p)) / (float)(2.0f * CL_M_PI), 0.0f, 1.0f);
+	float v = ft_clamp(0.5f - modff(obj->vec_tmp->z * 0.5f, &v) * 0.5f, 0.0f, 1.0f);
+	int tx = (float)u * (float)obj->rgh->w;
+	int ty = (float)v * (float)obj->rgh->h;
+	int color = obj->rgh->data[ty * obj->rgh->w + tx];
+
+	float mirror = (1.0 - (float)((color >> 16) & 0xFF) / 255.0f) * obj->mirrored;
+
+	return (mirror);
 }

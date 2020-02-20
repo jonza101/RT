@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/11/03 23:36:16 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/19 20:13:09 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/20 16:51:48 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,11 +77,11 @@ void	ft_init_gpu_txt(t_mlx *mlx)
 	i = -1;
 	while (++i < TXT)
 	{
-		mlx->obj_txt[i].x = (cl_ulong)mlx->txt[i]->w;
-		mlx->obj_txt[i].y = (cl_ulong)mlx->txt[i]->h;
+		mlx->obj_txt[i].x = mlx->txt[i]->w;
+		mlx->obj_txt[i].y = mlx->txt[i]->h;
 		if (i > 0)
-			mlx->obj_txt[i].w = (cl_ulong)(last_wh + (mlx->txt[i - 1]->w * mlx->txt[i - 1]->h));
-		last_wh = (cl_ulong)mlx->obj_txt[i].w;
+			mlx->obj_txt[i].w = (last_wh + (mlx->txt[i - 1]->w * mlx->txt[i - 1]->h));
+		last_wh = mlx->obj_txt[i].w;
 
 		int y = -1;
 		while (++y < mlx->txt[i]->h)
@@ -89,7 +89,7 @@ void	ft_init_gpu_txt(t_mlx *mlx)
 			int x = -1;
 			while (++x < mlx->txt[i]->w)
 			{
-				mlx->obj_txt[mlx->txt_pix].z = (cl_ulong)mlx->txt[i]->data[y * mlx->txt[i]->w + x];
+				mlx->obj_txt[mlx->txt_pix].z = mlx->txt[i]->data[y * mlx->txt[i]->w + x];
 				mlx->txt_pix++;
 			}
 		}
@@ -121,11 +121,11 @@ void	ft_init_gpu_txt(t_mlx *mlx)
 	i = -1;
 	while (++i < BUMP)
 	{
-		mlx->obj_bump_map[i].x = (cl_ulong)mlx->bump[i]->w;
-		mlx->obj_bump_map[i].y = (cl_ulong)mlx->bump[i]->h;
+		mlx->obj_bump_map[i].x = mlx->bump[i]->w;
+		mlx->obj_bump_map[i].y = mlx->bump[i]->h;
 		if (i > 0)
-			mlx->obj_bump_map[i].w = (cl_ulong)(last_wh + (mlx->bump[i - 1]->w * mlx->bump[i - 1]->h));
-		last_wh = (cl_ulong)mlx->obj_bump_map[i].w;
+			mlx->obj_bump_map[i].w = (last_wh + (mlx->bump[i - 1]->w * mlx->bump[i - 1]->h));
+		last_wh = mlx->obj_bump_map[i].w;
 
 		int y = -1;
 		while (++y < mlx->bump[i]->h)
@@ -133,8 +133,52 @@ void	ft_init_gpu_txt(t_mlx *mlx)
 			int x = -1;
 			while (++x < mlx->bump[i]->w)
 			{
-				mlx->obj_bump_map[mlx->bump_pix].z = (cl_ulong)mlx->bump[i]->data[y * mlx->bump[i]->w + x];
+				mlx->obj_bump_map[mlx->bump_pix].z = mlx->bump[i]->data[y * mlx->bump[i]->w + x];
 				mlx->bump_pix++;
+			}
+		}
+	}
+
+
+	mlx->rgh_pix = 0;
+
+	i = -1;
+	while (++i < RGH)
+	{
+		int y = -1;
+		while (++y < mlx->rgh[i]->h)
+		{
+			int x = -1;
+			while (++x < mlx->rgh[i]->w)
+			{
+				mlx->rgh_pix++;
+			}
+		}
+	}
+
+	mlx->obj_rgh_map = (cl_ulong4*)malloc(sizeof(cl_ulong4) * (mlx->rgh_pix));
+	printf("rgh_pix %u\n", mlx->rgh_pix);
+	mlx->obj_rgh_map[RGH].w = mlx->rgh_pix;
+	mlx->obj_rgh_map[0].w = 0;
+	mlx->rgh_pix = 0;
+	last_wh = 0;
+	i = -1;
+	while (++i < RGH)
+	{
+		mlx->obj_rgh_map[i].x = mlx->rgh[i]->w;
+		mlx->obj_rgh_map[i].y = mlx->rgh[i]->h;
+		if (i > 0)
+			mlx->obj_rgh_map[i].w = (last_wh + (mlx->rgh[i - 1]->w * mlx->rgh[i - 1]->h));
+		last_wh = mlx->obj_rgh_map[i].w;
+
+		int y = -1;
+		while (++y < mlx->rgh[i]->h)
+		{
+			int x = -1;
+			while (++x < mlx->rgh[i]->w)
+			{
+				mlx->obj_rgh_map[mlx->rgh_pix].z = mlx->rgh[i]->data[y * mlx->rgh[i]->w + x];
+				mlx->rgh_pix++;
 			}
 		}
 	}
@@ -171,8 +215,7 @@ void	ft_init_gpu_obj(t_mlx *mlx)
 	mlx->obj_transparency = (cl_float*)malloc(sizeof(cl_float) * mlx->obj_count);
 	mlx->obj_refractive_index = (cl_float*)malloc(sizeof(cl_float) * mlx->obj_count);
 	mlx->obj_type = (cl_int*)malloc(sizeof(cl_int) * mlx->obj_count);
-	mlx->obj_txt_misc = (cl_int3*)malloc(sizeof(cl_int3) * mlx->obj_count);
-	mlx->obj_bump_idx = (cl_int*)malloc(sizeof(cl_int) * mlx->obj_count);
+	mlx->obj_txt_bump_rgh_idx = (cl_int3*)malloc(sizeof(cl_int3) * mlx->obj_count);
 
 	int i = -1;
 	while (++i < mlx->obj_count)
@@ -190,8 +233,9 @@ void	ft_init_gpu_obj(t_mlx *mlx)
 		mlx->obj_transparency[i] = mlx->obj[i]->transparency;
 		mlx->obj_refractive_index[i] = mlx->obj[i]->refractive_index;
 		mlx->obj_type[i] = mlx->obj[i]->type;
-		mlx->obj_txt_misc[i].x = (mlx->obj[i]->txt) ? mlx->obj[i]->txt->txt_idx : -1;
-		mlx->obj_bump_idx[i] = (mlx->obj[i]->bump) ? mlx->obj[i]->bump->txt_idx : -1;
+		mlx->obj_txt_bump_rgh_idx[i].x = (mlx->obj[i]->txt) ? mlx->obj[i]->txt->txt_idx : -1;
+		mlx->obj_txt_bump_rgh_idx[i].y = (mlx->obj[i]->bump) ? mlx->obj[i]->bump->txt_idx : -1;
+		mlx->obj_txt_bump_rgh_idx[i].z = (mlx->obj[i]->rgh) ? mlx->obj[i]->rgh->txt_idx : -1;
 	}
 }
 
@@ -283,8 +327,8 @@ void	ft_obj_buffer(t_mlx *mlx)
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
 	}
-	mlx->gpu_obj_txt_misc = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_int3) * (mlx->obj_count), mlx->obj_txt_misc, &mlx->ret);
-	if (!mlx->gpu_obj_txt_misc || mlx->ret != CL_SUCCESS)
+	mlx->gpu_txt_bump_rgh_idx = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_int3) * (mlx->obj_count), mlx->obj_txt_bump_rgh_idx, &mlx->ret);
+	if (!mlx->gpu_txt_bump_rgh_idx || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
@@ -295,8 +339,8 @@ void	ft_obj_buffer(t_mlx *mlx)
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
 	}
-	mlx->gpu_obj_bump_idx = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_int) * (mlx->obj_count), mlx->obj_bump_idx, &mlx->ret);
-	if (!mlx->gpu_obj_bump_idx || mlx->ret != CL_SUCCESS)
+	mlx->gpu_obj_rgh = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_ulong4) * (mlx->rgh_pix), mlx->obj_rgh_map, &mlx->ret);
+	if (!mlx->gpu_obj_rgh || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
@@ -354,9 +398,9 @@ void	ft_obj_args(t_mlx *mlx)
 	mlx->ret |= clSetKernelArg(mlx->kernel, 12, sizeof(cl_int), &mlx->obj_count);
 	mlx->ret |= clSetKernelArg(mlx->kernel, 13, sizeof(cl_mem), &mlx->gpu_obj_type);
 	mlx->ret |= clSetKernelArg(mlx->kernel, 29, sizeof(cl_mem), &mlx->gpu_obj_txt);
-	mlx->ret |= clSetKernelArg(mlx->kernel, 30, sizeof(cl_mem), &mlx->gpu_obj_txt_misc);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 30, sizeof(cl_mem), &mlx->gpu_txt_bump_rgh_idx);
 	mlx->ret |= clSetKernelArg(mlx->kernel, 32, sizeof(cl_mem), &mlx->gpu_obj_bump);
-	mlx->ret |= clSetKernelArg(mlx->kernel, 33, sizeof(cl_mem), &mlx->gpu_obj_bump_idx);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 34, sizeof(cl_mem), &mlx->gpu_obj_rgh);
 	if (mlx->ret != CL_SUCCESS)
 	{
 		printf("kernel_arg error8 %d\n", mlx->ret);
@@ -475,7 +519,7 @@ void	ft_execute_kernel(t_mlx *mlx)
 	mlx->ret |= clSetKernelArg(mlx->kernel, 27, sizeof(cl_int), &mlx->noise);
 	mlx->ret |= clSetKernelArg(mlx->kernel, 28, sizeof(cl_int), &mlx->ns_factor);
 	mlx->ret |= clSetKernelArg(mlx->kernel, 31, sizeof(cl_double3), &mlx->aa_misc);
-	mlx->ret |= clSetKernelArg(mlx->kernel, 34, sizeof(cl_int), &mlx->bump_mapping);
+	mlx->ret |= clSetKernelArg(mlx->kernel, 33, sizeof(cl_int), &mlx->bump_mapping);
 	if (mlx->ret != CL_SUCCESS)
 	{
 		printf("kernel_arg error %d\n", mlx->ret);
