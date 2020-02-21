@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:42:38 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/21 13:51:18 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/21 14:13:07 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -273,7 +273,7 @@ void	ft_init(t_mlx *mlx)
 	mlx->light[0]->vec->x = 0.0f;//-2.0f;
 	mlx->light[0]->vec->y = 0.5f;
 	mlx->light[0]->vec->z = 7.0f;
-	mlx->light[0]->intensity = 1.0f;
+	mlx->light[0]->intensity = 0.75f;
 	mlx->light[0]->color = 0xFF0000;
 
 	mlx->light[1]->type = POINT_L;
