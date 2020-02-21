@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/30 22:05:45 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/21 13:45:38 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/21 14:08:29 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -155,61 +155,47 @@ int			ft_cone_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 
 
 
-t_vec3		*ft_norm_maping(t_vec3 *normal, t_img *norm_map, float u, float v)
+t_vec3		*ft_norm_maping(t_vec3 *normal, t_obj *obj)
 {
-	int tx = (float)u * (float)norm_map->w;
-	int ty = (float)v * (float)norm_map->h;
+	int tx = (float)obj->uv->x * (float)obj->norm->w;
+	int ty = (float)obj->uv->y * (float)obj->norm->h;
 
-	int color = norm_map->data[ty * norm_map->w + tx];
-	float x = (float)((color >> 16) & 0xFF) / 255.0f;
-	float y = (float)((color >> 8) & 0xFF) / 255.0f;
-	float z = (float)(color & 0xFF) / 255.0f;
+	int color = obj->norm->data[ty * obj->norm->w + tx];
+	obj->n_temp->x = ((float)((color >> 16) & 0xFF) / 255.0f) * 2.0f - 1.0f;
+	obj->n_temp->y = ((float)((color >> 8) & 0xFF) / 255.0f) * 2.0f - 1.0f;
+	obj->n_temp->z = ((float)(color & 0xFF) / 255.0f) * 2.0f - 1.0f;
 
-	t_vec3 *t = (t_vec3*)malloc(sizeof(t_vec3));
-	t_vec3 *b = (t_vec3*)malloc(sizeof(t_vec3));
-	t_vec3 *temp = (t_vec3*)malloc(sizeof(t_vec3));
-	t_vec3 *map_n = (t_vec3*)malloc(sizeof(t_vec3));
+	obj->tmp->x = 0.0f;
+	obj->tmp->y = 1.0f;
+	obj->tmp->z = 0.0f;
 
-	temp->x = 0.0f;
-	temp->y = 1.0f;
-	temp->z = 0.0f;
+	obj->vec_tmp->x = normal->y * obj->tmp->z - normal->z * obj->tmp->y;
+	obj->vec_tmp->y = normal->z * obj->tmp->x - normal->x * obj->tmp->z;
+	obj->vec_tmp->z = normal->x * obj->tmp->y - normal->y * obj->tmp->x;
 
-	t->x = normal->y * temp->z - normal->z * temp->y;
-	t->y = normal->z * temp->x - normal->x * temp->z;
-	t->z = normal->x * temp->y - normal->y * temp->x;
-
-	if (!ft_vec_len(t))
+	if (!ft_vec_len(obj->vec_tmp))
 	{
-		temp->x = 0.0f;
-		temp->y = 0.0f;
-		temp->z = 1.0f;
+		obj->tmp->x = 0.0f;
+		obj->tmp->y = 0.0f;
+		obj->tmp->z = 1.0f;
 
-		t->x = normal->y * temp->z - normal->z * temp->y;
-		t->y = normal->z * temp->x - normal->x * temp->z;
-		t->z = normal->x * temp->y - normal->y * temp->x;
+		obj->vec_tmp->x = normal->y * obj->tmp->z - normal->z * obj->tmp->y;
+		obj->vec_tmp->y = normal->z * obj->tmp->x - normal->x * obj->tmp->z;
+		obj->vec_tmp->z = normal->x * obj->tmp->y - normal->y * obj->tmp->x;
 	}
 
-	b->x = normal->y * t->z - normal->z * t->y;
-	b->y = normal->z * t->x - normal->x * t->z;
-	b->z = normal->x * t->y - normal->y * t->x;
+	obj->vec_temp->x = normal->y * obj->vec_tmp->z - normal->z * obj->vec_tmp->y;
+	obj->vec_temp->y = normal->z * obj->vec_tmp->x - normal->x * obj->vec_tmp->z;
+	obj->vec_temp->z = normal->x * obj->vec_tmp->y - normal->y * obj->vec_tmp->x;
 
-	temp->x = normal->x;
-	temp->y = normal->y;
-	temp->z = normal->z;
+	obj->tmp->x = normal->x;
+	obj->tmp->y = normal->y;
+	obj->tmp->z = normal->z;
 
-	map_n->x = x * 2.0f - 1.0f;
-	map_n->y = y * 2.0f - 1.0f;
-	map_n->z = z * 2.0f - 1.0f;
-
-	normal->x = t->x * map_n->x + b->x * map_n->y + normal->x * map_n->z;
-	normal->y = t->y * map_n->x + b->y * map_n->y + normal->y * map_n->z;
-	normal->z = t->z * map_n->x + b->z * map_n->y + normal->z * map_n->z;
+	normal->x = obj->vec_tmp->x * obj->n_temp->x + obj->vec_temp->x * obj->n_temp->y + normal->x * obj->n_temp->z;
+	normal->y = obj->vec_tmp->y * obj->n_temp->x + obj->vec_temp->y * obj->n_temp->y + normal->y * obj->n_temp->z;
+	normal->z = obj->vec_tmp->z * obj->n_temp->x + obj->vec_temp->z * obj->n_temp->y + normal->z * obj->n_temp->z;
 	normal = ft_vec_normalize(normal);
-
-	free(t);
-	free(b);
-	free(temp);
-	free(map_n);
 
 	return (normal);
 }
@@ -220,7 +206,7 @@ t_vec3		*ft_sph_norm_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 	float v = ft_clamp(0.5f - (float)asinf(normal->y) / (float)CL_M_PI, 0.0f, 1.0f);
 	obj->uv->x = u;
 	obj->uv->y = v;
-	normal = ft_norm_maping(normal, obj->norm, u, v);
+	normal = ft_norm_maping(normal, obj);
 	return (normal);
 }
 
@@ -246,7 +232,7 @@ t_vec3		*ft_plane_norm_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 	float v = ft_clamp(0.5f + (float)fmod(ft_dot_prod(obj->vec_tmp, point), 4.0f) / 8.0f, 0.0f, 1.0f);
 	obj->uv->x = u;
 	obj->uv->y = v;
-	normal = ft_norm_maping(normal, obj->norm, u, v);
+	normal = ft_norm_maping(normal, obj);
 	return (normal);
 }
 
@@ -258,7 +244,7 @@ t_vec3 		*ft_cone_norm_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 	float v = ft_clamp(0.5f - modff(obj->vec_tmp->z * 0.5f, &v) * 0.5f, 0.0f, 1.0f);
 	obj->uv->x = u;
 	obj->uv->y = v;
-	normal = ft_norm_maping(normal, obj->norm, u, v);
+	normal = ft_norm_maping(normal, obj);
 	return (normal);
 }
 
@@ -269,7 +255,7 @@ t_vec3		*ft_cylinder_norm_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 	float v = ft_clamp(0.5f - modff(obj->vec_tmp->z / obj->radius * 0.25f, &v) * 0.5f, 0.0f, 1.0f);
 	obj->uv->x = u;
 	obj->uv->y = v;
-	normal = ft_norm_maping(normal, obj->norm, u, v);
+	normal = ft_norm_maping(normal, obj);
 	return (normal);
 }
 
