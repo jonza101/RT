@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/30 22:05:45 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/20 16:10:40 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/21 13:45:38 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -155,45 +155,76 @@ int			ft_cone_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 
 
 
-t_vec3		*ft_bump_maping(t_vec3 *normal, t_img *bump_map, float u, float v)
+t_vec3		*ft_norm_maping(t_vec3 *normal, t_img *norm_map, float u, float v)
 {
-	int tx = (float)u * (float)bump_map->w;
-	int ty = (float)v * (float)bump_map->h;
+	int tx = (float)u * (float)norm_map->w;
+	int ty = (float)v * (float)norm_map->h;
 
-	int left_color = (tx > 0) ? bump_map->data[ty * bump_map->w + (tx - 1)] : bump_map->data[ty * bump_map->w + tx];
-	int right_color = (tx < bump_map->w - 1) ? bump_map->data[ty * bump_map->w + (tx + 1)] : bump_map->data[ty * bump_map->w + tx];
-	int l_r = (left_color >> 16) & 0xFF;
-	int r_r = (right_color >> 16) & 0xFF;
-	float l_i = (float)l_r / 255.0f;
-	float r_i = (float)r_r / 255.0f;
-	float x_gradient = (l_i - r_i);
+	int color = norm_map->data[ty * norm_map->w + tx];
+	float x = (float)((color >> 16) & 0xFF) / 255.0f;
+	float y = (float)((color >> 8) & 0xFF) / 255.0f;
+	float z = (float)(color & 0xFF) / 255.0f;
 
-	int up_color = (ty > 0) ? bump_map->data[(ty - 1) * bump_map->w + tx] : bump_map->data[ty * bump_map->w + tx];
-	int down_color = (ty < bump_map->h - 1) ? bump_map->data[(ty + 1) * bump_map->w + tx] : bump_map->data[ty * bump_map->w + tx];
-	int u_r = (up_color >> 16) & 0xFF;
-	int d_r = (down_color >> 16) & 0xFF;
-	float u_i = (float)u_r / 255.0f;
-	float d_i = (float)d_r / 255.0f;
-	float y_gradient = (u_i - d_i);
+	t_vec3 *t = (t_vec3*)malloc(sizeof(t_vec3));
+	t_vec3 *b = (t_vec3*)malloc(sizeof(t_vec3));
+	t_vec3 *temp = (t_vec3*)malloc(sizeof(t_vec3));
+	t_vec3 *map_n = (t_vec3*)malloc(sizeof(t_vec3));
 
-	normal->x = normal->x - x_gradient - y_gradient;
-	normal->y = normal->y - x_gradient - y_gradient;
-	normal->z = normal->z - x_gradient - y_gradient;
+	temp->x = 0.0f;
+	temp->y = 1.0f;
+	temp->z = 0.0f;
+
+	t->x = normal->y * temp->z - normal->z * temp->y;
+	t->y = normal->z * temp->x - normal->x * temp->z;
+	t->z = normal->x * temp->y - normal->y * temp->x;
+
+	if (!ft_vec_len(t))
+	{
+		temp->x = 0.0f;
+		temp->y = 0.0f;
+		temp->z = 1.0f;
+
+		t->x = normal->y * temp->z - normal->z * temp->y;
+		t->y = normal->z * temp->x - normal->x * temp->z;
+		t->z = normal->x * temp->y - normal->y * temp->x;
+	}
+
+	b->x = normal->y * t->z - normal->z * t->y;
+	b->y = normal->z * t->x - normal->x * t->z;
+	b->z = normal->x * t->y - normal->y * t->x;
+
+	temp->x = normal->x;
+	temp->y = normal->y;
+	temp->z = normal->z;
+
+	map_n->x = x * 2.0f - 1.0f;
+	map_n->y = y * 2.0f - 1.0f;
+	map_n->z = z * 2.0f - 1.0f;
+
+	normal->x = t->x * map_n->x + b->x * map_n->y + normal->x * map_n->z;
+	normal->y = t->y * map_n->x + b->y * map_n->y + normal->y * map_n->z;
+	normal->z = t->z * map_n->x + b->z * map_n->y + normal->z * map_n->z;
 	normal = ft_vec_normalize(normal);
+
+	free(t);
+	free(b);
+	free(temp);
+	free(map_n);
+
 	return (normal);
 }
 
-t_vec3		*ft_sph_bump_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
+t_vec3		*ft_sph_norm_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 {
 	float u = ft_clamp(0.5f + (float)atan2f(normal->z, normal->x) / (float)(2.0f * CL_M_PI), 0.0f, 1.0f);
 	float v = ft_clamp(0.5f - (float)asinf(normal->y) / (float)CL_M_PI, 0.0f, 1.0f);
 	obj->uv->x = u;
 	obj->uv->y = v;
-	normal = ft_bump_maping(normal, obj->bump, u, v);
+	normal = ft_norm_maping(normal, obj->norm, u, v);
 	return (normal);
 }
 
-t_vec3		*ft_plane_bump_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
+t_vec3		*ft_plane_norm_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 {
 	if (normal->x != 0.0f || normal->y != 0.0f)
 	{
@@ -215,11 +246,11 @@ t_vec3		*ft_plane_bump_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 	float v = ft_clamp(0.5f + (float)fmod(ft_dot_prod(obj->vec_tmp, point), 4.0f) / 8.0f, 0.0f, 1.0f);
 	obj->uv->x = u;
 	obj->uv->y = v;
-	normal = ft_bump_maping(normal, obj->bump, u, v);
+	normal = ft_norm_maping(normal, obj->norm, u, v);
 	return (normal);
 }
 
-t_vec3 		*ft_cone_bump_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
+t_vec3 		*ft_cone_norm_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 {
 	obj->vec_tmp = ft_vec_transform(obj, normal, point);
 	float p = (float)((float)obj->vec_tmp->x / (float)obj->vec_tmp->z) / (float)tanf(obj->radius);
@@ -227,18 +258,18 @@ t_vec3 		*ft_cone_bump_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 	float v = ft_clamp(0.5f - modff(obj->vec_tmp->z * 0.5f, &v) * 0.5f, 0.0f, 1.0f);
 	obj->uv->x = u;
 	obj->uv->y = v;
-	normal = ft_bump_maping(normal, obj->bump, u, v);
+	normal = ft_norm_maping(normal, obj->norm, u, v);
 	return (normal);
 }
 
-t_vec3		*ft_cylinder_bump_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
+t_vec3		*ft_cylinder_norm_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 {
 	obj->vec_tmp = ft_vec_transform(obj, normal, point);
 	float u = ft_clamp(0.5f + (float)atan2(obj->vec_tmp->x, obj->vec_tmp->y) / (float)(2.0f * CL_M_PI), 0.0f, 1.0f);
 	float v = ft_clamp(0.5f - modff(obj->vec_tmp->z / obj->radius * 0.25f, &v) * 0.5f, 0.0f, 1.0f);
 	obj->uv->x = u;
 	obj->uv->y = v;
-	normal = ft_bump_maping(normal, obj->bump, u, v);
+	normal = ft_norm_maping(normal, obj->norm, u, v);
 	return (normal);
 }
 

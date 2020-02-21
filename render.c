@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 18:38:56 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/20 16:47:46 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/21 00:04:33 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,8 +105,8 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 	mlx->point->z = origin->z + mlx->closest * dir->z;
 
 	mlx->normal = obj->normal_calc(mlx->normal, dir, mlx->point, obj);
-	if (mlx->bump_mapping && obj->bump)
-		mlx->normal = obj->bump_mapping(obj, mlx->normal, mlx->point);
+	if (mlx->norm_mapping && obj->norm)
+		mlx->normal = obj->norm_mapping(obj, mlx->normal, mlx->point);
 
 	mlx->neg_dir->x = -dir->x;
 	mlx->neg_dir->y = -dir->y;
@@ -297,13 +297,13 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 	int color = obj->color;
 	if (obj->txt)
 	{
-		if (mlx->bump_mapping && obj->bump)
+		if (mlx->norm_mapping && obj->norm)
 		{
 			int tx = obj->uv->x * obj->txt->w;
 			int ty = obj->uv->y * obj->txt->h;
 			color = obj->txt->data[ty * obj->txt->w + tx];
 		}
-		else if (!obj->bump || !mlx->bump_mapping)
+		else if (!obj->norm || !mlx->norm_mapping)
 			color = obj->txt_mapping(obj, mlx->normal, mlx->point);
 	}
 	color = ft_color_lum(color, intensity);
@@ -311,7 +311,7 @@ int		ft_trace_ray(t_mlx *mlx, t_vec3 *origin, t_vec3 *dir, float min, float max,
 	float mirror = obj->mirrored;
 	if (obj->rgh && mirror > 0.0f)
 	{
-		if ((obj->bump && mlx->bump_mapping) || obj->txt)
+		if ((obj->norm && mlx->norm_mapping) || obj->txt)
 		{
 			int tx = obj->uv->x * obj->rgh->w;
 			int ty = obj->uv->y * obj->rgh->h;

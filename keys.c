@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/29 00:55:32 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/19 19:52:19 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/21 13:49:10 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,7 +139,7 @@ int		ft_key_press(int keycode, t_mlx *mlx)
 	}
 
 	if (keycode == MAC_B || keycode == 98)
-		mlx->bump_mapping = !mlx->bump_mapping;
+		mlx->norm_mapping = !mlx->norm_mapping;
 
 	return (0);
 }

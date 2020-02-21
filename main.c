@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:42:38 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/20 17:33:23 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/21 13:51:18 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ int		ft_gameloop(t_mlx *mlx)
 		mlx_string_put(mlx->mlx, mlx->win, 10, 100, 0xFFFFFF, mlx->noise_str[mlx->noise]);
 		mlx_string_put(mlx->mlx, mlx->win, 10, 120, 0xFFFFFF, mlx->soft_sh_str[mlx->soft_shadows]);
 		mlx_string_put(mlx->mlx, mlx->win, 10, 140, 0xFFFFFF, mlx->aa_str[mlx->aa_idx]);
-		mlx_string_put(mlx->mlx, mlx->win, 10, 160, 0xFFFFFF, mlx->bump_str[mlx->bump_mapping]);
+		mlx_string_put(mlx->mlx, mlx->win, 10, 160, 0xFFFFFF, mlx->norm_str[mlx->norm_mapping]);
 		mlx_string_put(mlx->mlx, mlx->win, 10, 180, 0xFFFFFF, mlx->colored_light_str[mlx->colored_light]);
 	}
 	free(fps_str);
@@ -56,7 +56,7 @@ void	ft_init(t_mlx *mlx)
 	srand(time(NULL));
 
 	ft_init_txt(mlx);
-	ft_init_bump(mlx);
+	ft_init_norm(mlx);
 	ft_init_rgh(mlx);
 
 	mlx->cam = (t_vec3*)malloc(sizeof(t_vec3));
@@ -109,7 +109,7 @@ void	ft_init(t_mlx *mlx)
 		mlx->obj[i]->transparency = 0.0f;
 		mlx->obj[i]->refractive_index = 1.0f;
 		mlx->obj[i]->txt = NULL;
-		mlx->obj[i]->bump = NULL;
+		mlx->obj[i]->norm = NULL;
 		mlx->obj[i]->rgh = NULL;
 	}
 	mlx->obj_count = 3;
@@ -123,13 +123,13 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[0]->normal->z = 0.0f;
 	mlx->obj[0]->color = 0xFFFFFF;
 	mlx->obj[0]->txt = mlx->txt[0];
-	mlx->obj[0]->bump = mlx->bump[0];
+	mlx->obj[0]->norm = mlx->norm[0];
 	mlx->obj[0]->rgh = mlx->rgh[0];
-	mlx->obj[0]->mirrored = 0.75f;
+	mlx->obj[0]->mirrored = 0.4f;
 	mlx->obj[0]->intersect = ft_plane_intersect;
 	mlx->obj[0]->normal_calc = ft_plane_normal_calc;
 	mlx->obj[0]->txt_mapping = ft_plane_txt_map;
-	mlx->obj[0]->bump_mapping = ft_plane_bump_map;
+	mlx->obj[0]->norm_mapping = ft_plane_norm_map;
 	mlx->obj[0]->rgh_mapping = ft_plane_rgh_map;
 
 	mlx->obj[1]->type = SPHERE;
@@ -142,13 +142,13 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[1]->normal->z = 0.0f;
 	mlx->obj[1]->color = 0xBDE300;
 	mlx->obj[1]->txt = mlx->txt[3];
-	mlx->obj[1]->bump = mlx->bump[3];
+	mlx->obj[1]->norm = mlx->norm[3];
 	// mlx->obj[1]->rgh = mlx->rgh[3];
 	// mlx->obj[1]->mirrored = 0.25f;
 	mlx->obj[1]->intersect = ft_sph_intersect;
 	mlx->obj[1]->normal_calc = ft_sph_normal_calc;
 	mlx->obj[1]->txt_mapping = ft_sph_txt_map;
-	mlx->obj[1]->bump_mapping = ft_sph_bump_map;
+	mlx->obj[1]->norm_mapping = ft_sph_norm_map;
 	mlx->obj[1]->rgh_mapping = ft_sph_rgh_map;
 
 	mlx->obj[2]->type = CYLINDER;
@@ -162,11 +162,11 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[2]->normal = ft_vec_normalize(mlx->obj[2]->normal);
 	mlx->obj[2]->color = 0xBDE300;
 	mlx->obj[2]->txt = mlx->txt[1];
-	mlx->obj[2]->bump = mlx->bump[1];
+	mlx->obj[2]->norm = mlx->norm[1];
 	mlx->obj[2]->intersect = ft_cylinder_intersect;
 	mlx->obj[2]->normal_calc = ft_cylinder_normal_calc;
 	mlx->obj[2]->txt_mapping = ft_cylinder_txt_map;
-	mlx->obj[2]->bump_mapping = ft_cylinder_bump_map;
+	mlx->obj[2]->norm_mapping = ft_cylinder_norm_map;
 	mlx->obj[2]->rgh_mapping = ft_cylinder_rgh_map;
 
 
@@ -273,7 +273,7 @@ void	ft_init(t_mlx *mlx)
 	mlx->light[0]->vec->x = 0.0f;//-2.0f;
 	mlx->light[0]->vec->y = 0.5f;
 	mlx->light[0]->vec->z = 7.0f;
-	mlx->light[0]->intensity = 0.75f;
+	mlx->light[0]->intensity = 1.0f;
 	mlx->light[0]->color = 0xFF0000;
 
 	mlx->light[1]->type = POINT_L;
@@ -380,9 +380,9 @@ void	ft_init(t_mlx *mlx)
 	mlx->aa_misc.y = (double)1.0f / (double)H;
 	mlx->aa_misc.z = (int)mlx->aa_val[mlx->aa_idx];
 
-	mlx->bump_mapping = 1;
-	mlx->bump_str[0] = BUMP_OFF;
-	mlx->bump_str[1] = BUMP_ON;
+	mlx->norm_mapping = 1;
+	mlx->norm_str[0] = NORM_OFF;
+	mlx->norm_str[1] = NORM_ON;
 
 
 	ft_init_gpu(mlx);

@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:38:47 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/20 16:51:12 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/02/21 00:49:24 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@
 #define BLACK_WHITE 4
 
 #define	TXT 4
-#define BUMP 4
+#define NORM 4
 #define RGH 4
 
 #define GPU_STR "GPU (G)"
@@ -89,8 +89,8 @@
 #define AA_2 "SSAA: 4x (Q, E)"
 #define AA_3 "SSAA: 16x (Q, E)"
 
-#define BUMP_OFF "Bump Mapping: Off (B)"
-#define BUMP_ON "Bump Mapping: On (B)"
+#define NORM_OFF "Normal Mapping: Off (B)"
+#define NORM_ON "Normal Mapping: On (B)"
 
 #define COLORED_LIGHT_OFF_STR "Colored Light (Unstable): Off (X)"
 #define COLORED_LIGHT_ON_STR "Colored Light (Unstable): On (X)"
@@ -151,14 +151,14 @@ typedef	struct			s_obj
 	float				transparency;
 	float				refractive_index;
 	t_img				*txt;
-	t_img				*bump;
+	t_img				*norm;
 	t_img				*rgh;
 	t_vec2				*uv;
 
 	float				(*intersect) (t_vec3 *origin, t_vec3 *dir, struct s_obj *obj);
 	t_vec3*				(*normal_calc) (t_vec3 *normal, t_vec3 *dir, t_vec3 *point, struct s_obj *obj);
 	int					(*txt_mapping) (struct s_obj *obj, t_vec3 *normal, t_vec3 *point);
-	t_vec3*				(*bump_mapping) (struct s_obj *obj, t_vec3 *normal, t_vec3 *point);
+	t_vec3*				(*norm_mapping) (struct s_obj *obj, t_vec3 *normal, t_vec3 *point);
 	float				(*rgh_mapping) (struct s_obj *obj, t_vec3 *normal, t_vec3 *point);
 
 	t_vec3				*oc_temp;
@@ -241,11 +241,11 @@ typedef struct			s_mlx
 	int					ns_factor;
 
 	t_img				*txt[TXT];
-	t_img 				*bump[BUMP];
+	t_img 				*norm[NORM];
 	t_img				*rgh[RGH];
 
-	int					bump_mapping;
-	char 				*bump_str[2];
+	int					norm_mapping;
+	char 				*norm_str[2];
 
 	t_vec3				*aa_dir;
 	t_vec3				*aa_dir_cpy;
@@ -285,11 +285,11 @@ typedef struct			s_mlx
 	cl_float			*light_intensity;
 
 	cl_ulong4			*obj_txt;				//		|	X - TXT_W	|	Y - TXT_H		|	Z - COLOR		|	W - TXT_OFFSET	|
-	cl_int3				*obj_txt_bump_rgh_idx;	//		|	X - TXT_IDX	|	Y - BUMP_IDX	|	Z - RGH_IDX		|
+	cl_int3				*obj_txt_norm_rgh_idx;	//		|	X - TXT_IDX	|	Y - NORM_IDX	|	Z - RGH_IDX		|
 	unsigned long		txt_pix;
-	cl_ulong4			*obj_bump_map;			//		|	X - BUMP_W	|	Y - BUMP_H		|	Z - COLOR		|	W - BUMP_OFFSET	|
-	unsigned long		bump_pix;
-	cl_ulong4			*obj_rgh_map;				//		|	X - RGH_W	|	Y - RGH_H		|	Z - COLOR		|	W - TGH_OFFSET	|
+	cl_ulong4			*obj_norm_map;			//		|	X - NORM_W	|	Y - NORM_H		|	Z - COLOR		|	W - NORM_OFFSET	|
+	unsigned long		norm_pix;
+	cl_ulong4			*obj_rgh_map;			//		|	X - RGH_W	|	Y - RGH_H		|	Z - COLOR		|	W - TGH_OFFSET	|
 	unsigned long		rgh_pix;
 
 	int					gpu;
@@ -309,9 +309,9 @@ typedef struct			s_mlx
 	cl_mem				gpu_light_intensity;
 
 	cl_mem				gpu_obj_txt;
-	cl_mem				gpu_txt_bump_rgh_idx;
+	cl_mem				gpu_txt_norm_rgh_idx;
 
-	cl_mem				gpu_obj_bump;
+	cl_mem				gpu_obj_norm;
 
 	cl_mem				gpu_obj_rgh;
 
@@ -360,10 +360,10 @@ int						ft_plane_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
 int 					ft_cylinder_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
 int						ft_cone_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
 
-t_vec3 					*ft_sph_bump_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
-t_vec3					*ft_plane_bump_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
-t_vec3					*ft_cylinder_bump_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
-t_vec3					*ft_cone_bump_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
+t_vec3 					*ft_sph_norm_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
+t_vec3					*ft_plane_norm_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
+t_vec3					*ft_cylinder_norm_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
+t_vec3					*ft_cone_norm_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
 
 float 					ft_sph_rgh_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
 float	 				ft_plane_rgh_map(t_obj *obj, t_vec3 *normal, t_vec3 *point);
@@ -374,5 +374,5 @@ int						ft_key_press(int keycode, t_mlx *mlx);
 int						ft_key_realese(int keycode, t_mlx *mlx);
 
 void 					ft_init_txt(t_mlx *mlx);
-void 					ft_init_bump(t_mlx *mlx);
+void 					ft_init_norm(t_mlx *mlx);
 void					ft_init_rgh(t_mlx *mlx);
