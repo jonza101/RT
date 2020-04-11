@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/30 22:05:45 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/04/11 17:37:24 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/04/11 17:45:24 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -177,7 +177,7 @@ t_vec3		*ft_norm_maping(t_vec3 *normal, t_obj *obj)
 	{
 		obj->tmp->x = 0.0f;
 		obj->tmp->y = 0.0f;
-		obj->tmp->z = -1.0f;
+		obj->tmp->z = 1.0f;
 
 		obj->vec_tmp->x = normal->y * obj->tmp->z - normal->z * obj->tmp->y;
 		obj->vec_tmp->y = normal->z * obj->tmp->x - normal->x * obj->tmp->z;
