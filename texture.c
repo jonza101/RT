@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/30 22:05:45 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/04/11 17:45:24 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/04/11 17:47:13 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -155,7 +155,7 @@ int			ft_cone_txt_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 
 
 
-t_vec3		*ft_norm_maping(t_vec3 *normal, t_obj *obj)
+t_vec3		*ft_norm_mapping(t_vec3 *normal, t_obj *obj)
 {
 	int tx = (float)obj->uv->x * (float)obj->norm->w;
 	int ty = (float)obj->uv->y * (float)obj->norm->h;
@@ -206,7 +206,7 @@ t_vec3		*ft_sph_norm_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 	float v = ft_clamp(0.5f - (float)asinf(normal->y) / (float)CL_M_PI, 0.0f, 1.0f);
 	obj->uv->x = u;
 	obj->uv->y = v;
-	normal = ft_norm_maping(normal, obj);
+	normal = ft_norm_mapping(normal, obj);
 	return (normal);
 }
 
@@ -232,7 +232,7 @@ t_vec3		*ft_plane_norm_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 	float v = ft_clamp(0.5f + (float)fmod(ft_dot_prod(obj->vec_tmp, point), 4.0f) / 8.0f, 0.0f, 1.0f);
 	obj->uv->x = u;
 	obj->uv->y = v;
-	normal = ft_norm_maping(normal, obj);
+	normal = ft_norm_mapping(normal, obj);
 	return (normal);
 }
 
@@ -244,7 +244,7 @@ t_vec3 		*ft_cone_norm_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 	float v = ft_clamp(0.5f - modff(obj->vec_tmp->z * 0.5f, &v) * 0.5f, 0.0f, 1.0f);
 	obj->uv->x = u;
 	obj->uv->y = v;
-	normal = ft_norm_maping(normal, obj);
+	normal = ft_norm_mapping(normal, obj);
 	return (normal);
 }
 
@@ -255,7 +255,7 @@ t_vec3		*ft_cylinder_norm_map(t_obj *obj, t_vec3 *normal, t_vec3 *point)
 	float v = ft_clamp(0.5f - modff(obj->vec_tmp->z / obj->radius * 0.25f, &v) * 0.5f, 0.0f, 1.0f);
 	obj->uv->x = u;
 	obj->uv->y = v;
-	normal = ft_norm_maping(normal, obj);
+	normal = ft_norm_mapping(normal, obj);
 	return (normal);
 }
 
