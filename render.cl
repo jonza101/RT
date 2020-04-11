@@ -1271,7 +1271,7 @@ __kernel void render(__global unsigned int *buffer,
 							obj_mirrored, obj_transparency, obj_refractive_index,
 							obj_count, obj_type,
 							light_vec, light_type, light_intensity, light_count,
-							1.0f, MAX_FLT, 0, -1, effect, srnd,
+							0.1f, MAX_FLT, 0, -1, effect, srnd,
 							obj_txt, obj_txt_norm_rgh_idx, obj_norm, obj_rgh);
 
 	if (aa_misc.x > 0)
@@ -1305,7 +1305,7 @@ __kernel void render(__global unsigned int *buffer,
 										obj_mirrored, obj_transparency, obj_refractive_index,
 										obj_count, obj_type,
 										light_vec, light_type, light_intensity, light_count,
-										1.0f, MAX_FLT, 0, -1, effect, srnd,
+										0.1f, MAX_FLT, 0, -1, effect, srnd,
 										obj_txt, obj_txt_norm_rgh_idx, obj_norm, obj_rgh);
 
 				r += ((t_color >> 16) & 0xFF);

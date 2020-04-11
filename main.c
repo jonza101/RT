@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:42:38 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/21 14:13:07 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/04/11 17:41:38 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,15 +22,14 @@ int		ft_gameloop(t_mlx *mlx)
 {
 	clock_t start_time = clock();
 
-	double delta_time =  ((double)(start_time - mlx->last_time) / CLOCKS_PER_SEC);
-	int fps = (double)1.0f / (double)delta_time;
+	mlx->delta_time =  ((double)(start_time - mlx->last_time) / CLOCKS_PER_SEC);
+	int fps = (double)1.0f / (double)mlx->delta_time;
 	char *fps_str = ft_itoa(fps);
 
 	if (fps <= MAX_FPS)
 	{
-		mlx->last_time = start_time;
-
 		ft_move(mlx);
+
 		// ft_render(mlx);
 		mlx->render_func(mlx);
 
@@ -45,6 +44,8 @@ int		ft_gameloop(t_mlx *mlx)
 		mlx_string_put(mlx->mlx, mlx->win, 10, 140, 0xFFFFFF, mlx->aa_str[mlx->aa_idx]);
 		mlx_string_put(mlx->mlx, mlx->win, 10, 160, 0xFFFFFF, mlx->norm_str[mlx->norm_mapping]);
 		mlx_string_put(mlx->mlx, mlx->win, 10, 180, 0xFFFFFF, mlx->colored_light_str[mlx->colored_light]);
+
+		mlx->last_time = start_time;
 	}
 	free(fps_str);
 
@@ -122,10 +123,11 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[0]->normal->y = 1.0f;
 	mlx->obj[0]->normal->z = 0.0f;
 	mlx->obj[0]->color = 0xFFFFFF;
+	mlx->obj[0]->specular = 32.0f;
 	mlx->obj[0]->txt = mlx->txt[0];
 	mlx->obj[0]->norm = mlx->norm[0];
 	mlx->obj[0]->rgh = mlx->rgh[0];
-	mlx->obj[0]->mirrored = 0.4f;
+	mlx->obj[0]->mirrored = 0.25f;
 	mlx->obj[0]->intersect = ft_plane_intersect;
 	mlx->obj[0]->normal_calc = ft_plane_normal_calc;
 	mlx->obj[0]->txt_mapping = ft_plane_txt_map;
@@ -141,9 +143,10 @@ void	ft_init(t_mlx *mlx)
 	mlx->obj[1]->normal->y = 1.0f;
 	mlx->obj[1]->normal->z = 0.0f;
 	mlx->obj[1]->color = 0xBDE300;
+	mlx->obj[1]->specular = 128.0f;
 	mlx->obj[1]->txt = mlx->txt[3];
 	mlx->obj[1]->norm = mlx->norm[3];
-	// mlx->obj[1]->rgh = mlx->rgh[3];
+	mlx->obj[1]->rgh = mlx->rgh[3];
 	// mlx->obj[1]->mirrored = 0.25f;
 	mlx->obj[1]->intersect = ft_sph_intersect;
 	mlx->obj[1]->normal_calc = ft_sph_normal_calc;
@@ -327,6 +330,7 @@ void	ft_init(t_mlx *mlx)
 		mlx->arrow[i] = 0;
 	}
 	mlx->shift = 0;
+	mlx->delta_time = 0.0f;
 	mlx->last_time = 0.0f;
 	mlx->gpu = 1;
 	mlx->render_func = ft_execute_kernel;

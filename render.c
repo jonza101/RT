@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 18:38:56 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/21 00:04:33 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/04/11 17:26:33 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -362,7 +362,7 @@ void	ft_render(t_mlx *mlx)
 
 			mlx->dir = ft_vec_rotate(mlx->dir, mlx->dx, mlx->dy, mlx->s_refl);
 
-			int color = ft_trace_ray(mlx, mlx->cam, mlx->dir, 1.0f, __FLT_MAX__, 0, NULL);
+			int color = ft_trace_ray(mlx, mlx->cam, mlx->dir, 0.1f, __FLT_MAX__, 0, NULL);
 			
 			if (mlx->aa_idx > 0)
 			{
@@ -385,7 +385,7 @@ void	ft_render(t_mlx *mlx)
 						mlx->aa_dir->z = 1.0f;
 						mlx->aa_dir = ft_vec_rotate(mlx->aa_dir, mlx->dx, mlx->dy, mlx->s_refl);
 
-						int t_color = ft_trace_ray(mlx, mlx->cam, mlx->aa_dir, 1.0f, __FLT_MAX__, 0, NULL);
+						int t_color = ft_trace_ray(mlx, mlx->cam, mlx->aa_dir, 0.1f, __FLT_MAX__, 0, NULL);
 
 						r += ((t_color >> 16) & 0xFF);
 						g += ((t_color >> 8) & 0xFF);

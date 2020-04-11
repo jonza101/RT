@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 17:38:47 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/21 00:49:24 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/04/11 17:41:13 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,11 +38,11 @@
 
 #define MAX_DEPTH 1
 
-#define CAM_SPEED 0.5f
-#define CAM_ACC_SPEED 1.75f
-#define CAM_VERT_SPEED 0.25f
-#define HORIZONTAL_SENS 0.05f
-#define VERTICAL_SENS 0.05f
+#define CAM_SPEED 1.75f
+#define CAM_ACC_SPEED 1.5f
+#define CAM_VERT_SPEED 0.75f
+#define HORIZONTAL_SENS 0.85f
+#define VERTICAL_SENS 0.75f
 
 #define MIN_VERT_CAM_VAL -1.57f
 #define MAX_VERT_CAM_VAL 1.57f
@@ -94,11 +94,6 @@
 
 #define COLORED_LIGHT_OFF_STR "Colored Light (Unstable): Off (X)"
 #define COLORED_LIGHT_ON_STR "Colored Light (Unstable): On (X)"
-
-
-#define EDGE_THRESHOLD_MIN 0.0312f
-#define EDGE_THRESHOLD_MAX 0.125f
-#define SUBPIXEL_QUALITY  0.75f
 
 
 typedef	struct			s_vec2
@@ -214,6 +209,7 @@ typedef struct			s_mlx
 	int					up_down[2];
 	int					shift;
 
+	float 				delta_time;
 	clock_t				last_time;
 	char				*render_device;
 	void				(*render_func)(struct s_mlx *mlx);
