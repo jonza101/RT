@@ -69,7 +69,7 @@ void	ft_init_gpu_txt(t_mlx *mlx)
 	}
 
 	mlx->obj_txt = (cl_ulong4*)malloc(sizeof(cl_ulong4) * (mlx->txt_pix));
-	printf("txt_pix %u\n", mlx->txt_pix);
+	printf("txt_pix %lu\n", mlx->txt_pix);
 	mlx->obj_txt[TXT].w = mlx->txt_pix;
 	mlx->obj_txt[0].w = 0;
 	mlx->txt_pix = 0;
@@ -113,7 +113,7 @@ void	ft_init_gpu_txt(t_mlx *mlx)
 	}
 
 	mlx->obj_norm_map = (cl_ulong4*)malloc(sizeof(cl_ulong4) * (mlx->norm_pix));
-	printf("norm_pix %u\n", mlx->norm_pix);
+	printf("norm_pix %lu\n", mlx->norm_pix);
 	mlx->obj_norm_map[NORM].w = mlx->norm_pix;
 	mlx->obj_norm_map[0].w = 0;
 	mlx->norm_pix = 0;
@@ -157,7 +157,7 @@ void	ft_init_gpu_txt(t_mlx *mlx)
 	}
 
 	mlx->obj_rgh_map = (cl_ulong4*)malloc(sizeof(cl_ulong4) * (mlx->rgh_pix));
-	printf("rgh_pix %u\n", mlx->rgh_pix);
+	printf("rgh_pix %lu\n", mlx->rgh_pix);
 	mlx->obj_rgh_map[RGH].w = mlx->rgh_pix;
 	mlx->obj_rgh_map[0].w = 0;
 	mlx->rgh_pix = 0;
@@ -496,7 +496,7 @@ void	ft_load_cl_files(t_mlx *mlx)
 		while (mlx->global_work_size % mlx->local_work_size)
 			mlx->local_work_size--;
 	}
-	printf("local_size %d\n", mlx->local_work_size);
+	printf("local_size %ld\n", mlx->local_work_size);
 
 	ft_set_kernel_args(mlx);
 }
