@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/11/03 23:36:16 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/02/20 23:43:28 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/05/19 00:09:27 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ void	ft_device_info(t_mlx *mlx)
 	cl_ulong d_max_alloc_mem;
 	cl_ulong d_local_mem;
 	size_t d_max_group_size;
+	size_t d_max_work_item_size;
 	cl_uint d_address_bits;
 
 	clGetDeviceInfo(mlx->device_id, CL_DEVICE_NAME, sizeof(d_name), d_name, NULL);
@@ -34,6 +35,7 @@ void	ft_device_info(t_mlx *mlx)
 	clGetDeviceInfo(mlx->device_id, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(d_max_alloc_mem), &d_max_alloc_mem, NULL);
 	clGetDeviceInfo(mlx->device_id, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(d_local_mem), &d_local_mem, NULL);
 	clGetDeviceInfo(mlx->device_id, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(d_max_group_size), &d_max_group_size, NULL);
+	clGetDeviceInfo(mlx->device_id, CL_DEVICE_MAX_WORK_ITEM_SIZES, sizeof(d_max_work_item_size), &d_max_work_item_size, NULL);
 	clGetDeviceInfo(mlx->device_id, CL_DEVICE_ADDRESS_BITS, sizeof(d_address_bits), &d_address_bits, NULL);
 
 	printf("\n\n---------------DEVICE_INFO---------------\n");
@@ -46,6 +48,7 @@ void	ft_device_info(t_mlx *mlx)
 	printf("d_max_alloc_mem: %f mb\n", (float)d_max_alloc_mem / 1024.0f / 1024.0f);
 	printf("d_local_mem: %u kb\n", (unsigned int)((float)d_local_mem / 1024.0f));
 	printf("d_max_group_size: %zu\n", d_max_group_size);
+	printf("d_max_work_item_size: %zu\n", d_max_work_item_size);
 	printf("d_address_bits: %u\n", d_address_bits);
 	printf("\n-----------------------------------------\n\n");
 }
@@ -485,17 +488,14 @@ void	ft_load_cl_files(t_mlx *mlx)
 	ft_create_buffer(mlx);
 
 	mlx->global_work_size = W * H;
-	mlx->ret = clGetKernelWorkGroupInfo(mlx->kernel, mlx->device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(mlx->local_work_size), &mlx->local_work_size, NULL);
+	mlx->ret = clGetKernelWorkGroupInfo(mlx->kernel, mlx->device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(mlx->local_work_size), &mlx->local_work_size, 0);
 	if (mlx->ret != CL_SUCCESS)
 	{
 		printf("kernel_work_group error %d\n", mlx->ret);
 		exit(0);
 	}
-	if (mlx->global_work_size % mlx->local_work_size)
-	{
-		while (mlx->global_work_size % mlx->local_work_size)
-			mlx->local_work_size--;
-	}
+	while (mlx->global_work_size % mlx->local_work_size != 0)
+		mlx->local_work_size--;
 	printf("local_size %ld\n", mlx->local_work_size);
 
 	ft_set_kernel_args(mlx);
@@ -530,14 +530,12 @@ void	ft_execute_kernel(t_mlx *mlx)
 	if (mlx->ret != CL_SUCCESS)
 	{
 		printf("enqueue error %d\n", mlx->ret);
-		printf("global %zu		local %zu\n", mlx->global_work_size, mlx->local_work_size);
 		exit(0);
 	}
 	mlx->ret = clFinish(mlx->command_queue);
 	if (mlx->ret != CL_SUCCESS)
 	{
 		printf("cl_finish error %d\n", mlx->ret);
-		printf("global %zu		local %zu\n", mlx->global_work_size, mlx->local_work_size);
 		exit(0);
 	}
 

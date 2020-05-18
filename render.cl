@@ -773,14 +773,427 @@ int		ft_trace_ray_rec(float3 origin, float3 dir,
 							float min_dist, float max_dist, int depth, int refl_i, t_effect effect, t_rand srnd,
 							__global ulong4 *obj_txt, __global int3 *obj_txt_norm_rgh_idx, __global ulong4 *obj_norm, __global ulong4 *obj_rgh)
 {
-	int color = ft_trace_ray(origin, dir, obj_pos, obj_normal,
-							obj_radius, obj_color, obj_specular,
-							obj_mirrored, obj_transparency, obj_refractive_index,
-							obj_count, obj_type,
-							light_vec,
-							light_type, light_intensity, light_count,
-							min_dist, max_dist, depth, refl_i, effect, srnd,
-							obj_txt, obj_txt_norm_rgh_idx, obj_norm, obj_rgh);
+	float closest;
+	int obj_i = ft_closest_intersection(origin, dir, obj_pos, obj_normal,
+										obj_radius, obj_count, obj_type,
+										min_dist, max_dist, &closest, refl_i);
+	if (obj_i < 0)
+		return (BACKGROUND_COLOR);
+
+	float3 point;
+	point.x = origin.x + closest * dir.x;
+	point.y = origin.y + closest * dir.y;
+	point.z = origin.z + closest * dir.z;
+
+	float3 normal;
+	if (obj_type[obj_i] == SPHERE)
+		normal = ft_sph_normal_calc(dir, point, obj_pos[obj_i], normal);
+	else if (obj_type[obj_i] == PLANE)
+		normal = ft_plane_normal_calc(dir, obj_normal[obj_i], normal);
+	else if (obj_type[obj_i] == CONE)
+		normal = ft_cone_normal_calc(dir, point, obj_pos[obj_i], obj_normal[obj_i], obj_radius[obj_i], normal);
+	else if (obj_type[obj_i] == CYLINDER)
+		normal = ft_cylinder_normal_calc(dir, point, obj_pos[obj_i], obj_normal[obj_i], normal);
+
+	float2 uv;
+	if (effect.norm_mapping && obj_txt_norm_rgh_idx[obj_i].y >= 0)
+	{
+		if (obj_type[obj_i] == SPHERE)
+		{
+			uv.x = 0.5f + (float)atan2(normal.z, normal.x) / (float)(2.0f * 3.14159f);
+			uv.y = 0.5f - (float)asin(normal.y) / (float)3.14159f;
+			normal = ft_norm_mapping(normal, obj_norm, obj_txt_norm_rgh_idx[obj_i].y, uv);
+		}
+		else if (obj_type[obj_i] == PLANE)
+		{
+			float3 vec_temp;
+
+			if (normal.x != 0.0f || normal.y != 0.0f)
+			{
+				vec_temp.x = normal.y;
+				vec_temp.y = -normal.x;
+				vec_temp.z = 0.0f;
+				vec_temp = ft_vec_normalize(vec_temp);
+			}
+			else
+			{
+				vec_temp.x = 0.0f;
+				vec_temp.y = 1.0f;
+				vec_temp.z = 0.0f;
+				vec_temp = ft_vec_normalize(vec_temp);
+			}
+
+			float3 vec_tmp = ft_cross_prod(normal, vec_temp);
+			uv.x = 0.5f + (float)fmod(ft_dot_prod(vec_temp, point), 4.0f) / 8.0f;
+			uv.y = 0.5f + (float)fmod(ft_dot_prod(vec_tmp, point), 4.0f) / 8.0f;
+			normal = ft_norm_mapping(normal, obj_norm, obj_txt_norm_rgh_idx[obj_i].y, uv);
+		}
+		else if (obj_type[obj_i] == CONE)
+		{
+			float3 vec = ft_vec_transform(obj_pos[obj_i], obj_normal[obj_i], normal, point);
+			float p = (float)((float)vec.x / (float)vec.z) / (float)tan(obj_radius[obj_i]);
+			uv.x = (float)((vec.y > 0.0) ? acos(p) : (2.0f * 3.14159f - acos(p))) / (float)(2.0f * 3.14159f);
+			float v = 0.5f - modf(vec.z * 0.5f, &v) * 0.5f;
+			uv.y = v;
+			normal = ft_norm_mapping(normal, obj_norm, obj_txt_norm_rgh_idx[obj_i].y, uv);
+		}
+		else if (obj_type[obj_i] == CYLINDER)
+		{
+			float3 vec = ft_vec_transform(obj_pos[obj_i], obj_normal[obj_i], normal, point);
+			uv.x = 0.5f + ((float)atan2(vec.x, vec.y) / (float)(2.0f * 3.14159f));
+			float v = 0.5f - (modf((float)vec.z / (float)obj_radius[obj_i] * 0.25f, &v) * 0.5f);
+			uv.y = v;
+			normal = ft_norm_mapping(normal, obj_norm, obj_txt_norm_rgh_idx[obj_i].y, uv);
+		}
+	}
+
+	float3 neg_dir;
+	neg_dir.x = -dir.x;
+	neg_dir.y = -dir.y;
+	neg_dir.z = -dir.z;
+
+	float3 light_dir;
+	float s_max;
+
+	float intensity = 0.0f;
+	int i = -1;
+	while (++i < light_count)
+	{
+		if (light_type[i] == AMBIENT_L)
+			intensity += light_intensity[i];
+		else
+		{
+			float l_dist = 0.0f;
+			if (light_type[i] == POINT_L)
+			{
+				float dx = light_vec[i].x - point.x;
+				float dy = light_vec[i].y - point.y;
+				float dz = light_vec[i].z - point.z;
+				l_dist = sqrt(dx * dx + dy * dy + dz * dz);
+
+				light_dir.x = (float)(light_vec[i].x - point.x) / (float)l_dist;
+				light_dir.y = (float)(light_vec[i].y - point.y) / (float)l_dist;
+				light_dir.z = (float)(light_vec[i].z - point.z) / (float)l_dist;
+			}
+			else
+				continue;
+
+			
+			float s_i = 0.0f;
+
+			if (!effect.soft_shadows)
+			{
+				float s_closest;
+				int s_obj_i = ft_shadow_intersection(point, light_dir, obj_pos, obj_normal,
+													obj_radius, obj_count, obj_type,
+													0.000001f, l_dist, obj_i);
+				if (s_obj_i >= 0)
+					s_i = 1.0f - obj_transparency[s_obj_i];
+					//continue;
+			}
+			else
+			{
+				float x1 = point.x;
+				float y1 = point.z;
+				float x2 = light_vec[i].x;
+				float y2 = light_vec[i].z;
+				float len = sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+
+				float xxx = (float)(1.0f * (y1 - y2)) / (float)len;
+				float yyy = (float)(1.0f * (x2 - x1)) / (float)len;
+
+				float2 vec[4];
+				vec[0].x = x2 + xxx;
+				vec[0].y = y2 + yyy;
+				vec[1].x = x2 - xxx;
+				vec[1].y = y2 + yyy;
+				vec[2].x = x2 + xxx;
+				vec[2].y = y2 - yyy;
+				vec[3].x = x2 - xxx;
+				vec[3].y = y2 - yyy;
+
+				int idx = 0;
+				int f = -1;
+				while (++f < 4)
+				{
+					float dx = vec[f].x - x2;
+					float dy = vec[f].y - y2;
+					float dist = sqrt(dx * dx + dy * dy);
+					if (dist == 1.0f)
+					{
+						idx = f;
+						break;
+					}
+				}
+
+				float3 l_vec = (float3)(vec[idx].x, light_vec[i].y + 1.0f, vec[idx].y);
+				float3 diff = (float3)(light_vec[i].x - l_vec.x, l_vec.y, light_vec[i].z - l_vec.z);
+				float3 r_vec = (float3)(light_vec[i].x + diff.x, l_vec.y, light_vec[i].z + diff.z);
+
+				float3 v_cell[4];
+				float step = (float)(2.0f * 1.0f) / (float)effect.ss_cell;
+
+				float2 temp = (float2)(r_vec.x - l_vec.x, r_vec.z - l_vec.z);
+				float temp_len = sqrt(temp.x * temp.x + temp.y * temp.y);
+				float2 u = (float2)((float)temp.x / (float)temp_len, (float)temp.y / (float)temp_len);
+
+				int c = -1;
+				while (++c < effect.ss_cell)
+				{
+					v_cell[c].x = l_vec.x + (step * c) * u.x;
+					v_cell[c].y = l_vec.y;
+					v_cell[c].z = l_vec.z + (step * c) * u.y;
+				}
+
+				float sh = 0;
+
+				int xx = -1;
+				while (++xx < effect.ss_cell)
+				{
+					int yy = -1;
+					while (++yy < effect.ss_cell)
+					{
+						float rnd = rand(srnd.fgi, 0.0f, srnd.seed, srnd) * step;
+
+						float cell_x = v_cell[xx].x + rnd;
+						float cell_y = v_cell[xx].y - (yy * step) + rnd;
+						float cell_z = v_cell[xx].z + rnd;
+
+						float dx = point.x - cell_x;
+						float dy = point.y - cell_y;
+						float dz = point.z - cell_z;
+						float dist = sqrt(dx * dx + dy * dy + dz * dz);
+
+						float3 ss_dir;
+						ss_dir.x = (float)(cell_x - point.x) / (float)dist;
+						ss_dir.y = (float)(cell_y - point.y) / (float)dist;
+						ss_dir.z = (float)(cell_z - point.z) / (float)dist;
+
+						int s_obj_i = ft_shadow_intersection(point, ss_dir, obj_pos, obj_normal,
+															obj_radius, obj_count, obj_type,
+															0.000001f, dist, obj_i);
+						if (s_obj_i >= 0)
+						{
+							sh += 1.0f;
+							sh -= obj_transparency[s_obj_i];
+						}
+					}
+				}
+				s_i = (float)sh / (float)(effect.ss_cell * effect.ss_cell);
+			}
+
+
+
+			float n_dot_l = ft_dot_prod(normal, light_dir);
+			if (n_dot_l > 0.0f)
+			{
+				float intens = (float)(light_intensity[i] * n_dot_l) / (float)(ft_vec_len(normal) * ft_vec_len(light_dir));
+				intens = intens * (1.0f - s_i);
+				intensity += intens;
+			}
+
+			if (obj_specular[obj_i] > 0.0f)
+			{
+				float dot = ft_dot_prod(normal, light_dir);
+				float3 s_refl;
+				s_refl.x = 2.0f * normal.x * dot - light_dir.x;
+				s_refl.y = 2.0f * normal.y * dot - light_dir.y;
+				s_refl.z = 2.0f * normal.z * dot - light_dir.z;
+
+				float r_dot_v = ft_dot_prod(s_refl, neg_dir);
+				if (r_dot_v > 0.0f)
+				{
+					float intens = (light_intensity[i] * pow((float)r_dot_v / (float)(ft_vec_len(s_refl) * ft_vec_len(neg_dir)), (int)obj_specular[obj_i]));
+					intens = intens * (1.0f - s_i);
+					intensity += intens;
+				}
+			}
+		}
+	}
+
+	if (intensity > 1.0f)
+		intensity = 1.0f;
+
+	if (effect.effect_type == CEL_SHADING)
+	{
+		float cel_dot = ft_dot_prod(dir, normal);
+		float cel_acc = 1.0f / (float)effect.cel_band;
+		float curr_intensity = 0.0f;
+		int cel_f = 0;
+		int cel_i = -1;
+		while (++cel_i < effect.cel_band)
+		{
+			if (intensity >= curr_intensity && intensity < (curr_intensity + cel_acc))
+			{
+				intensity = curr_intensity + ((float)cel_acc * 0.5f);
+				cel_f = 1;
+				break;
+			}
+			curr_intensity += cel_acc;
+		}
+	}
+
+	int color = obj_color[obj_i];
+	if (obj_txt_norm_rgh_idx[obj_i].x >= 0)
+	{
+		if (effect.norm_mapping && obj_txt_norm_rgh_idx[obj_i].y >= 0)
+		{
+			int tx = (float)uv.x * obj_txt[obj_txt_norm_rgh_idx[obj_i].x].x;
+			int ty = (float)uv.y * obj_txt[obj_txt_norm_rgh_idx[obj_i].x].y;
+			int pix = ty * obj_txt[obj_txt_norm_rgh_idx[obj_i].x].x + tx + obj_txt[obj_txt_norm_rgh_idx[obj_i].x].w;
+			pix = (pix >= obj_txt[TXT].w) ? obj_txt[TXT].w - 1 : pix;
+			color = obj_txt[pix].z;
+		}
+		else if (obj_txt_norm_rgh_idx[obj_i].y == -1 || !effect.norm_mapping)
+		{
+			if (obj_type[obj_i] == SPHERE)
+			{
+				float u = 0.5f + (float)atan2(normal.z, normal.x) / (float)(2.0f * 3.14159f);
+				float v = 0.5f - (float)asin(normal.y) / (float)3.14159f;
+				uv.x = u;
+				uv.y = v;
+				int tx = (float)u * obj_txt[obj_txt_norm_rgh_idx[obj_i].x].x;
+				int ty = (float)v * obj_txt[obj_txt_norm_rgh_idx[obj_i].x].y;
+				int pix = ty * obj_txt[obj_txt_norm_rgh_idx[obj_i].x].x + tx + obj_txt[obj_txt_norm_rgh_idx[obj_i].x].w;
+				pix = (pix >= obj_txt[TXT].w) ? obj_txt[TXT].w - 1 : pix;
+				color = obj_txt[pix].z;
+			}
+			else if (obj_type[obj_i] == PLANE)
+			{
+				float3 vec_temp;
+
+				if (normal.x != 0.0f || normal.y != 0.0f)
+				{
+					vec_temp.x = normal.y;
+					vec_temp.y = -normal.x;
+					vec_temp.z = 0.0f;
+					vec_temp = ft_vec_normalize(vec_temp);
+				}
+				else
+				{
+					vec_temp.x = 0.0f;
+					vec_temp.y = 1.0f;
+					vec_temp.z = 0.0f;
+					vec_temp = ft_vec_normalize(vec_temp);
+				}
+
+				float3 vec_tmp = ft_cross_prod(normal, vec_temp);
+				float u = 0.5f + (float)fmod(ft_dot_prod(vec_temp, point), 4.0f) / 8.0f;
+				float v = 0.5f + (float)fmod(ft_dot_prod(vec_tmp, point), 4.0f) / 8.0f;
+				uv.x = u;
+				uv.y = v;
+				int tx = (float)u * obj_txt[obj_txt_norm_rgh_idx[obj_i].x].x;
+				int ty = (float)v * obj_txt[obj_txt_norm_rgh_idx[obj_i].x].y;
+				int pix = ty * obj_txt[obj_txt_norm_rgh_idx[obj_i].x].x + tx + obj_txt[obj_txt_norm_rgh_idx[obj_i].x].w;
+				pix = (pix >= obj_txt[TXT].w) ? obj_txt[TXT].w - 1 : pix;
+				color = obj_txt[pix].z;
+			}
+			else if (obj_type[obj_i] == CYLINDER)
+			{
+				float3 vec = ft_vec_transform(obj_pos[obj_i], obj_normal[obj_i], normal, point);
+				float u = 0.5f + ((float)atan2(vec.x, vec.y) / (float)(2.0f * 3.14159f));
+				float v = 0.5f - (modf((float)vec.z / (float)obj_radius[obj_i] * 0.25f, &v) * 0.5f);
+				uv.x = u;
+				uv.y = v;
+				int tx = (float)u * obj_txt[obj_txt_norm_rgh_idx[obj_i].x].x;
+				int ty = (float)v * obj_txt[obj_txt_norm_rgh_idx[obj_i].x].y;
+				int pix = ty * obj_txt[obj_txt_norm_rgh_idx[obj_i].x].x + tx + obj_txt[obj_txt_norm_rgh_idx[obj_i].x].w;
+				pix = (pix >= obj_txt[TXT].w) ? obj_txt[TXT].w - 1 : pix;
+				color = obj_txt[pix].z;
+			}
+			else if (obj_type[obj_i] == CONE)
+			{
+				float3 vec = ft_vec_transform(obj_pos[obj_i], obj_normal[obj_i], normal, point);
+				float p = (float)((float)vec.x / (float)vec.z) / (float)tan(obj_radius[obj_i]);
+				float u = (float)((vec.y > 0.0) ? acos(p) : (2.0f * 3.14159f - acos(p))) / (float)(2.0f * 3.14159f);
+				float v = 0.5f - modf(vec.z * 0.5f, &v) * 0.5f;
+				uv.x = u;
+				uv.y = v;
+				int tx = (float)u * obj_txt[obj_txt_norm_rgh_idx[obj_i].x].x;
+				int ty = (float)v * obj_txt[obj_txt_norm_rgh_idx[obj_i].x].y;
+				int pix = ty * obj_txt[obj_txt_norm_rgh_idx[obj_i].x].x + tx + obj_txt[obj_txt_norm_rgh_idx[obj_i].x].w;
+				pix = (pix >= obj_txt[TXT].w) ? obj_txt[TXT].w - 1 : pix;
+				color = obj_txt[pix].z;
+			}
+		}
+	}
+
+	color = ft_color_convert(color, intensity);
+
+	/*float mirror = obj->mirrored;
+	if (obj->rgh && mirror > 0.0f)
+	{
+		if ((obj->norm && mlx->norm_mapping) || obj->txt)
+		{
+			int tx = obj->uv->x * obj->rgh->w;
+			int ty = obj->uv->y * obj->rgh->h;
+			int clr = obj->rgh->data[ty * obj->rgh->w + tx];
+			mirror = (1.0 - (float)((clr >> 16) & 0xFF) / 255.0f) * mirror;
+		}
+		else
+			mirror = obj->rgh_mapping(obj, mlx->normal, mlx->point);
+	}*/
+	float mirror = obj_mirrored[obj_i];
+	if (obj_txt_norm_rgh_idx[obj_i].z >= 0 && mirror > 0.0f)
+	{
+		if ((obj_txt_norm_rgh_idx[obj_i].y >= 0 && effect.norm_mapping) || obj_txt_norm_rgh_idx[obj_i].x >= 0)
+		{
+			int tx = (float)uv.x * obj_rgh[obj_txt_norm_rgh_idx[obj_i].z].x;
+			int ty = (float)uv.y * obj_rgh[obj_txt_norm_rgh_idx[obj_i].z].y;
+			int pix = ty * obj_rgh[obj_txt_norm_rgh_idx[obj_i].z].x + tx + obj_rgh[obj_txt_norm_rgh_idx[obj_i].z].w;
+			pix = (pix >= obj_rgh[RGH].w) ? obj_rgh[RGH].w - 1 : pix;
+			int clr = obj_rgh[pix].z;
+			mirror = (1.0 - (float)((clr >> 16) & 0xFF) / 255.0f) * mirror;
+		}
+		else
+		{
+			if (obj_type[obj_i] == SPHERE)
+				mirror = ft_sph_rgh_map(obj_rgh, obj_txt_norm_rgh_idx[obj_i].z, normal, mirror);
+			else if (obj_type[obj_i] == PLANE)
+				mirror = ft_plane_rgh_map(obj_rgh, obj_txt_norm_rgh_idx[obj_i].z, normal, point, mirror);
+			else if (obj_type[obj_i] == CYLINDER)
+				mirror = ft_cylinder_rgh_map(obj_rgh, obj_txt_norm_rgh_idx[obj_i].z, obj_pos[obj_i], obj_normal[obj_i], obj_radius[obj_i], normal, point, mirror);
+			else if (obj_type[obj_i] == CONE)
+				mirror = ft_cone_rgh_map(obj_rgh, obj_txt_norm_rgh_idx[obj_i].z, obj_pos[obj_i], obj_normal[obj_i], obj_radius[obj_i], normal, point, mirror);
+		}
+	}
+
+	if (mirror > 0.0f && depth <= MAX_DEPTH)
+	{
+		float refl_dot = ft_dot_prod(neg_dir, normal);
+
+		float3 refl_ray;
+		refl_ray.x = 2.0f * refl_dot * normal.x - neg_dir.x;
+		refl_ray.y = 2.0f * refl_dot * normal.y - neg_dir.y;
+		refl_ray.z = 2.0f * refl_dot * normal.z - neg_dir.z;
+
+		int refl_color = ft_trace_ray_rec(point, refl_ray, obj_pos, obj_normal,
+											obj_radius, obj_color, obj_specular,
+											obj_mirrored, obj_transparency, obj_refractive_index,
+											obj_count, obj_type,
+											light_vec,
+											light_type, light_intensity, light_count,
+											0.000001f, MAX_FLT, depth + 1, obj_i, effect, srnd,
+											obj_txt, obj_txt_norm_rgh_idx, obj_norm,obj_rgh);
+
+		color = ft_sum_color(color, refl_color, 1.0f - mirror, mirror);
+	}
+
+	if (obj_transparency[obj_i] > 0.0f && depth <= MAX_DEPTH)
+	{
+		float3 refr_ray = ft_refract(dir, normal, obj_refractive_index[obj_i], refr_ray);
+
+		int trans_color = ft_trace_ray_rec(point, refr_ray, obj_pos, obj_normal,
+											obj_radius, obj_color, obj_specular,
+											obj_mirrored, obj_transparency, obj_refractive_index,
+											obj_count, obj_type,
+											light_vec,
+											light_type, light_intensity, light_count,
+											0.000001f, MAX_FLT, depth + 1, obj_i, effect, srnd,
+											obj_txt, obj_txt_norm_rgh_idx, obj_norm,obj_rgh);
+
+		color = ft_sum_color(color, trans_color, 1.0f - obj_transparency[obj_i], obj_transparency[obj_i]);
+	}
 	return (color);
 }
 
@@ -1236,6 +1649,10 @@ __kernel void render(__global unsigned int *buffer,
 
 	int y = pixel / W - (H * 0.5f);
 	int x = pixel % W - (W * 0.5f);
+	if (x >= W || y >= H)
+		return;
+	//buffer[pixel] = 0x992599;
+	//return;
 
 	
 	t_effect effect;
