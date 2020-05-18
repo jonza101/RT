@@ -1119,81 +1119,6 @@ int		ft_trace_ray_rec(float3 origin, float3 dir,
 	}
 
 	color = ft_color_convert(color, intensity);
-
-	/*float mirror = obj->mirrored;
-	if (obj->rgh && mirror > 0.0f)
-	{
-		if ((obj->norm && mlx->norm_mapping) || obj->txt)
-		{
-			int tx = obj->uv->x * obj->rgh->w;
-			int ty = obj->uv->y * obj->rgh->h;
-			int clr = obj->rgh->data[ty * obj->rgh->w + tx];
-			mirror = (1.0 - (float)((clr >> 16) & 0xFF) / 255.0f) * mirror;
-		}
-		else
-			mirror = obj->rgh_mapping(obj, mlx->normal, mlx->point);
-	}*/
-	float mirror = obj_mirrored[obj_i];
-	if (obj_txt_norm_rgh_idx[obj_i].z >= 0 && mirror > 0.0f)
-	{
-		if ((obj_txt_norm_rgh_idx[obj_i].y >= 0 && effect.norm_mapping) || obj_txt_norm_rgh_idx[obj_i].x >= 0)
-		{
-			int tx = (float)uv.x * obj_rgh[obj_txt_norm_rgh_idx[obj_i].z].x;
-			int ty = (float)uv.y * obj_rgh[obj_txt_norm_rgh_idx[obj_i].z].y;
-			int pix = ty * obj_rgh[obj_txt_norm_rgh_idx[obj_i].z].x + tx + obj_rgh[obj_txt_norm_rgh_idx[obj_i].z].w;
-			pix = (pix >= obj_rgh[RGH].w) ? obj_rgh[RGH].w - 1 : pix;
-			int clr = obj_rgh[pix].z;
-			mirror = (1.0 - (float)((clr >> 16) & 0xFF) / 255.0f) * mirror;
-		}
-		else
-		{
-			if (obj_type[obj_i] == SPHERE)
-				mirror = ft_sph_rgh_map(obj_rgh, obj_txt_norm_rgh_idx[obj_i].z, normal, mirror);
-			else if (obj_type[obj_i] == PLANE)
-				mirror = ft_plane_rgh_map(obj_rgh, obj_txt_norm_rgh_idx[obj_i].z, normal, point, mirror);
-			else if (obj_type[obj_i] == CYLINDER)
-				mirror = ft_cylinder_rgh_map(obj_rgh, obj_txt_norm_rgh_idx[obj_i].z, obj_pos[obj_i], obj_normal[obj_i], obj_radius[obj_i], normal, point, mirror);
-			else if (obj_type[obj_i] == CONE)
-				mirror = ft_cone_rgh_map(obj_rgh, obj_txt_norm_rgh_idx[obj_i].z, obj_pos[obj_i], obj_normal[obj_i], obj_radius[obj_i], normal, point, mirror);
-		}
-	}
-
-	if (mirror > 0.0f && depth <= MAX_DEPTH)
-	{
-		float refl_dot = ft_dot_prod(neg_dir, normal);
-
-		float3 refl_ray;
-		refl_ray.x = 2.0f * refl_dot * normal.x - neg_dir.x;
-		refl_ray.y = 2.0f * refl_dot * normal.y - neg_dir.y;
-		refl_ray.z = 2.0f * refl_dot * normal.z - neg_dir.z;
-
-		int refl_color = ft_trace_ray_rec(point, refl_ray, obj_pos, obj_normal,
-											obj_radius, obj_color, obj_specular,
-											obj_mirrored, obj_transparency, obj_refractive_index,
-											obj_count, obj_type,
-											light_vec,
-											light_type, light_intensity, light_count,
-											0.000001f, MAX_FLT, depth + 1, obj_i, effect, srnd,
-											obj_txt, obj_txt_norm_rgh_idx, obj_norm,obj_rgh);
-
-		color = ft_sum_color(color, refl_color, 1.0f - mirror, mirror);
-	}
-
-	if (obj_transparency[obj_i] > 0.0f && depth <= MAX_DEPTH)
-	{
-		float3 refr_ray = ft_refract(dir, normal, obj_refractive_index[obj_i], refr_ray);
-
-		int trans_color = ft_trace_ray_rec(point, refr_ray, obj_pos, obj_normal,
-											obj_radius, obj_color, obj_specular,
-											obj_mirrored, obj_transparency, obj_refractive_index,
-											obj_count, obj_type,
-											light_vec,
-											light_type, light_intensity, light_count,
-											0.000001f, MAX_FLT, depth + 1, obj_i, effect, srnd,
-											obj_txt, obj_txt_norm_rgh_idx, obj_norm,obj_rgh);
-
-		color = ft_sum_color(color, trans_color, 1.0f - obj_transparency[obj_i], obj_transparency[obj_i]);
-	}
 	return (color);
 }
 
@@ -1555,19 +1480,6 @@ int		ft_trace_ray(float3 origin, float3 dir,
 
 	color = ft_color_convert(color, intensity);
 
-	/*float mirror = obj->mirrored;
-	if (obj->rgh && mirror > 0.0f)
-	{
-		if ((obj->norm && mlx->norm_mapping) || obj->txt)
-		{
-			int tx = obj->uv->x * obj->rgh->w;
-			int ty = obj->uv->y * obj->rgh->h;
-			int clr = obj->rgh->data[ty * obj->rgh->w + tx];
-			mirror = (1.0 - (float)((clr >> 16) & 0xFF) / 255.0f) * mirror;
-		}
-		else
-			mirror = obj->rgh_mapping(obj, mlx->normal, mlx->point);
-	}*/
 	float mirror = obj_mirrored[obj_i];
 	if (obj_txt_norm_rgh_idx[obj_i].z >= 0 && mirror > 0.0f)
 	{
