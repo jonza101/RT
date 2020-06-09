@@ -6,7 +6,7 @@
 /*   By: zjeyne-l <zjeyne-l@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/11/03 23:36:16 by zjeyne-l          #+#    #+#             */
-/*   Updated: 2020/05/19 00:09:27 by zjeyne-l         ###   ########.fr       */
+/*   Updated: 2020/06/09 17:59:18 by zjeyne-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -268,81 +268,81 @@ void	ft_init_gpu(t_mlx *mlx)
 ////////////////////////////////////////BUFFER////////////////////////////////////////////
 void	ft_obj_buffer(t_mlx *mlx)
 {
-	mlx->gpu_obj_pos = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_float3) * (mlx->obj_count), mlx->obj_pos, &mlx->ret);
+	mlx->gpu_obj_pos = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_ALLOC_HOST_PTR | CL_MEM_COPY_HOST_PTR, sizeof(cl_float3) * (mlx->obj_count), mlx->obj_pos, &mlx->ret);
 	if (!mlx->gpu_obj_pos || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
 	}
-	mlx->gpu_obj_normal = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_float3) * (mlx->obj_count), mlx->obj_normal, &mlx->ret);
+	mlx->gpu_obj_normal = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_ALLOC_HOST_PTR | CL_MEM_COPY_HOST_PTR, sizeof(cl_float3) * (mlx->obj_count), mlx->obj_normal, &mlx->ret);
 	if (!mlx->gpu_obj_normal || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
 	}
 
-	mlx->gpu_obj_radius = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * (mlx->obj_count), mlx->obj_radius, &mlx->ret);
+	mlx->gpu_obj_radius = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_ALLOC_HOST_PTR | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * (mlx->obj_count), mlx->obj_radius, &mlx->ret);
 	if (!mlx->gpu_obj_radius || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
 	}
-	mlx->gpu_obj_color = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_int) * (mlx->obj_count), mlx->obj_color, &mlx->ret);
+	mlx->gpu_obj_color = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_ALLOC_HOST_PTR | CL_MEM_COPY_HOST_PTR, sizeof(cl_int) * (mlx->obj_count), mlx->obj_color, &mlx->ret);
 	if (!mlx->gpu_obj_color || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
 	}
-	mlx->gpu_obj_specular = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * (mlx->obj_count), mlx->obj_specular, &mlx->ret);
+	mlx->gpu_obj_specular = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_ALLOC_HOST_PTR | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * (mlx->obj_count), mlx->obj_specular, &mlx->ret);
 	if (!mlx->gpu_obj_specular || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
 	}
-	mlx->gpu_obj_mirrored = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * (mlx->obj_count), mlx->obj_mirrored, &mlx->ret);
+	mlx->gpu_obj_mirrored = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_ALLOC_HOST_PTR | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * (mlx->obj_count), mlx->obj_mirrored, &mlx->ret);
 	if (!mlx->gpu_obj_mirrored || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
 	}
-	mlx->gpu_obj_transparency = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * (mlx->obj_count), mlx->obj_transparency, &mlx->ret);
+	mlx->gpu_obj_transparency = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_ALLOC_HOST_PTR | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * (mlx->obj_count), mlx->obj_transparency, &mlx->ret);
 	if (!mlx->gpu_obj_transparency || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
 	}
-	mlx->gpu_obj_refractive_index = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * (mlx->obj_count), mlx->obj_refractive_index, &mlx->ret);
+	mlx->gpu_obj_refractive_index = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_ALLOC_HOST_PTR | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * (mlx->obj_count), mlx->obj_refractive_index, &mlx->ret);
 	if (!mlx->gpu_obj_refractive_index || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
 	}
-	mlx->gpu_obj_type = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_int) * (mlx->obj_count), mlx->obj_type, &mlx->ret);
+	mlx->gpu_obj_type = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_ALLOC_HOST_PTR | CL_MEM_COPY_HOST_PTR, sizeof(cl_int) * (mlx->obj_count), mlx->obj_type, &mlx->ret);
 	if (!mlx->gpu_obj_type || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
 	}
 
-	mlx->gpu_obj_txt = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_ulong4) * (mlx->txt_pix), mlx->obj_txt, &mlx->ret);
+	mlx->gpu_obj_txt = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_ALLOC_HOST_PTR | CL_MEM_COPY_HOST_PTR, sizeof(cl_ulong4) * (mlx->txt_pix), mlx->obj_txt, &mlx->ret);
 	if (!mlx->gpu_obj_txt || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
 	}
-	mlx->gpu_txt_norm_rgh_idx = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_int3) * (mlx->obj_count), mlx->obj_txt_norm_rgh_idx, &mlx->ret);
+	mlx->gpu_txt_norm_rgh_idx = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_ALLOC_HOST_PTR | CL_MEM_COPY_HOST_PTR, sizeof(cl_int3) * (mlx->obj_count), mlx->obj_txt_norm_rgh_idx, &mlx->ret);
 	if (!mlx->gpu_txt_norm_rgh_idx || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
 	}
-	mlx->gpu_obj_norm = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_ulong4) * (mlx->norm_pix), mlx->obj_norm_map, &mlx->ret);
+	mlx->gpu_obj_norm = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_ALLOC_HOST_PTR | CL_MEM_COPY_HOST_PTR, sizeof(cl_ulong4) * (mlx->norm_pix), mlx->obj_norm_map, &mlx->ret);
 	if (!mlx->gpu_obj_norm || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error %d\n", mlx->ret);
 		exit(0);
 	}
-	mlx->gpu_obj_rgh = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_ulong4) * (mlx->rgh_pix), mlx->obj_rgh_map, &mlx->ret);
+	mlx->gpu_obj_rgh = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_ALLOC_HOST_PTR | CL_MEM_COPY_HOST_PTR, sizeof(cl_ulong4) * (mlx->rgh_pix), mlx->obj_rgh_map, &mlx->ret);
 	if (!mlx->gpu_obj_rgh || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error %d\n", mlx->ret);
@@ -352,20 +352,20 @@ void	ft_obj_buffer(t_mlx *mlx)
 
 void	ft_light_buffer(t_mlx *mlx)
 {
-	mlx->gpu_light_vec = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_float3) * (mlx->light_count), mlx->light_vec, &mlx->ret);
+	mlx->gpu_light_vec = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_ALLOC_HOST_PTR | CL_MEM_COPY_HOST_PTR, sizeof(cl_float3) * (mlx->light_count), mlx->light_vec, &mlx->ret);
 	if (!mlx->gpu_light_vec || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error4 %d\n", mlx->ret);
 		exit(0);
 	}
 
-	mlx->gpu_light_type = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_int) * (mlx->light_count), mlx->light_type, &mlx->ret);
+	mlx->gpu_light_type = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_ALLOC_HOST_PTR | CL_MEM_COPY_HOST_PTR, sizeof(cl_int) * (mlx->light_count), mlx->light_type, &mlx->ret);
 	if (!mlx->gpu_light_type || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error4 %d\n", mlx->ret);
 		exit(0);
 	}
-	mlx->gpu_light_intensity = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * (mlx->light_count), mlx->light_intensity, &mlx->ret);
+	mlx->gpu_light_intensity = clCreateBuffer(mlx->contex, CL_MEM_READ_ONLY | CL_MEM_ALLOC_HOST_PTR | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * (mlx->light_count), mlx->light_intensity, &mlx->ret);
 	if (!mlx->gpu_light_intensity || mlx->ret != CL_SUCCESS)
 	{
 		printf("buffer_create error5 %d\n", mlx->ret);
